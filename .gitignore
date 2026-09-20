@@ -1,0 +1,8 @@
+/tools/
+/build/
+/fixtures/
+/models/
+/tmp/
+__pycache__/
+third_party/filament/
+third_party/filament-install/

@@ -1,0 +1,2164 @@
+diff --git a/filament/backend/include/backend/VulkanInterop.h b/filament/backend/include/backend/VulkanInterop.h
+new file mode 100644
+index 00000000..ade2cc67
+--- /dev/null
++++ b/filament/backend/include/backend/VulkanInterop.h
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (C) 2026 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef TNT_FILAMENT_BACKEND_VULKANINTEROP_H
++#define TNT_FILAMENT_BACKEND_VULKANINTEROP_H
++
++#include <bluevk/BlueVK.h>
++
++#include <utils/Invocable.h>
++
++#include <stdint.h>
++
++namespace filament::backend {
++
++/**
++ * A Filament texture as the Vulkan backend holds it (VulkanInteropContext::getTexture()).
++ */
++struct VulkanInteropTexture {
++    VkImage image = VK_NULL_HANDLE;
++    VkFormat format = VK_FORMAT_UNDEFINED;
++    VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;   // the layout the backend tracks for level 0
++    VkImageAspectFlags aspect = 0;
++    uint32_t width = 0;
++    uint32_t height = 0;
++    uint32_t levels = 0;
++    uint32_t layers = 0;
++};
++
++/**
++ * What a command queued with Engine::queueVulkanCommand() runs with, on the backend thread.
++ *
++ * The command is responsible for the synchronization of what it records (pipeline barriers, layout
++ * transitions). Filament tracks the layout of its textures: after changing one, the command must
++ * report the new layout with setTextureLayout(), so that the backend's next transition starts
++ * from the right layout.
++ */
++class VulkanInteropContext {
++public:
++    virtual VkDevice getDevice() const noexcept = 0;
++    virtual VkQueue getGraphicsQueue() const noexcept = 0;
++
++    /** the command buffer the backend is recording, outside of any render pass */
++    virtual VkCommandBuffer getCommandBuffer() noexcept = 0;
++
++    /** a texture, by the handle Engine::getVulkanInteropTextureHandle() returned */
++    virtual VulkanInteropTexture getTexture(uint32_t textureHandle) noexcept = 0;
++
++    /** reports a layout change of the whole image that the command recorded itself */
++    virtual void setTextureLayout(uint32_t textureHandle, VkImageLayout layout) noexcept = 0;
++
++protected:
++    ~VulkanInteropContext() = default;
++};
++
++using VulkanInteropCommand = utils::Invocable<void(VulkanInteropContext&)>;
++
++} // namespace filament::backend
++
++#endif // TNT_FILAMENT_BACKEND_VULKANINTEROP_H
+diff --git a/filament/backend/include/private/backend/Driver.h b/filament/backend/include/private/backend/Driver.h
+index 2067d874..f3b37c64 100644
+--- a/filament/backend/include/private/backend/Driver.h
++++ b/filament/backend/include/private/backend/Driver.h
+@@ -30,6 +30,7 @@
+ #include <utils/CString.h>
+ #include <utils/ImmutableCString.h>
+ #include <utils/FixedCapacityVector.h>
++#include <utils/Invocable.h>
+ #include <utils/compiler.h>
+ 
+ #include <functional>
+@@ -61,6 +62,8 @@ class ConcreteDispatcher;
+ class Dispatcher;
+ class CommandStream;
+ 
++class VulkanInteropContext;
++
+ class Driver {
+ public:
+     virtual ~Driver() noexcept;
+@@ -103,6 +106,11 @@ public:
+     // so it doesn't matter that it's virtual.
+     virtual Dispatcher getDispatcher() const noexcept = 0;
+ 
++    // Vulkan interop (Engine::queueVulkanCommand): runs the command on the backend thread with the
++    // backend's objects. Other backends leave it unimplemented and return false.
++    virtual bool runVulkanInterop(
++            utils::Invocable<void(VulkanInteropContext&)>& command) noexcept { return false; }
++
+     // called from CommandStream::execute on the render-thread
+     // the fn function will execute a batch of driver commands
+     // this gives the driver a chance to wrap their execution in a meaningful manner
+diff --git a/filament/backend/src/vulkan/VulkanDriver.cpp b/filament/backend/src/vulkan/VulkanDriver.cpp
+index 5c4f5aef..08c0871d 100644
+--- a/filament/backend/src/vulkan/VulkanDriver.cpp
++++ b/filament/backend/src/vulkan/VulkanDriver.cpp
+@@ -35,6 +35,8 @@
+ #include "vulkan/utils/Definitions.h"
+ #include "vulkan/utils/Image.h"
+ 
++#include <backend/VulkanInterop.h>
++
+ #include <backend/DriverEnums.h>
+ #include <backend/platforms/VulkanPlatform.h>
+ 
+@@ -3031,6 +3033,82 @@ void VulkanDriver::endTimerQuery(Handle<HwTimerQuery> tqh) {
+     mQueryManager.endQuery(&(mCommands.get()), vtq);
+ }
+ 
++bool VulkanDriver::runVulkanInterop(
++        utils::Invocable<void(VulkanInteropContext&)>& command) noexcept {
++    struct Context final : public VulkanInteropContext {
++        VulkanDriver& driver;
++        explicit Context(VulkanDriver& driver) : driver(driver) {}
++        VkDevice getDevice() const noexcept override { return driver.mPlatform->getDevice(); }
++        VkQueue getGraphicsQueue() const noexcept override {
++            return driver.mPlatform->getGraphicsQueue();
++        }
++        VkCommandBuffer getCommandBuffer() noexcept override {
++            return driver.mCommands.get().buffer();
++        }
++        VulkanInteropTexture getTexture(uint32_t const textureHandle) noexcept override {
++            if (!textureHandle) {
++                return {};
++            }
++            auto texture = resource_ptr<VulkanTexture>::cast(&driver.mResourceManager,
++                    Handle<HwTexture>{ textureHandle });
++            VkImageSubresourceRange const& range = texture->getPrimaryViewRange();
++            return {
++                .image = texture->getVkImage(),
++                .format = texture->getVkFormat(),
++                .layout = fvkutils::getVkLayout(texture->getLayout(0, 0)),
++                .aspect = range.aspectMask,
++                .width = texture->width,
++                .height = texture->height,
++                .levels = texture->levels,
++                .layers = range.layerCount,
++            };
++        }
++        void setTextureLayout(uint32_t const textureHandle, VkImageLayout const layout) noexcept override {
++            if (!textureHandle) {
++                return;
++            }
++            auto texture = resource_ptr<VulkanTexture>::cast(&driver.mResourceManager,
++                    Handle<HwTexture>{ textureHandle });
++            bool const isDepth = fvkutils::isVkDepthFormat(texture->getVkFormat());
++            VulkanLayout tracked = VulkanLayout::UNDEFINED;
++            switch (layout) {
++                case VK_IMAGE_LAYOUT_GENERAL:
++                    tracked = isDepth ? VulkanLayout::DEPTH_SAMPLER : VulkanLayout::STAGING;
++                    break;
++                case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
++                    tracked = VulkanLayout::FRAG_READ;
++                    break;
++                case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
++                    tracked = VulkanLayout::TRANSFER_SRC;
++                    break;
++                case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
++                    tracked = VulkanLayout::TRANSFER_DST;
++                    break;
++                case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
++                    tracked = VulkanLayout::COLOR_ATTACHMENT;
++                    break;
++                case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
++                    tracked = VulkanLayout::DEPTH_STENCIL_ATTACHMENT;
++                    break;
++                case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
++                    tracked = VulkanLayout::PRESENT;
++                    break;
++                default:
++                    break;
++            }
++            VkImageSubresourceRange range = texture->getPrimaryViewRange();
++            range.baseMipLevel = 0;
++            range.levelCount = texture->levels;
++            texture->setLayout(range, tracked);
++        }
++    };
++    Context context{ *this };
++    if (command) {
++        command(context);
++    }
++    return true;
++}
++
+ void VulkanDriver::queueCommandAsyncR(AsyncCallId jobId, utils::Invocable<void()>&& command,
+         CallbackHandler* handler, AsyncCallback const callback, void* user) {
+     assert_invariant(getJobQueue());
+diff --git a/filament/backend/src/vulkan/VulkanDriver.h b/filament/backend/src/vulkan/VulkanDriver.h
+index 8b513e4e..6a343cc7 100644
+--- a/filament/backend/src/vulkan/VulkanDriver.h
++++ b/filament/backend/src/vulkan/VulkanDriver.h
+@@ -98,6 +98,8 @@ private:
+ 
+ #include "private/backend/DriverAPI.inc"
+ 
++    bool runVulkanInterop(utils::Invocable<void(VulkanInteropContext&)>& command) noexcept override;
++
+     VulkanDriver(VulkanDriver const&) = delete;
+     VulkanDriver& operator=(VulkanDriver const&) = delete;
+ 
+diff --git a/filament/include/filament/Engine.h b/filament/include/filament/Engine.h
+index c8d6e6de..b3264711 100644
+--- a/filament/include/filament/Engine.h
++++ b/filament/include/filament/Engine.h
+@@ -47,6 +47,8 @@ namespace filament {
+ 
+ namespace backend {
+ class Driver;
++class VulkanInteropContext;
++using VulkanInteropCommand = utils::Invocable<void(VulkanInteropContext&)>;
+ } // backend
+ 
+ class BufferObject;
+@@ -1175,6 +1177,36 @@ public:
+      */
+     bool flushAndWait(uint64_t timeout);
+ 
++    /**
++     * Vulkan backend only: queues a command that runs on the backend thread, at this point of the
++     * command stream, with access to the backend's Vulkan objects (see backend/VulkanInterop.h).
++     * The command may record into the backend's current command buffer, which is outside of any
++     * render pass at that point: work queued between two Renderer::render() calls executes on the
++     * GPU between the two views' passes. The command runs once; it is dropped (never run) on the
++     * other backends.
++     *
++     * @param command the work to run on the backend thread
++     */
++    void queueVulkanCommand(backend::VulkanInteropCommand&& command);
++
++    /**
++     * Vulkan backend only: the backend handle of a texture, to be resolved by a queued command
++     * through VulkanInteropContext::getTexture().
++     *
++     * @param texture a texture created by this engine
++     * @return the handle, 0 for nullptr
++     */
++    uint32_t getVulkanInteropTextureHandle(Texture const* texture) const noexcept;
++
++    /**
++     * The id of the frame being rendered: incremented by Renderer::beginFrame() for every frame that
++     * is rendered. The motion vectors (View::setVelocityBuffers) consider the frame with the id just
++     * below the current one as the previous frame.
++     *
++     * @return the current frame id
++     */
++    uint32_t getFrameId() const noexcept;
++
+     /**
+      * Kicks the hardware thread (e.g. the OpenGL, Vulkan or Metal thread) but does not wait
+      * for commands to be either executed or the hardware finished.
+diff --git a/filament/include/filament/View.h b/filament/include/filament/View.h
+index 7aa30b0b..89ae3a14 100644
+--- a/filament/include/filament/View.h
++++ b/filament/include/filament/View.h
+@@ -750,6 +750,36 @@ public:
+      */
+     bool isTransparentPickingEnabled() const noexcept;
+ 
++    /**
++     * Enables the per-object motion vectors output.
++     *
++     * When both textures are set, the structure pass runs every frame at the viewport's full
++     * resolution with the picking variant of the materials and writes, for every opaque or masked
++     * surface:
++     *   - `velocity` (RGBA32UI, SAMPLEABLE | COLOR_ATTACHMENT | BLIT_SRC): x = the entity id of
++     *     the renderable, y = the depth (clip z/w) as float bits, z/w = the screen-space motion of
++     *     the surface point since the previous frame as float bits: previous NDC - current NDC,
++     *     in the un-jittered clip space of the frame (see the TAA), y up as in OpenGL,
++     *   - `depth` (DEPTH32F, SAMPLEABLE | DEPTH_ATTACHMENT): the depth buffer of the pass; when
++     *     the texture has mip levels they are filled like the structure buffer's (the SSAO uses
++     *     them when it is enabled).
++     *
++     * The motion accounts for the camera, the transforms of the renderables and of their
++     * instances (InstanceBuffer), and for the skinning and morphing of renderables animated
++     * through RenderableManager::setBones() / setMorphWeights() (renderables bound to a
++     * SkinningBuffer get the motion of their transform only). A renderable that was not rendered
++     * in the previous frame (first frame, re-added to the scene) gets the camera motion only.
++     *
++     * Both textures must have the viewport's dimensions; the rendering must not be padded, i.e.
++     * the view has no post-processing (or no FXAA and no dynamic resolution). Only the first eye
++     * of a stereoscopic view gets motion vectors. Blended (translucent) renderables are not part
++     * of the structure pass and write no motion.
++     *
++     * @param velocity the RGBA32UI texture receiving the ids, depths and motion vectors, or nullptr
++     * @param depth the DEPTH32F texture receiving the depth, or nullptr
++     */
++    void setVelocityBuffers(Texture* velocity, Texture* depth) noexcept;
++
+     /**
+      * Enables use of the stencil buffer.
+      *
+diff --git a/filament/src/Engine.cpp b/filament/src/Engine.cpp
+index fb01c28f..9c61826b 100644
+--- a/filament/src/Engine.cpp
++++ b/filament/src/Engine.cpp
+@@ -382,6 +382,18 @@ void Engine::flush() {
+     downcast(this)->flush();
+ }
+ 
++void Engine::queueVulkanCommand(backend::VulkanInteropCommand&& command) {
++    downcast(this)->queueVulkanCommand(std::move(command));
++}
++
++uint32_t Engine::getVulkanInteropTextureHandle(Texture const* texture) const noexcept {
++    return downcast(this)->getVulkanInteropTextureHandle(downcast(texture));
++}
++
++uint32_t Engine::getFrameId() const noexcept {
++    return downcast(this)->getFrameId();
++}
++
+ EntityManager& Engine::getEntityManager() noexcept {
+     return downcast(this)->getEntityManager();
+ }
+diff --git a/filament/src/PostProcessManager.cpp b/filament/src/PostProcessManager.cpp
+index b654755d..8d42bdd3 100644
+--- a/filament/src/PostProcessManager.cpp
++++ b/filament/src/PostProcessManager.cpp
+@@ -346,6 +346,14 @@ void PostProcessManager::init() noexcept {
+             +PerRenderableBindingPoints::MORPHING_UNIFORMS, engine.getDummyUniformBuffer(), 0,
+             sizeof(PerRenderableMorphingUib));
+ 
++    driver.updateDescriptorSetBuffer(mDummyPerRenderableDsh,
++            +PerRenderableBindingPoints::BONES_PREV_UNIFORMS, engine.getDummyUniformBuffer(), 0,
++            sizeof(PerRenderableBoneUib));
++
++    driver.updateDescriptorSetBuffer(mDummyPerRenderableDsh,
++            +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS, engine.getDummyUniformBuffer(), 0,
++            sizeof(PerRenderableMorphingUib));
++
+     driver.updateDescriptorSetTexture(mDummyPerRenderableDsh,
+             +PerRenderableBindingPoints::MORPH_TARGET_POSITIONS,
+             engine.getDummyMorphTargetBuffer()->getPositionsHandle(), {});
+@@ -571,26 +579,54 @@ PostProcessManager::StructurePassOutput PostProcessManager::structure(FrameGraph
+     height = std::max(32u, uint32_t(std::ceil(float(height) * scale)));
+ 
+     // We limit the lowest lod size to 32 pixels (which is where the -5 comes from)
+-    const size_t levelCount = std::min(8, FTexture::maxLevelCount(width, height) - 5);
++    size_t levelCount = std::min(8, FTexture::maxLevelCount(width, height) - 5);
+     assert_invariant(levelCount >= 1);
+ 
++    // motion vectors: the pass writes the user's velocity and depth textures (imported here, so
++    // the pass is never culled and the results outlive the frame graph)
++    FrameGraphId<FrameGraphTexture> importedVelocity;
++    FrameGraphId<FrameGraphTexture> importedDepth;
++    if (config.velocity && config.velocityDepth) {
++        levelCount = std::min(levelCount, size_t(config.velocityDepth ? config.velocityDepthLevels : 1));
++        importedVelocity = fg.import("Velocity Buffer", {
++                .width = width, .height = height,
++                .format = TextureFormat::RGBA32UI },
++                FrameGraphTexture::Usage::COLOR_ATTACHMENT | FrameGraphTexture::Usage::SAMPLEABLE |
++                FrameGraphTexture::Usage::BLIT_SRC,
++                FrameGraphTexture{ .handle = config.velocity });
++        importedDepth = fg.import("Velocity Depth Buffer", {
++                .width = width, .height = height,
++                .levels = uint8_t(levelCount),
++                .format = TextureFormat::DEPTH32F },
++                FrameGraphTexture::Usage::DEPTH_ATTACHMENT | FrameGraphTexture::Usage::SAMPLEABLE,
++                FrameGraphTexture{ .handle = config.velocityDepth });
++    }
++
+     // generate depth pass at the requested resolution
+     auto const& structurePass = fg.addPass<StructurePassData>("Structure Pass",
+             [&](FrameGraph::Builder& builder, auto& data) {
+                 bool const isES2 = mFeatureLevel == FeatureLevel::FEATURE_LEVEL_0;
+-                data.depth = builder.createTexture("Structure Buffer", {
+-                        .width = width, .height = height,
+-                        .levels = uint8_t(levelCount),
+-                        .format = isES2 ? TextureFormat::DEPTH24 : TextureFormat::DEPTH32F });
++                if (importedDepth) {
++                    data.depth = importedDepth;
++                } else {
++                    data.depth = builder.createTexture("Structure Buffer", {
++                            .width = width, .height = height,
++                            .levels = uint8_t(levelCount),
++                            .format = isES2 ? TextureFormat::DEPTH24 : TextureFormat::DEPTH32F });
++                }
+ 
+                 data.depth = builder.write(data.depth,
+                         FrameGraphTexture::Usage::DEPTH_ATTACHMENT);
+ 
+                 if (config.picking) {
+-                    // FIXME: the DescriptorSetLayout must specify SAMPLER_FLOAT
+-                    data.picking = builder.createTexture("Picking Buffer", {
+-                            .width = width, .height = height,
+-                            .format = isES2 ? TextureFormat::RGBA8 : TextureFormat::RG32UI });
++                    if (importedVelocity) {
++                        data.picking = importedVelocity;
++                    } else {
++                        // FIXME: the DescriptorSetLayout must specify SAMPLER_FLOAT
++                        data.picking = builder.createTexture("Picking Buffer", {
++                                .width = width, .height = height,
++                                .format = isES2 ? TextureFormat::RGBA8 : TextureFormat::RG32UI });
++                    }
+ 
+                     data.picking = builder.write(data.picking,
+                             FrameGraphTexture::Usage::COLOR_ATTACHMENT);
+diff --git a/filament/src/PostProcessManager.h b/filament/src/PostProcessManager.h
+index 2f825ea1..fcf10368 100644
+--- a/filament/src/PostProcessManager.h
++++ b/filament/src/PostProcessManager.h
+@@ -87,6 +87,11 @@ public:
+     struct StructurePassConfig {
+         float scale = 0.5f;
+         bool picking{};
++        // motion vectors (View::setVelocityBuffers): when set, the picking and depth buffers of
++        // the pass are these user textures (RGBA32UI and DEPTH32F of the pass' size)
++        backend::Handle<backend::HwTexture> velocity{};
++        backend::Handle<backend::HwTexture> velocityDepth{};
++        uint8_t velocityDepthLevels = 1;
+     };
+ 
+     explicit PostProcessManager(FEngine& engine) noexcept;
+diff --git a/filament/src/View.cpp b/filament/src/View.cpp
+index 1fc21785..51963363 100644
+--- a/filament/src/View.cpp
++++ b/filament/src/View.cpp
+@@ -227,6 +227,10 @@ bool View::isTransparentPickingEnabled() const noexcept {
+     return downcast(this)->isTransparentPickingEnabled();
+ }
+ 
++void View::setVelocityBuffers(Texture* velocity, Texture* depth) noexcept {
++    downcast(this)->setVelocityBuffers(downcast(velocity), downcast(depth));
++}
++
+ void View::setDynamicLightingOptions(float const zLightNear, float const zLightFar) noexcept {
+     downcast(this)->setDynamicLightingOptions(zLightNear, zLightFar);
+ }
+diff --git a/filament/src/components/RenderableManager.cpp b/filament/src/components/RenderableManager.cpp
+index c59e31f6..e84703aa 100644
+--- a/filament/src/components/RenderableManager.cpp
++++ b/filament/src/components/RenderableManager.cpp
+@@ -706,6 +706,10 @@ void FRenderableManager::create(
+                                 sizeof(PerRenderableBoneUib),
+                                 BufferObjectBinding::UNIFORM,
+                                 BufferUsage::DYNAMIC),
++                        .prevHandle = driver.createBufferObject(
++                                sizeof(PerRenderableBoneUib),
++                                BufferObjectBinding::UNIFORM,
++                                BufferUsage::DYNAMIC),
+                         .count = uint16_t(boneCount),
+                         .offset = 0,
+                         .skinningBufferMode = false };
+@@ -768,7 +772,11 @@ void FRenderableManager::create(
+                         sizeof(PerRenderableMorphingUib),
+                         BufferObjectBinding::UNIFORM,
+                         BufferUsage::DYNAMIC),
+-                .count = targetCount };
++                .count = targetCount,
++                .prevHandle = driver.createBufferObject(
++                        sizeof(PerRenderableMorphingUib),
++                        BufferObjectBinding::UNIFORM,
++                        BufferUsage::DYNAMIC) };
+ 
+             Slice<FRenderPrimitive> const primitives = mManager[ci].primitives;
+             mManager[ci].morphTargetBuffer = morphTargetBuffer;
+@@ -843,6 +851,9 @@ void FRenderableManager::destroyComponent(Instance const ci, DriverApi& driver)
+         // when not in skinningBufferMode, we now the handle, so we destroy it
+         driver.destroyBufferObject(bones.handle);
+     }
++    if (bones.prevHandle) {
++        driver.destroyBufferObject(bones.prevHandle);
++    }
+     if (bones.handleTexture) {
+         driver.destroyTexture(bones.handleTexture);
+     }
+@@ -852,6 +863,46 @@ void FRenderableManager::destroyComponent(Instance const ci, DriverApi& driver)
+     if (morphWeights.handle) {
+         driver.destroyBufferObject(morphWeights.handle);
+     }
++    if (morphWeights.prevHandle) {
++        driver.destroyBufferObject(morphWeights.prevHandle);
++    }
++}
++
++// motion vectors: the first write of a pose after a frame consumed the previous one goes to the
++// other buffer of the pair, so that the consumed pose survives as "previous"
++template<typename T>
++static void rotateVelocityBuffers(T& pair) noexcept {
++    if (pair.prevHandle && !pair.dirty) {
++        std::swap(pair.handle, pair.prevHandle);
++        pair.dirty = true;
++    }
++}
++
++template<typename T>
++static void consumeVelocityBuffers(T& pair, uint32_t const frameId) noexcept {
++    if (pair.prevHandle && pair.frameId != frameId) {
++        // valid only when the pose changed since the previous frame and that frame consumed it
++        pair.prevValid = pair.dirty && pair.frameId != 0 && (pair.frameId + 1 == frameId);
++        pair.dirty = false;
++        pair.frameId = frameId;
++    }
++}
++
++mat4f const& FRenderableManager::prepareVelocity(Instance const instance, uint32_t const frameId,
++        mat4f const& worldTransform) noexcept {
++    auto& manager = mManager;
++    uint32_t& lastFrameId = manager[instance].velocityFrame;
++    mat4f& last = manager[instance].velocityLastTransform;
++    mat4f& prev = manager[instance].velocityPrevTransform;
++    if (lastFrameId != frameId) {
++        // (a stamp of 0 is "never rendered")
++        prev = (lastFrameId != 0 && lastFrameId + 1 == frameId) ? last : worldTransform;
++        last = worldTransform;
++        lastFrameId = frameId;
++        consumeVelocityBuffers(static_cast<Bones&>(manager[instance].bones), frameId);
++        consumeVelocityBuffers(static_cast<MorphWeights&>(manager[instance].morphWeights), frameId);
++    }
++    return prev;
+ }
+ 
+ void FRenderableManager::destroyComponentPrimitives(
+@@ -1002,7 +1053,7 @@ void FRenderableManager::setPrimitives(Instance const instance, Slice<FRenderPri
+ void FRenderableManager::setBones(Instance const ci,
+         Bone const* UTILS_RESTRICT transforms, size_t boneCount, size_t const offset) {
+     if (ci) {
+-        Bones const& bones = mManager[ci].bones;
++        Bones& bones = mManager[ci].bones;
+ 
+         FILAMENT_CHECK_PRECONDITION(!bones.skinningBufferMode)
+                 << "Disable skinning buffer mode to use this API";
+@@ -1013,6 +1064,11 @@ void FRenderableManager::setBones(Instance const ci,
+         assert_invariant(bones.handle && offset + boneCount <= bones.count);
+         if (bones.handle) {
+             boneCount = std::min(boneCount, bones.count - offset);
++            if (offset == 0 && boneCount == bones.count) {
++                rotateVelocityBuffers(bones);
++            } else {
++                bones.dirty = false;    // partial update: the previous pose is not known
++            }
+             FSkinningBuffer::setBones(mEngine, bones.handle, transforms, boneCount, offset);
+         }
+     }
+@@ -1021,7 +1077,7 @@ void FRenderableManager::setBones(Instance const ci,
+ void FRenderableManager::setBones(Instance const ci,
+         mat4f const* UTILS_RESTRICT transforms, size_t boneCount, size_t const offset) {
+     if (ci) {
+-        Bones const& bones = mManager[ci].bones;
++        Bones& bones = mManager[ci].bones;
+ 
+         FILAMENT_CHECK_PRECONDITION(!bones.skinningBufferMode)
+                 << "Disable skinning buffer mode to use this API";
+@@ -1032,6 +1088,11 @@ void FRenderableManager::setBones(Instance const ci,
+         assert_invariant(bones.handle && offset + boneCount <= bones.count);
+         if (bones.handle) {
+             boneCount = std::min(boneCount, bones.count - offset);
++            if (offset == 0 && boneCount == bones.count) {
++                rotateVelocityBuffers(bones);
++            } else {
++                bones.dirty = false;    // partial update: the previous pose is not known
++            }
+             FSkinningBuffer::setBones(mEngine, bones.handle, transforms, boneCount, offset);
+         }
+     }
+@@ -1084,8 +1145,13 @@ void FRenderableManager::setMorphWeights(Instance const instance, float const* w
+                 << "Only " << CONFIG_MAX_MORPH_TARGET_COUNT
+                 << " morph targets are supported (count=" << count << ", offset=" << offset << ")";
+ 
+-        MorphWeights const& morphWeights = mManager[instance].morphWeights;
++        MorphWeights& morphWeights = mManager[instance].morphWeights;
+         if (morphWeights.handle) {
++            if (offset == 0 && count >= morphWeights.count) {
++                rotateVelocityBuffers(morphWeights);
++            } else {
++                morphWeights.dirty = false;     // partial update: the previous weights are not known
++            }
+             updateMorphWeights(mEngine, morphWeights.handle, weights, count, offset);
+         }
+     }
+diff --git a/filament/src/components/RenderableManager.h b/filament/src/components/RenderableManager.h
+index a590e0ab..4d6f053e 100644
+--- a/filament/src/components/RenderableManager.h
++++ b/filament/src/components/RenderableManager.h
+@@ -206,6 +206,8 @@ public:
+         backend::Handle<backend::HwBufferObject> handle;
+         uint32_t offset;
+         backend::Handle<backend::HwTexture> boneIndicesAndWeightHandle;
++        // the previous frame's bones (motion vectors), null when they are the current ones
++        backend::Handle<backend::HwBufferObject> prevHandle;
+     };
+ 
+     inline SkinningBindingInfo getSkinningBufferInfo(Instance instance) const noexcept;
+@@ -215,9 +217,18 @@ public:
+         backend::Handle<backend::HwBufferObject> handle;
+         uint32_t count;
+         FMorphTargetBuffer const* morphTargetBuffer;
++        // the previous frame's weights (motion vectors), null when they are the current ones
++        backend::Handle<backend::HwBufferObject> prevHandle;
+     };
+     inline MorphingBindingInfo getMorphingBufferInfo(Instance instance) const noexcept;
+ 
++    // motion vectors (View::setVelocityBuffers), once per frame per renderable, before the
++    // binding infos are read: records the world transform the renderable is rendered with and
++    // returns the one of the previous frame (the current one when there is no valid history);
++    // settles which bones / morph weights buffers hold the previous frame's values
++    math::mat4f const& prepareVelocity(Instance instance, uint32_t frameId,
++            math::mat4f const& worldTransform) noexcept;
++
+     struct InstancesInfo {
+         FInstanceBuffer* buffer = nullptr;
+         alignas(8) // ensures the pointer is 64 bits on all archs
+@@ -271,17 +282,28 @@ private:
+     struct Bones {
+         backend::Handle<backend::HwBufferObject> handle;
+         backend::Handle<backend::HwTexture> handleTexture;
++        // motion vectors: the other buffer of the pair (own-handle mode only); setBones() writes
++        // the current one, and the first write after a frame consumed the pose swaps the pair
++        backend::Handle<backend::HwBufferObject> prevHandle;
++        uint32_t frameId = 0;           // the last frame that consumed the pose
+         uint16_t count = 0;
+         uint16_t offset = 0;
+         bool skinningBufferMode = false; // whether we own (false) handle or not (true)
++        bool dirty = false;             // handle was written since frameId consumed it
++        bool prevValid = false;         // prevHandle holds the pose of the frame before frameId
+     };
+-    static_assert(sizeof(Bones) == 16);
++    static_assert(sizeof(Bones) <= 24);
+ 
+     struct MorphWeights {
+         backend::Handle<backend::HwBufferObject> handle;
+         uint32_t count = 0;
++        // motion vectors: as Bones
++        backend::Handle<backend::HwBufferObject> prevHandle;
++        uint32_t frameId = 0;
++        bool dirty = false;
++        bool prevValid = false;
+     };
+-    static_assert(sizeof(MorphWeights) == 8);
++    static_assert(sizeof(MorphWeights) <= 20);
+ 
+     enum {
+         AABB,                   // user data
+@@ -294,7 +316,10 @@ private:
+         PRIMITIVES,             // user data
+         BONES,                  // filament data, UBO storing a pointer to the bones information
+         MORPHTARGET_BUFFER,     // morphtarget buffer for the component
+-        DESCRIPTOR_SET          // per-renderable descriptor set
++        DESCRIPTOR_SET,         // per-renderable descriptor set
++        VELOCITY_LAST_TRANSFORM,// motion vectors: world transform of the last rendered frame
++        VELOCITY_PREV_TRANSFORM,// motion vectors: world transform of the frame before
++        VELOCITY_FRAME          // motion vectors: id of the last rendered frame
+     };
+ 
+     using Base = utils::SingleInstanceComponentManager<
+@@ -308,7 +333,10 @@ private:
+             utils::Slice<FRenderPrimitive>,  // PRIMITIVES
+             Bones,                           // BONES
+             FMorphTargetBuffer*,            // MORPHTARGET_BUFFER
+-            DescriptorSet          // DESCRIPTOR_SET
++            DescriptorSet,         // DESCRIPTOR_SET
++            math::mat4f,                     // VELOCITY_LAST_TRANSFORM
++            math::mat4f,                     // VELOCITY_PREV_TRANSFORM
++            uint32_t                         // VELOCITY_FRAME
+     >;
+ 
+     struct Sim : public Base {
+@@ -335,6 +363,9 @@ private:
+                 Field<BONES>                bones;
+                 Field<MORPHTARGET_BUFFER>   morphTargetBuffer;
+                 Field<DESCRIPTOR_SET>       descriptorSet;
++                Field<VELOCITY_LAST_TRANSFORM> velocityLastTransform;
++                Field<VELOCITY_PREV_TRANSFORM> velocityPrevTransform;
++                Field<VELOCITY_FRAME>       velocityFrame;
+             };
+         };
+ 
+@@ -544,7 +575,8 @@ Box const& FRenderableManager::getAABB(Instance const instance) const noexcept {
+ FRenderableManager::SkinningBindingInfo
+ FRenderableManager::getSkinningBufferInfo(Instance const instance) const noexcept {
+     Bones const& bones = mManager[instance].bones;
+-    return { bones.handle, bones.offset, bones.handleTexture };
++    return { bones.handle, bones.offset, bones.handleTexture,
++             bones.prevValid ? bones.prevHandle : backend::Handle<backend::HwBufferObject>{} };
+ }
+ 
+ inline uint32_t FRenderableManager::getBoneCount(Instance const instance) const noexcept {
+@@ -556,7 +588,9 @@ FRenderableManager::MorphingBindingInfo
+ FRenderableManager::getMorphingBufferInfo(Instance const instance) const noexcept {
+     MorphWeights const& morphWeights = mManager[instance].morphWeights;
+     FMorphTargetBuffer const* const buffer = mManager[instance].morphTargetBuffer;
+-    return { morphWeights.handle, morphWeights.count, buffer  };
++    return { morphWeights.handle, morphWeights.count, buffer,
++             morphWeights.prevValid ? morphWeights.prevHandle
++                                    : backend::Handle<backend::HwBufferObject>{} };
+ }
+ 
+ FRenderableManager::InstancesInfo
+diff --git a/filament/src/details/Camera.h b/filament/src/details/Camera.h
+index 9ae91ec2..aede4e2a 100644
+--- a/filament/src/details/Camera.h
++++ b/filament/src/details/Camera.h
+@@ -252,6 +252,7 @@ struct CameraInfo {
+     float f{};                               // focal length [m]
+     float A{};                               // f-number or f / aperture diameter [m]
+     float d{};                               // focus distance [m]
++    math::mat4f prevClipFromWorld;           // clip <- world of the previous frame (motion vectors)
+     math::float3 const& getPosition() const noexcept { return model[3].xyz; }
+     math::float3 getForwardVector() const noexcept { return normalize(-model[2].xyz); }
+     math::mat4 getUserViewMatrix() const noexcept { return view * worldTransform; }
+diff --git a/filament/src/details/Engine.cpp b/filament/src/details/Engine.cpp
+index eabc26f6..9741ed68 100644
+--- a/filament/src/details/Engine.cpp
++++ b/filament/src/details/Engine.cpp
+@@ -837,6 +837,23 @@ void FEngine::submitFrame() {
+     }
+ }
+ 
++void FEngine::queueVulkanCommand(backend::VulkanInteropCommand&& command) {
++    if (UTILS_VERY_UNLIKELY(mCommandBufferQueue.hasUnrecoverableError())) {
++        return;
++    }
++    // the command stream's lambdas must be copyable: the (move-only) command lives on the heap
++    // until the backend thread ran it
++    auto* const heapCommand = new backend::VulkanInteropCommand(std::move(command));
++    getDriverApi().queueCommand([this, heapCommand]() {
++        getDriver().runVulkanInterop(*heapCommand);
++        delete heapCommand;
++    });
++}
++
++uint32_t FEngine::getVulkanInteropTextureHandle(FTexture const* texture) const noexcept {
++    return texture ? texture->getHwHandle().getId() : 0;
++}
++
+ void FEngine::flush() {
+     if (UTILS_VERY_UNLIKELY(mCommandBufferQueue.hasUnrecoverableError())) {
+         return;
+diff --git a/filament/src/details/Engine.h b/filament/src/details/Engine.h
+index 2ce2da0d..91de22c7 100644
+--- a/filament/src/details/Engine.h
++++ b/filament/src/details/Engine.h
+@@ -578,6 +578,16 @@ public:
+         return mDummyUniformBuffer;
+     }
+ 
++    // motion vectors (View::setVelocityBuffers): the id of the frame being rendered, advanced by
++    // Renderer::beginFrame(); the "previous frame" of a renderable or a view is the frame with the
++    // id just below the current one, anything older is not a valid history
++    uint32_t getFrameId() const noexcept { return mFrameId; }
++    void nextFrame() noexcept { mFrameId++; }
++
++    // Vulkan interop (Engine::queueVulkanCommand)
++    void queueVulkanCommand(backend::VulkanInteropCommand&& command);
++    uint32_t getVulkanInteropTextureHandle(FTexture const* texture) const noexcept;
++
+     static constexpr size_t MiB = 1024u * 1024u;
+     size_t getMinCommandBufferSize() const noexcept { return mConfig.minCommandBufferSizeMB * MiB; }
+     size_t getCommandBufferSize() const noexcept { return mConfig.commandBufferSizeMB * MiB; }
+@@ -716,6 +726,7 @@ private:
+     static_assert( sizeof(mDriverApiStorage) >= sizeof(DriverApi) );
+ 
+     uint32_t mFlushCounter = 0;
++    uint32_t mFrameId = 1;
+ 
+     UboManager* mUboManager = nullptr;
+     LinearAllocatorArena mPerRenderPassArena;
+diff --git a/filament/src/details/InstanceBuffer.cpp b/filament/src/details/InstanceBuffer.cpp
+index 3e604a98..1e787d42 100644
+--- a/filament/src/details/InstanceBuffer.cpp
++++ b/filament/src/details/InstanceBuffer.cpp
+@@ -99,6 +99,10 @@ FInstanceBuffer::FInstanceBuffer(FEngine&, const Builder& builder)
+         memcpy(mLocalTransforms.data(), builder->mLocalTransforms,
+                 sizeof(math::mat4f) * mInstanceCount);
+     }
++    mLastLocalTransforms.reserve(mInstanceCount);
++    mLastLocalTransforms.resize(mInstanceCount);
++    mPrevLocalTransforms.reserve(mInstanceCount);
++    mPrevLocalTransforms.resize(mInstanceCount);
+ }
+ 
+ void FInstanceBuffer::terminate(FEngine&) {
+@@ -125,17 +129,38 @@ math::mat4f const& FInstanceBuffer::getLocalTransform(size_t index) const {
+ 
+ void FInstanceBuffer::prepare(
+             PerRenderableData* const UTILS_RESTRICT buffer, uint32_t const index, uint32_t const count,
+-            math::mat4f const& rootTransform, PerRenderableData const& ubo) {
++            math::mat4f const& rootTransform, PerRenderableData const& ubo, uint32_t const frameId) {
+ 
+     // there is a precondition check for this, so this assert really should never trigger
+     assert_invariant(count <= mInstanceCount);
+ 
++    // motion vectors: the first use in a frame promotes the last frame's transforms to "previous"
++    // (only when that frame was the one just before, otherwise the history is stale)
++    if (mLastFrameId != frameId) {
++        bool const hasPrevious = mLastFrameId != 0 && mLastFrameId + 1 == frameId;
++        std::swap(mPrevLocalTransforms, mLastLocalTransforms);
++        if (!hasPrevious) {
++            memcpy(mPrevLocalTransforms.data(), mLocalTransforms.data(),
++                    sizeof(math::mat4f) * mInstanceCount);
++        }
++        memcpy(mLastLocalTransforms.data(), mLocalTransforms.data(),
++                sizeof(math::mat4f) * mInstanceCount);
++        mLastFrameId = frameId;
++    }
++    // the root's previous transform is the renderable's (ubo.prevWorldFromModelMatrix, std140)
++    math::mat4f prevRootTransform;
++    for (size_t i = 0; i < 4; i++) {
++        prevRootTransform[i] = math::float4{ ubo.prevWorldFromModelMatrix[i][0], ubo.prevWorldFromModelMatrix[i][1],
++                ubo.prevWorldFromModelMatrix[i][2], ubo.prevWorldFromModelMatrix[i][3] };
++    }
++
+     for (size_t i = 0, c = count; i < c; i++) {
+         math::mat4f const model = rootTransform * mLocalTransforms[i];
+         math::mat3f const m = math::mat3f::getTransformForNormals(model.upperLeft());
+         buffer[index + i] = ubo;
+         buffer[index + i].worldFromModelMatrix = model;
+         buffer[index + i].worldFromModelNormalMatrix = math::prescaleForNormals(m);
++        buffer[index + i].prevWorldFromModelMatrix = prevRootTransform * mPrevLocalTransforms[i];
+     }
+     mIndex = index;
+ }
+diff --git a/filament/src/details/InstanceBuffer.h b/filament/src/details/InstanceBuffer.h
+index 5fd830fb..f4e4b893 100644
+--- a/filament/src/details/InstanceBuffer.h
++++ b/filament/src/details/InstanceBuffer.h
+@@ -51,9 +51,11 @@ public:
+ 
+     math::mat4f const& getLocalTransform(size_t index) const;
+ 
++    // frameId: the engine's, for the motion vectors (the previous frame's local transforms are
++    // the ones of the frame just before)
+     void prepare(
+             PerRenderableData* buffer, uint32_t index, uint32_t count,
+-            math::mat4f const& rootTransform, PerRenderableData const& ubo);
++            math::mat4f const& rootTransform, PerRenderableData const& ubo, uint32_t frameId);
+ 
+     utils::ImmutableCString const& getName() const noexcept { return mName; }
+ 
+@@ -63,6 +65,10 @@ private:
+     friend class RenderableManager;
+ 
+     utils::FixedCapacityVector<math::mat4f> mLocalTransforms;
++    // motion vectors: the transforms as rendered in the last frame, and in the frame before
++    utils::FixedCapacityVector<math::mat4f> mLastLocalTransforms;
++    utils::FixedCapacityVector<math::mat4f> mPrevLocalTransforms;
++    uint32_t mLastFrameId = 0;
+     utils::ImmutableCString mName;
+     uint32_t mInstanceCount;
+     uint32_t mIndex = 0;
+diff --git a/filament/src/details/Renderer.cpp b/filament/src/details/Renderer.cpp
+index 53d556a0..d8cae2c4 100644
+--- a/filament/src/details/Renderer.cpp
++++ b/filament/src/details/Renderer.cpp
+@@ -462,6 +462,9 @@ bool FRenderer::beginFrame(FSwapChain* swapChain, uint64_t vsyncSteadyClockTimeN
+         // user ignored us, we'd still want mSwapChain to be set.
+         mSwapChain = swapChain;
+ 
++        // motion vectors: only the frames that are rendered count as history
++        engine.nextFrame();
++
+         driver.beginFrame(
+                 appVsync.time_since_epoch().count(),
+                 mDisplayInfo.refreshRate == 0.0 ? 0 : int64_t(
+@@ -935,6 +938,10 @@ void FRenderer::renderJob(DriverApi& driver, LinearAllocatorArena& arena, FView&
+         xvp.bottom = int32_t(guardBand);
+     }
+ 
++    // motion vectors (View::setVelocityBuffers): the previous frame's clip <- world of this view,
++    // in the same (guard-band adjusted, un-jittered) clip space as the structure pass
++    view.prepareVelocityHistory(cameraInfo, engine.getFrameId());
++
+     // The taaCameraInfo is the taa-jittered cameraInfo. It must be used for the color pass.
+     // TODO: what's unclear is whether it should be used for other passes (e.g. SSR, DoF,
+     //       structure). For now it's only used for the color pass, but should revisit.
+@@ -983,6 +990,9 @@ void FRenderer::renderJob(DriverApi& driver, LinearAllocatorArena& arena, FView&
+     view.prepareViewport(svp, xvp);
+     view.commitUniforms(driver);
+ 
++    // the structure pass runs at full resolution when the view exports motion vectors
++    const float structureScale = view.hasVelocity() ? 1.0f : aoOptions.resolution;
++
+     /*
+      * Update the PER_VIEW UBO use for the structure pass. It never updated again after this point.
+      */
+@@ -997,10 +1007,10 @@ void FRenderer::renderJob(DriverApi& driver, LinearAllocatorArena& arena, FView&
+         ds.prepareCamera(engine, cameraInfo);
+         ds.prepareTime(engine, getShaderUserTime());
+         ds.prepareViewport(svp, {
+-            int32_t(float(xvp.left) * aoOptions.resolution),
+-            int32_t(float(xvp.bottom) * aoOptions.resolution),
+-            uint32_t(float(xvp.width) * aoOptions.resolution),
+-            uint32_t(float(xvp.height) * aoOptions.resolution) });
++            int32_t(float(xvp.left) * structureScale),
++            int32_t(float(xvp.bottom) * structureScale),
++            uint32_t(float(xvp.width) * structureScale),
++            uint32_t(float(xvp.height) * structureScale) });
+         ds.prepareLodBias(bias, derivativeScale);
+         ds.prepareMaterialGlobals(view.getMaterialGlobals());
+     }
+@@ -1148,8 +1158,15 @@ void FRenderer::renderJob(DriverApi& driver, LinearAllocatorArena& arena, FView&
+     // TODO: the scaling should depends on all passes that need the structure pass
+     const auto [structure, picking_] = ppm.structure(fg,
+             passBuilder, renderFlags, svp.width, svp.height, {
+-            .scale = aoOptions.resolution,
+-            .picking = view.hasPicking() && !view.isTransparentPickingEnabled()
++            .scale = structureScale,
++            .picking = (view.hasPicking() && !view.isTransparentPickingEnabled())
++                    || view.hasVelocity(),
++            .velocity = view.getVelocityTexture()
++                    ? view.getVelocityTexture()->getHwHandle() : Handle<HwTexture>{},
++            .velocityDepth = view.getVelocityDepthTexture()
++                    ? view.getVelocityDepthTexture()->getHwHandle() : Handle<HwTexture>{},
++            .velocityDepthLevels = view.getVelocityDepthTexture()
++                    ? uint8_t(view.getVelocityDepthTexture()->getLevelCount()) : uint8_t(1),
+     });
+     auto picking = picking_;
+ 
+@@ -1606,9 +1623,12 @@ void FRenderer::renderJob(DriverApi& driver, LinearAllocatorArena& arena, FView&
+                     colorGradingConfig.asSubpass ||
+                     hasScreenSpaceRefraction ||
+                     ssReflectionsOptions.enabled))) {
++            // without post-processing the color pass output is linear HDR (no color grading ran):
++            // an intermediate in the HDR format keeps it so, e.g. for a user's RGBA16F target
++            // when refraction, SSR or MSAA forced an intermediate color buffer
+             input = ppm.blit(fg, blendModeTranslucent, input, xvp, {
+                             .width = vp.width, .height = vp.height,
+-                            .format = colorGradingConfig.ldrFormat },
++                            .format = hasPostProcess ? colorGradingConfig.ldrFormat : hdrFormat },
+                     SamplerMagFilter::NEAREST, SamplerMinFilter::NEAREST);
+         }
+     }
+diff --git a/filament/src/details/Scene.cpp b/filament/src/details/Scene.cpp
+index d1459add..ea7b69e2 100644
+--- a/filament/src/details/Scene.cpp
++++ b/filament/src/details/Scene.cpp
+@@ -94,8 +94,9 @@ void FScene::prepare(JobSystem& js,
+ 
+     FEngine& engine = mEngine;
+     EntityManager const& em = engine.getEntityManager();
+-    FRenderableManager const& rcm = engine.getRenderableManager();
++    FRenderableManager& rcm = engine.getRenderableManager();
+     FTransformManager const& tcm = engine.getTransformManager();
++    uint32_t const frameId = engine.getFrameId();
+     FLightManager const& lcm = engine.getLightManager();
+     // go through the list of entities, and gather the data of those that are renderables
+     auto& sceneData = cache.renderableData;
+@@ -211,7 +212,7 @@ void FScene::prepare(JobSystem& js,
+      */
+ 
+     auto renderableWork = [first = renderableInstances.data(), &rcm, &tcm, &worldTransform,
+-                 &sceneData, shadowReceiversAreCasters](auto* p, auto c) {
++                 &sceneData, shadowReceiversAreCasters, frameId](auto* p, auto c) {
+         FILAMENT_TRACING_NAME(FILAMENT_TRACING_CATEGORY_FILAMENT, "renderableWork");
+ 
+         for (size_t i = 0; i < c; i++) {
+@@ -242,6 +243,10 @@ void FScene::prepare(JobSystem& js,
+ 
+             sceneData.elementAt<RENDERABLE_ENTITY>(index) = rcm.getEntity(ri);
+             sceneData.elementAt<WORLD_TRANSFORM>(index)     = shaderWorldTransform;
++            // motion vectors: each job owns its renderables, and the frame's first prepare()
++            // records the transform (later ones in the frame read the same history)
++            sceneData.elementAt<PREV_WORLD_TRANSFORM>(index) =
++                    rcm.prepareVelocity(ri, frameId, shaderWorldTransform);
+             sceneData.elementAt<VISIBILITY_STATE>(index)    = visibility;
+             sceneData.elementAt<SKINNING_BUFFER>(index)     = rcm.getSkinningBufferInfo(ri);
+             sceneData.elementAt<MORPHING_BUFFER>(index)     = rcm.getMorphingBufferInfo(ri);
+@@ -456,6 +461,8 @@ void FScene::prepareVisibleRenderables(Range<uint32_t> visibleRenderables, Scene
+ 
+         uboData.worldFromModelNormalMatrix = m;
+ 
++        uboData.prevWorldFromModelMatrix = sceneData.elementAt<PREV_WORLD_TRANSFORM>(i);
++
+         uboData.flagsChannels = PerRenderableData::packFlagsChannels(
+                 skinning.skinning,
+                 static_cast<uint8_t>(skinning.morphType),
+diff --git a/filament/src/details/Scene.h b/filament/src/details/Scene.h
+index 8019874e..8645abc0 100644
+--- a/filament/src/details/Scene.h
++++ b/filament/src/details/Scene.h
+@@ -88,6 +88,7 @@ public:
+     enum {
+         RENDERABLE_ENTITY,      //   4 | Entity of the Renderable component
+         WORLD_TRANSFORM,        //  16 | instance of the Transform component
++        PREV_WORLD_TRANSFORM,   //  64 | world transform of the previous frame (motion vectors)
+         VISIBILITY_STATE,       //   2 | visibility data of the component
+         SKINNING_STATE,         //   1 | skinning data of the component
+         SKINNING_BUFFER,        //   8 | bones uniform buffer handle, offset, indices and weights
+@@ -122,6 +123,7 @@ public:
+     using RenderableSoa = utils::StructureOfArrays<
+             utils::Entity,                              // RENDERABLE_ENTITY
+             math::mat4f,                                // WORLD_TRANSFORM
++            math::mat4f,                                // PREV_WORLD_TRANSFORM
+             FRenderableManager::Visibility,             // VISIBILITY_STATE
+             FRenderableManager::Skinning,               // SKINNING_STATE
+             FRenderableManager::SkinningBindingInfo,    // SKINNING_BUFFER
+diff --git a/filament/src/details/View.cpp b/filament/src/details/View.cpp
+index 52e8a7a4..adf76eba 100644
+--- a/filament/src/details/View.cpp
++++ b/filament/src/details/View.cpp
+@@ -124,6 +124,14 @@ FView::FView(FEngine& engine)
+             +PerRenderableBindingPoints::MORPHING_UNIFORMS,
+             engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableMorphingUib));
+ 
++    mCommonRenderableDescriptorSet.setBuffer(layout,
++            +PerRenderableBindingPoints::BONES_PREV_UNIFORMS,
++            engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableBoneUib));
++
++    mCommonRenderableDescriptorSet.setBuffer(layout,
++            +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS,
++            engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableMorphingUib));
++
+     mCommonRenderableDescriptorSet.setSampler(layout,
+             +PerRenderableBindingPoints::MORPH_TARGET_POSITIONS,
+             engine.getDummyMorphTargetBuffer()->getPositionsHandle(), {});
+@@ -923,7 +931,7 @@ void FView::prepare(FEngine& engine, DriverApi& driver, LinearAllocatorArena& ar
+ 
+         // update those UBOs
+         if (!merged.empty()) {
+-            updateUBOs(driver, renderableData, merged);
++            updateUBOs(driver, renderableData, merged, engine.getFrameId());
+ 
+             mCommonRenderableDescriptorSet.setBuffer(
+                 engine.getPerRenderableDescriptorSetLayout(),
+@@ -936,7 +944,8 @@ void FView::prepare(FEngine& engine, DriverApi& driver, LinearAllocatorArena& ar
+     }
+ 
+     { // this must happen after mRenderableUbh is created/updated
+-        // prepare skinning, morphing and hybrid instancing
++        // prepare skinning, morphing and hybrid instancing (the previous frame's bones and
++        // morph weights are bound next to the current ones for the motion vectors)
+         auto& sceneData = mSceneCache->renderableData;
+         for (uint32_t const i : merged) {
+             auto const& skinning = sceneData.elementAt<FScene::SKINNING_BUFFER>(i);
+@@ -968,6 +977,14 @@ void FView::prepare(FEngine& engine, DriverApi& driver, LinearAllocatorArena& ar
+                         +PerRenderableBindingPoints::MORPHING_UNIFORMS,
+                         engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableMorphingUib));
+ 
++                descriptorSet.setBuffer(layout,
++                        +PerRenderableBindingPoints::BONES_PREV_UNIFORMS,
++                        engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableBoneUib));
++
++                descriptorSet.setBuffer(layout,
++                        +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS,
++                        engine.getDummyUniformBuffer(), 0, sizeof(PerRenderableMorphingUib));
++
+                 descriptorSet.setSampler(layout,
+                         +PerRenderableBindingPoints::MORPH_TARGET_POSITIONS,
+                         engine.getDummyMorphTargetBuffer()->getPositionsHandle(), {});
+@@ -993,6 +1010,23 @@ void FView::prepare(FEngine& engine, DriverApi& driver, LinearAllocatorArena& ar
+                             +PerRenderableBindingPoints::MORPHING_UNIFORMS,
+                             morphing.handle, 0, sizeof(PerRenderableMorphingUib));
+ 
++                    if (skinning.handle) {
++                        // the pose of the previous frame, or the current one when it did not
++                        // change (or is not known: SkinningBuffer mode)
++                        descriptorSet.setBuffer(layout,
++                                +PerRenderableBindingPoints::BONES_PREV_UNIFORMS,
++                                skinning.prevHandle ? skinning.prevHandle : skinning.handle,
++                                skinning.prevHandle ? 0 : skinning.offset,
++                                sizeof(PerRenderableBoneUib));
++                    }
++
++                    if (morphing.handle) {
++                        descriptorSet.setBuffer(layout,
++                                +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS,
++                                morphing.prevHandle ? morphing.prevHandle : morphing.handle,
++                                0, sizeof(PerRenderableMorphingUib));
++                    }
++
+                     const auto* mtb = morphing.morphTargetBuffer;
+                     if (mtb->hasPositions()) {
+                         descriptorSet.setSampler(layout,
+@@ -1079,7 +1113,7 @@ void FView::computeVisibilityMasks(
+ void FView::updateUBOs(
+         FEngine::DriverApi& driver,
+         FScene::RenderableSoa& renderableData,
+-        utils::Range<uint32_t> visibleRenderables) noexcept {
++        utils::Range<uint32_t> visibleRenderables, uint32_t const frameId) noexcept {
+     FILAMENT_TRACING_CALL(FILAMENT_TRACING_CATEGORY_FILAMENT);
+ 
+     FRenderableManager::InstancesInfo const* instancesData = renderableData.data<FScene::INSTANCES>();
+@@ -1143,7 +1177,7 @@ void FView::updateUBOs(
+         if (instancesInfo.buffer) {
+             instancesInfo.buffer->prepare(
+                     buffer,  j, instancesInfo.count,
+-                    worldTransformData[i], uboData[i]);
++                    worldTransformData[i], uboData[i], frameId);
+             j += instancesInfo.count;
+         }
+     }
+@@ -1182,6 +1216,19 @@ UTILS_NOINLINE
+     });
+ }
+ 
++void FView::prepareVelocityHistory(CameraInfo& cameraInfo, uint32_t const frameId) noexcept {
++    // clip <- eye <- head <- world, for the first eye (identity eyeFromView when monoscopic)
++    mat4f const clipFromWorld = highPrecisionMultiply(cameraInfo.eyeProjection[0],
++            highPrecisionMultiply(cameraInfo.eyeFromView[0], cameraInfo.view));
++    auto& history = mVelocityHistory;
++    bool const hasPrevious = history.frameId != 0 && history.frameId + 1 == frameId;
++    cameraInfo.prevClipFromWorld = hasPrevious ? history.clipFromWorld : clipFromWorld;
++    if (history.frameId != frameId) {
++        history.clipFromWorld = clipFromWorld;
++        history.frameId = frameId;
++    }
++}
++
+ void FView::prepareCamera(FEngine& engine, const CameraInfo& cameraInfo) const noexcept {
+     FILAMENT_TRACING_CALL(FILAMENT_TRACING_CATEGORY_FILAMENT);
+     getColorPassDescriptorSet().prepareCamera(engine, cameraInfo);
+diff --git a/filament/src/details/View.h b/filament/src/details/View.h
+index d123affc..319b9288 100644
+--- a/filament/src/details/View.h
++++ b/filament/src/details/View.h
+@@ -159,6 +159,17 @@ public:
+     void setTransparentPickingEnabled(bool const enabled) noexcept { mIsTransparentPickingEnabled = enabled; }
+     bool isTransparentPickingEnabled() const noexcept { return mIsTransparentPickingEnabled; }
+ 
++    // motion vectors (View::setVelocityBuffers)
++    void setVelocityBuffers(FTexture* velocity, FTexture* depth) noexcept {
++        mVelocityTexture = velocity;
++        mVelocityDepthTexture = depth;
++    }
++    bool hasVelocity() const noexcept { return mVelocityTexture && mVelocityDepthTexture; }
++    FTexture const* getVelocityTexture() const noexcept { return mVelocityTexture; }
++    FTexture const* getVelocityDepthTexture() const noexcept { return mVelocityDepthTexture; }
++    // sets cameraInfo.prevClipFromWorld from the history of this view, and records the current camera
++    void prepareVelocityHistory(CameraInfo& cameraInfo, uint32_t frameId) noexcept;
++
+ 
+     void setVisibleLayers(uint8_t select, uint8_t values) noexcept;
+     uint8_t getVisibleLayers() const noexcept {
+@@ -571,7 +582,7 @@ private:
+ 
+     void updateUBOs(backend::DriverApi& driver,
+             FScene::RenderableSoa& renderableData,
+-            utils::Range<uint32_t> visibleRenderables) noexcept;
++            utils::Range<uint32_t> visibleRenderables, uint32_t frameId) noexcept;
+ 
+     static void prepareVisibleLights(FLightManager const& lcm,
+             utils::Slice<float> scratch,
+@@ -618,6 +629,12 @@ private:
+     bool mCulling = true;
+     bool mFrontFaceWindingInverted = false;
+     bool mIsTransparentPickingEnabled = false;
++    FTexture* mVelocityTexture = nullptr;
++    FTexture* mVelocityDepthTexture = nullptr;
++    struct {
++        math::mat4f clipFromWorld;
++        uint32_t frameId = 0;
++    } mVelocityHistory;
+     bool mIsHighPrecisionEvsmSupported = true;
+ 
+     FRenderTarget* mRenderTarget = nullptr;
+diff --git a/filament/src/ds/PerViewDescriptorSetUtils.cpp b/filament/src/ds/PerViewDescriptorSetUtils.cpp
+index 4fa8e28e..001e5069 100644
+--- a/filament/src/ds/PerViewDescriptorSetUtils.cpp
++++ b/filament/src/ds/PerViewDescriptorSetUtils.cpp
+@@ -65,6 +65,7 @@ void PerViewDescriptorSetUtils::prepareCamera(PerViewUib& s,
+ 
+     s.worldRayFromClipMatrix = rayFromClip;
+     s.userWorldFromWorldMatrix = mat4f(inverse(camera.worldTransform));
++    s.prevClipFromWorldMatrix = camera.prevClipFromWorld;
+     s.clipTransform = camera.clipTransform;
+     s.cameraFar = camera.zf;
+     s.oneOverFarMinusNear = 1.0f / (camera.zf - camera.zn);
+diff --git a/filament/src/fg/PassNode.cpp b/filament/src/fg/PassNode.cpp
+index a6d00a51..7b14e5b3 100644
+--- a/filament/src/fg/PassNode.cpp
++++ b/filament/src/fg/PassNode.cpp
+@@ -151,12 +151,18 @@ void RenderPassNode::resolve() noexcept {
+ 
+                 rt.targetBufferFlags |= target;
+ 
++                VirtualResource* pResource = mFrameGraph.getResource(rt.attachments[i]);
++                Resource<FrameGraphTexture>* pTextureResource = static_cast<Resource<FrameGraphTexture>*>(pResource);
++
+                 // Discard at the end only if we are writing to this attachment AND later reading
+                 // from it. (in particular, don't discard if we're not writing at all, because this
+                 // attachment might have other readers after us).
+                 // TODO: we could set the discard flag if we are the last reader, i.e.
+                 //       if rt->incoming[i] last reader is us.
+-                if (outgoingNode && !outgoingNode->hasActiveReaders()) {
++                // An imported resource is never discarded: its content is owned by the client
++                // (e.g. the velocity buffer of View::setVelocityBuffers), who reads it outside of
++                // the frame graph.
++                if (outgoingNode && !outgoingNode->hasActiveReaders() && !pResource->isImported()) {
+                     rt.backend.params.flags.discardEnd |= target;
+                 }
+                 if (!outgoingNode || !outgoingNode->hasWriterPass()) {
+@@ -170,9 +176,6 @@ void RenderPassNode::resolve() noexcept {
+                 if (!incomingNode || !incomingNode->hasActiveWriters()) {
+                     rt.backend.params.flags.discardStart |= target;
+                 }
+-                VirtualResource* pResource = mFrameGraph.getResource(rt.attachments[i]);
+-                Resource<FrameGraphTexture>* pTextureResource = static_cast<Resource<FrameGraphTexture>*>(pResource);
+-
+                 pImportedRenderTarget = pImportedRenderTarget ?
+                         pImportedRenderTarget : pResource->asImportedRenderTarget();
+ 
+diff --git a/libs/bluevk/CMakeLists.txt b/libs/bluevk/CMakeLists.txt
+index 9e7ee651..729c4c74 100644
+--- a/libs/bluevk/CMakeLists.txt
++++ b/libs/bluevk/CMakeLists.txt
+@@ -35,3 +35,6 @@ if (NOT ANDROID AND NOT IOS AND NOT WIN32 AND NOT FILAMENT_SKIP_SDL2)
+ endif()
+ 
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(DIRECTORY ${PUBLIC_HDR_DIR}/bluevk DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/vulkan DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/vk_video DESTINATION include)
+diff --git a/libs/filabridge/include/private/filament/EngineEnums.h b/libs/filabridge/include/private/filament/EngineEnums.h
+index 51b51443..3ce4b05a 100644
+--- a/libs/filabridge/include/private/filament/EngineEnums.h
++++ b/libs/filabridge/include/private/filament/EngineEnums.h
+@@ -66,6 +66,8 @@ enum class PerRenderableBindingPoints : uint8_t  {
+     MORPH_TARGET_POSITIONS      =  3,
+     MORPH_TARGET_TANGENTS       =  4,
+     BONES_INDICES_AND_WEIGHTS   =  5,
++    BONES_PREV_UNIFORMS         =  6,   // the previous frame's bones (motion vectors)
++    MORPHING_PREV_UNIFORMS      =  7,   // the previous frame's morph weights (motion vectors)
+ };
+ 
+ enum class PerMaterialBindingPoints : uint8_t  {
+diff --git a/libs/filabridge/include/private/filament/UibStructs.h b/libs/filabridge/include/private/filament/UibStructs.h
+index 2507ee79..217da66f 100644
+--- a/libs/filabridge/include/private/filament/UibStructs.h
++++ b/libs/filabridge/include/private/filament/UibStructs.h
+@@ -231,7 +231,8 @@ struct PerViewUib { // NOLINT(cppcoreguidelines-pro-type-member-init)
+     int32_t extraDirReserved2;
+ 
+     // bring PerViewUib to 2 KiB
+-    math::float4 reserved[9];
++    math::mat4f prevClipFromWorldMatrix;    // clip <- world of the previous frame (motion vectors)
++    math::float4 reserved[5];
+ };
+ 
+ // 2 KiB == 128 float4s
+@@ -250,7 +251,8 @@ struct PerRenderableData {
+     // TODO: We need a better solution, this currently holds the average local scale for the renderable
+     float userData;
+ 
+-    math::float4 reserved[8];
++    std140::mat44 prevWorldFromModelMatrix;     // the previous frame's world <- model (motion vectors)
++    math::float4 reserved[4];
+ 
+     static uint32_t packFlagsChannels(
+             bool skinning, uint8_t morphing, bool contactShadows, bool hasInstanceBuffer,
+@@ -367,9 +369,18 @@ struct PerRenderableBoneUib { // NOLINT(cppcoreguidelines-pro-type-member-init)
+ static_assert(sizeof(PerRenderableBoneUib) <= CONFIG_MINSPEC_UBO_SIZE,
+         "PerRenderableUibBone exceeds max UBO size");
+ 
++// The previous frame's bones (same layout), bound next to the current ones for motion vectors.
++struct PerRenderableBonePrevUib {
++    static constexpr std::string_view _name{ "BonesPrevUniforms" };
++};
++
+ // ------------------------------------------------------------------------------------------------
+ // MARK: -
+ 
++struct PerRenderableMorphingPrevUib {
++    static constexpr std::string_view _name{ "MorphingPrevUniforms" };
++};
++
+ struct alignas(16) PerRenderableMorphingUib {
+     static constexpr std::string_view _name{ "MorphingUniforms" };
+     // The array stride(the bytes between array elements) is always rounded up to the size of a vec4 in std140.
+diff --git a/libs/filabridge/include/private/filament/Variant.h b/libs/filabridge/include/private/filament/Variant.h
+index c5909929..c81c2407 100644
+--- a/libs/filabridge/include/private/filament/Variant.h
++++ b/libs/filabridge/include/private/filament/Variant.h
+@@ -220,8 +220,9 @@ struct Variant {
+             return variant & (STE | SKN | SRE | DIR);
+         }
+         if ((variant.key & DEPTH_MASK) == DEPTH_VARIANT) {
+-            // Only MNT, skinning, and stereo affect the vertex shader's DEPTH variant
+-            return variant & (STE | MNT | SKN | DEP);
++            // MNT, skinning, stereo and picking affect the vertex shader's DEPTH variant (the picking
++            // variant also computes the previous frame's clip-space position for motion vectors)
++            return variant & (STE | MNT | SKN | DEP | PCK);
+         }
+         return {};
+     }
+diff --git a/libs/filabridge/src/DescriptorSets.cpp b/libs/filabridge/src/DescriptorSets.cpp
+index 86043b4f..c20ac244 100644
+--- a/libs/filabridge/src/DescriptorSets.cpp
++++ b/libs/filabridge/src/DescriptorSets.cpp
+@@ -94,6 +94,8 @@ static constexpr std::initializer_list<DescriptorSetLayoutDescriptor> perRendera
+     { DescriptorType::SAMPLER_2D_ARRAY_FLOAT,   ShaderStageFlags::VERTEX                             ,  +PerRenderableBindingPoints::MORPH_TARGET_POSITIONS, DescriptorFlags::UNFILTERABLE },
+     { DescriptorType::SAMPLER_2D_ARRAY_INT,     ShaderStageFlags::VERTEX                             ,  +PerRenderableBindingPoints::MORPH_TARGET_TANGENTS     },
+     { DescriptorType::SAMPLER_2D_FLOAT,   ShaderStageFlags::VERTEX                                   ,  +PerRenderableBindingPoints::BONES_INDICES_AND_WEIGHTS, DescriptorFlags::UNFILTERABLE },
++    { DescriptorType::UNIFORM_BUFFER,           ShaderStageFlags::VERTEX                             ,  +PerRenderableBindingPoints::BONES_PREV_UNIFORMS       },
++    { DescriptorType::UNIFORM_BUFFER,           ShaderStageFlags::VERTEX                             ,  +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS    },
+ };
+ 
+ struct PairSamplerTypeFormatHasher {
+@@ -189,6 +191,8 @@ utils::CString getDescriptorName(DescriptorSetBindingPoints const set,
+         { +PerRenderableBindingPoints::OBJECT_UNIFORMS,             "ObjectUniforms"sv },
+         { +PerRenderableBindingPoints::BONES_UNIFORMS,              "BonesUniforms"sv },
+         { +PerRenderableBindingPoints::MORPHING_UNIFORMS,           "MorphingUniforms"sv },
++        { +PerRenderableBindingPoints::BONES_PREV_UNIFORMS,         "BonesPrevUniforms"sv },
++        { +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS,      "MorphingPrevUniforms"sv },
+         { +PerRenderableBindingPoints::MORPH_TARGET_POSITIONS,      "sampler1_positions"sv },
+         { +PerRenderableBindingPoints::MORPH_TARGET_TANGENTS,       "sampler1_tangents"sv },
+         { +PerRenderableBindingPoints::BONES_INDICES_AND_WEIGHTS,   "sampler1_indicesAndWeights"sv },
+diff --git a/libs/filabridge/src/Variant.cpp b/libs/filabridge/src/Variant.cpp
+index 0a1d92e8..9ede4588 100644
+--- a/libs/filabridge/src/Variant.cpp
++++ b/libs/filabridge/src/Variant.cpp
+@@ -1,243 +1,243 @@
+-/*
+- * Copyright (C) 2022 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#include <private/filament/EngineEnums.h>
+-#include <private/filament/Variant.h>
+-
+-#include <filament/MaterialEnums.h>
+-
+-#include <utils/Slice.h>
+-
+-#include <array>
+-
+-#include <stddef.h>
+-#include <stdint.h>
+-
+-namespace filament {
+-
+-Variant Variant::filterUserVariant(
+-        Variant variant, UserVariantFilterMask filterMask) noexcept {
+-    // these are easy to filter by just removing the corresponding bit
+-    if (filterMask & uint32_t(UserVariantFilterBit::DIRECTIONAL_LIGHTING)) {
+-        variant.key &= ~DIR;
+-    }
+-
+-    if (filterMask & uint32_t(UserVariantFilterBit::SKINNING)) {
+-        variant.key &= ~SKN;
+-    }
+-
+-    if (filterMask & uint32_t(UserVariantFilterBit::STE)) {
+-        variant.key &= ~STE;
+-    }
+-
+-    if (isValidDepthVariant(variant)) {
+-        // depth variants can have their MNT bit filtered
+-        if (filterMask & uint32_t(UserVariantFilterBit::VSM)) {
+-            variant.key &= ~MNT;
+-        }
+-    }
+-
+-    if (filterMask & uint32_t(UserVariantFilterBit::SHADOW_RECEIVER)) {
+-        variant.key &= ~SRE;
+-    }
+-
+-    if (!isSSRVariant(variant)) {
+-        // SSR still needs to be handled separately because MNT aliases S2D.
+-        if (filterMask & uint32_t(UserVariantFilterBit::VSM)) {
+-            variant.key &= ~S2D;
+-        }
+-
+-        if (filterMask & uint32_t(UserVariantFilterBit::FOG)) {
+-            variant.setFog(false);
+-        }
+-    } else {
+-        // see if we need to filter out the SSR variants
+-        if (filterMask & uint32_t(UserVariantFilterBit::SSR)) {
+-            variant.key &= ~SPECIAL_SSR_VARIANT;
+-        }
+-    }
+-    return variant;
+-}
+-
+-namespace details {
+-
+-namespace {
+-
+-// Compile-time variant count for lit and unlit
+-constexpr inline size_t variant_count(bool lit) noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        Variant variant(i);
+-        if (!Variant::isValidSurfaceVariant(variant)) {
+-            continue;
+-        }
+-        variant = Variant::filterVariant(variant, lit);
+-        if (i == variant.key) {
+-            count++;
+-        }
+-    }
+-    return count;
+-}
+-
+-constexpr inline size_t depth_variant_count() noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        Variant const variant(i);
+-        if (Variant::isValidDepthVariant(variant)) {
+-            count++;
+-        }
+-    }
+-    return count;
+-}
+-
+-// Compile-time variant list for lit and unlit
+-template<bool LIT>
+-constexpr auto get_variants() noexcept {
+-    std::array<Variant, variant_count(LIT)> variants;
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        Variant variant(i);
+-        if (!Variant::isValidSurfaceVariant(variant)) {
+-            continue;
+-        }
+-        variant = Variant::filterVariant(variant, LIT);
+-        if (i == variant.key) {
+-            variants[count++] = variant;
+-        }
+-    }
+-    return variants;
+-}
+-
+-constexpr auto get_depth_variants() noexcept {
+-    std::array<Variant, depth_variant_count()> variants;
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        Variant const variant(i);
+-        if (Variant::isValidDepthVariant(variant)) {
+-            variants[count++] = variant;
+-        }
+-    }
+-    return variants;
+-}
+-
+-constexpr auto get_post_process_variants() noexcept {
+-    std::array<Variant, POST_PROCESS_VARIANT_COUNT> variants;
+-    for (size_t i = 0; i < POST_PROCESS_VARIANT_COUNT; i++) {
+-        Variant const variant(i);
+-        variants[i] = variant;
+-    }
+-    return variants;
+-}
+-
+-// Below are compile time sanity-check tests
+-constexpr inline bool reserved_is_not_valid() noexcept {
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        const Variant variant(i);
+-        bool const is_valid = Variant::isValid(variant);
+-        bool const is_reserved = Variant::isReserved(variant);
+-        if (is_valid == is_reserved) {
+-            return false;
+-        }
+-    }
+-    return true;
+-}
+-
+-constexpr inline size_t reserved_variant_count() noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        const Variant variant(i);
+-        if (Variant::isReserved(variant)) {
+-            count++;
+-        }
+-    }
+-    return count;
+-}
+-
+-constexpr inline size_t valid_variant_count() noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        const Variant variant(i);
+-        if (Variant::isValid(variant)) {
+-            count++;
+-        }
+-    }
+-    return count;
+-}
+-
+-constexpr inline size_t vertex_variant_count() noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        const Variant variant(i);
+-        if (Variant::isValid(variant)) {
+-            if (Variant::isVertexVariant(variant)) {
+-                count++;
+-            }
+-        }
+-    }
+-    return count;
+-}
+-
+-constexpr inline size_t fragment_variant_count() noexcept {
+-    size_t count = 0;
+-    for (size_t i = 0; i < VARIANT_COUNT; i++) {
+-        const Variant variant(i);
+-        if (Variant::isValid(variant)) {
+-            if (Variant::isFragmentVariant(variant)) {
+-                count++;
+-            }
+-        }
+-    }
+-    return count;
+-}
+-
+-} // anonymous namespace
+-
+-
+-static auto const gLitVariants{ details::get_variants<true>() };
+-static auto const gUnlitVariants{ details::get_variants<false>() };
+-static auto const gDepthVariants{ details::get_depth_variants() };
+-static auto const gPostProcessVariants{ details::get_post_process_variants() };
+-
+-static_assert(reserved_is_not_valid());
+-static_assert(reserved_variant_count() == 67);
+-static_assert(valid_variant_count() == 61);
+-static_assert(vertex_variant_count() == 16 + 8);              // 24
+-static_assert(fragment_variant_count() == 16 + 3 + 1 - 4);    // 16
+-
+-} // namespace details
+-
+-
+-namespace VariantUtils {
+-
+-utils::Slice<const Variant> getLitVariants() noexcept {
+-    return { details::gLitVariants.data(), details::gLitVariants.size() };
+-}
+-
+-utils::Slice<const Variant> getUnlitVariants() noexcept {
+-    return { details::gUnlitVariants.data(), details::gUnlitVariants.size() };
+-}
+-
+-utils::Slice<const Variant> getDepthVariants() noexcept {
+-    return { details::gDepthVariants.data(), details::gDepthVariants.size() };
+-}
+-
+-utils::Slice<const Variant> getPostProcessVariants() noexcept {
+-    return { details::gPostProcessVariants.data(), details::gPostProcessVariants.size() };
+-}
+-
+-}; // VariantUtils
+-
+-} // namespace filament
++/*
++ * Copyright (C) 2022 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <private/filament/EngineEnums.h>
++#include <private/filament/Variant.h>
++
++#include <filament/MaterialEnums.h>
++
++#include <utils/Slice.h>
++
++#include <array>
++
++#include <stddef.h>
++#include <stdint.h>
++
++namespace filament {
++
++Variant Variant::filterUserVariant(
++        Variant variant, UserVariantFilterMask filterMask) noexcept {
++    // these are easy to filter by just removing the corresponding bit
++    if (filterMask & uint32_t(UserVariantFilterBit::DIRECTIONAL_LIGHTING)) {
++        variant.key &= ~DIR;
++    }
++
++    if (filterMask & uint32_t(UserVariantFilterBit::SKINNING)) {
++        variant.key &= ~SKN;
++    }
++
++    if (filterMask & uint32_t(UserVariantFilterBit::STE)) {
++        variant.key &= ~STE;
++    }
++
++    if (isValidDepthVariant(variant)) {
++        // depth variants can have their MNT bit filtered
++        if (filterMask & uint32_t(UserVariantFilterBit::VSM)) {
++            variant.key &= ~MNT;
++        }
++    }
++
++    if (filterMask & uint32_t(UserVariantFilterBit::SHADOW_RECEIVER)) {
++        variant.key &= ~SRE;
++    }
++
++    if (!isSSRVariant(variant)) {
++        // SSR still needs to be handled separately because MNT aliases S2D.
++        if (filterMask & uint32_t(UserVariantFilterBit::VSM)) {
++            variant.key &= ~S2D;
++        }
++
++        if (filterMask & uint32_t(UserVariantFilterBit::FOG)) {
++            variant.setFog(false);
++        }
++    } else {
++        // see if we need to filter out the SSR variants
++        if (filterMask & uint32_t(UserVariantFilterBit::SSR)) {
++            variant.key &= ~SPECIAL_SSR_VARIANT;
++        }
++    }
++    return variant;
++}
++
++namespace details {
++
++namespace {
++
++// Compile-time variant count for lit and unlit
++constexpr inline size_t variant_count(bool lit) noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        Variant variant(i);
++        if (!Variant::isValidSurfaceVariant(variant)) {
++            continue;
++        }
++        variant = Variant::filterVariant(variant, lit);
++        if (i == variant.key) {
++            count++;
++        }
++    }
++    return count;
++}
++
++constexpr inline size_t depth_variant_count() noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        Variant const variant(i);
++        if (Variant::isValidDepthVariant(variant)) {
++            count++;
++        }
++    }
++    return count;
++}
++
++// Compile-time variant list for lit and unlit
++template<bool LIT>
++constexpr auto get_variants() noexcept {
++    std::array<Variant, variant_count(LIT)> variants;
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        Variant variant(i);
++        if (!Variant::isValidSurfaceVariant(variant)) {
++            continue;
++        }
++        variant = Variant::filterVariant(variant, LIT);
++        if (i == variant.key) {
++            variants[count++] = variant;
++        }
++    }
++    return variants;
++}
++
++constexpr auto get_depth_variants() noexcept {
++    std::array<Variant, depth_variant_count()> variants;
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        Variant const variant(i);
++        if (Variant::isValidDepthVariant(variant)) {
++            variants[count++] = variant;
++        }
++    }
++    return variants;
++}
++
++constexpr auto get_post_process_variants() noexcept {
++    std::array<Variant, POST_PROCESS_VARIANT_COUNT> variants;
++    for (size_t i = 0; i < POST_PROCESS_VARIANT_COUNT; i++) {
++        Variant const variant(i);
++        variants[i] = variant;
++    }
++    return variants;
++}
++
++// Below are compile time sanity-check tests
++constexpr inline bool reserved_is_not_valid() noexcept {
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        const Variant variant(i);
++        bool const is_valid = Variant::isValid(variant);
++        bool const is_reserved = Variant::isReserved(variant);
++        if (is_valid == is_reserved) {
++            return false;
++        }
++    }
++    return true;
++}
++
++constexpr inline size_t reserved_variant_count() noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        const Variant variant(i);
++        if (Variant::isReserved(variant)) {
++            count++;
++        }
++    }
++    return count;
++}
++
++constexpr inline size_t valid_variant_count() noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        const Variant variant(i);
++        if (Variant::isValid(variant)) {
++            count++;
++        }
++    }
++    return count;
++}
++
++constexpr inline size_t vertex_variant_count() noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        const Variant variant(i);
++        if (Variant::isValid(variant)) {
++            if (Variant::isVertexVariant(variant)) {
++                count++;
++            }
++        }
++    }
++    return count;
++}
++
++constexpr inline size_t fragment_variant_count() noexcept {
++    size_t count = 0;
++    for (size_t i = 0; i < VARIANT_COUNT; i++) {
++        const Variant variant(i);
++        if (Variant::isValid(variant)) {
++            if (Variant::isFragmentVariant(variant)) {
++                count++;
++            }
++        }
++    }
++    return count;
++}
++
++} // anonymous namespace
++
++
++static auto const gLitVariants{ details::get_variants<true>() };
++static auto const gUnlitVariants{ details::get_variants<false>() };
++static auto const gDepthVariants{ details::get_depth_variants() };
++static auto const gPostProcessVariants{ details::get_post_process_variants() };
++
++static_assert(reserved_is_not_valid());
++static_assert(reserved_variant_count() == 67);
++static_assert(valid_variant_count() == 61);
++static_assert(vertex_variant_count() == 16 + 12);             // 28 (the picking depth variants have their own vertex shader)
++static_assert(fragment_variant_count() == 16 + 3 + 1 - 4);    // 16
++
++} // namespace details
++
++
++namespace VariantUtils {
++
++utils::Slice<const Variant> getLitVariants() noexcept {
++    return { details::gLitVariants.data(), details::gLitVariants.size() };
++}
++
++utils::Slice<const Variant> getUnlitVariants() noexcept {
++    return { details::gUnlitVariants.data(), details::gUnlitVariants.size() };
++}
++
++utils::Slice<const Variant> getDepthVariants() noexcept {
++    return { details::gDepthVariants.data(), details::gDepthVariants.size() };
++}
++
++utils::Slice<const Variant> getPostProcessVariants() noexcept {
++    return { details::gPostProcessVariants.data(), details::gPostProcessVariants.size() };
++}
++
++}; // VariantUtils
++
++} // namespace filament
+diff --git a/libs/filagui/CMakeLists.txt b/libs/filagui/CMakeLists.txt
+index 87c4799e..ac4ef751 100644
+--- a/libs/filagui/CMakeLists.txt
++++ b/libs/filagui/CMakeLists.txt
+@@ -97,6 +97,9 @@ target_link_libraries(${TARGET} PUBLIC imgui filament)
+ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
+ 
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(DIRECTORY ${PUBLIC_HDR_DIR}/filagui DESTINATION include)
++
+ # ==================================================================================================
+ # Compiler flags
+ # ==================================================================================================
+diff --git a/libs/filamat/src/shaders/CodeGenerator.cpp b/libs/filamat/src/shaders/CodeGenerator.cpp
+index 80b4ff44..ee60bea1 100644
+--- a/libs/filamat/src/shaders/CodeGenerator.cpp
++++ b/libs/filamat/src/shaders/CodeGenerator.cpp
+@@ -1319,7 +1319,9 @@ char const* CodeGenerator::getSamplerTypeName(SamplerType type, SamplerFormat fo
+ 
+ char const* CodeGenerator::getInterpolationQualifier(Interpolation interpolation) noexcept {
+     switch (interpolation) {
+-        case Interpolation::SMOOTH: return "";
++        // centroid: with MSAA, a fragment whose center lies outside a thin triangle (a hair strand) would
++        // otherwise get extrapolated normals, tangents and colors (mirror-like glints, alpha above one)
++        case Interpolation::SMOOTH: return "SMOOTH_INTERPOLATION ";
+         case Interpolation::FLAT:   return "flat ";
+     }
+ }
+diff --git a/libs/filamat/src/shaders/ShaderGenerator.cpp b/libs/filamat/src/shaders/ShaderGenerator.cpp
+index fbe2b1d4..d63c9204 100644
+--- a/libs/filamat/src/shaders/ShaderGenerator.cpp
++++ b/libs/filamat/src/shaders/ShaderGenerator.cpp
+@@ -74,6 +74,11 @@ void ShaderGenerator::generateSurfaceMaterialVariantDefines(io::sstream& out,
+             if (hasSkinningOrMorphing(variant, featureLevel)) {
+                 CodeGenerator::generateDefine(out, "VARIANT_HAS_SKINNING_OR_MORPHING");
+             }
++            if (filament::Variant::isPickingVariant(variant)) {
++                // the picking variant's vertex shader computes the previous frame's clip
++                // position for the motion vectors
++                CodeGenerator::generateDefine(out, "VARIANT_HAS_PICKING");
++            }
+             break;
+         case ShaderStage::FRAGMENT:
+             if (filament::Variant::isFogVariant(variant)) {
+@@ -511,6 +516,17 @@ std::string ShaderGenerator::createSurfaceVertexProgram(ShaderModel const shader
+                 DescriptorSetBindingPoints::PER_RENDERABLE,
+                 +PerRenderableBindingPoints::MORPHING_UNIFORMS,
+                 UibGenerator::getPerRenderableMorphingUib());
++        if (filament::Variant::isPickingVariant(variant)) {
++            // the picking pass also writes motion vectors: it needs the previous frame's pose
++            cg.generateUniforms(vs, ShaderStage::VERTEX,
++                    DescriptorSetBindingPoints::PER_RENDERABLE,
++                    +PerRenderableBindingPoints::BONES_PREV_UNIFORMS,
++                    UibGenerator::getPerRenderableBonesPrevUib());
++            cg.generateUniforms(vs, ShaderStage::VERTEX,
++                    DescriptorSetBindingPoints::PER_RENDERABLE,
++                    +PerRenderableBindingPoints::MORPHING_PREV_UNIFORMS,
++                    UibGenerator::getPerRenderableMorphingPrevUib());
++        }
+         cg.generateCommonSamplers(vs, DescriptorSetBindingPoints::PER_RENDERABLE,
+                 SibGenerator::getPerRenderableSib(variant));
+     }
+diff --git a/libs/filamat/src/shaders/UibGenerator.cpp b/libs/filamat/src/shaders/UibGenerator.cpp
+index f68aa003..70f5af13 100644
+--- a/libs/filamat/src/shaders/UibGenerator.cpp
++++ b/libs/filamat/src/shaders/UibGenerator.cpp
+@@ -241,6 +241,8 @@ BufferInterfaceBlock const& UibGenerator::getPerViewUib() noexcept  {
+             { "extraDirReserved1",        0, Type::INT                     },
+             { "extraDirReserved2",        0, Type::INT                     },
+ 
++            { "prevClipFromWorldMatrix",  0, Type::MAT4, Precision::HIGH  },
++
+             // bring PerViewUib to 2 KiB
+             { "reserved", sizeof(PerViewUib::reserved)/16, Type::FLOAT4 }
+             })
+@@ -287,6 +289,25 @@ BufferInterfaceBlock const& UibGenerator::getPerRenderableBonesUib() noexcept {
+     return uib;
+ }
+ 
++BufferInterfaceBlock const& UibGenerator::getPerRenderableBonesPrevUib() noexcept {
++    static BufferInterfaceBlock const uib = BufferInterfaceBlock::Builder()
++            .name(PerRenderableBonePrevUib::_name)
++            .add({{ "bones", CONFIG_MAX_BONE_COUNT,
++                    BufferInterfaceBlock::Type::STRUCT, {}, {},
++                    "BoneData", sizeof(PerRenderableBoneUib::BoneData) }})
++            .build();
++    return uib;
++}
++
++BufferInterfaceBlock const& UibGenerator::getPerRenderableMorphingPrevUib() noexcept {
++    static BufferInterfaceBlock const uib = BufferInterfaceBlock::Builder()
++            .name(PerRenderableMorphingPrevUib::_name)
++            .add({{ "weights", CONFIG_MAX_MORPH_TARGET_COUNT,
++                    BufferInterfaceBlock::Type::FLOAT4 }})
++            .build();
++    return uib;
++}
++
+ BufferInterfaceBlock const& UibGenerator::getPerRenderableMorphingUib() noexcept {
+     static BufferInterfaceBlock const uib = BufferInterfaceBlock::Builder()
+             .name(PerRenderableMorphingUib::_name)
+diff --git a/libs/filamat/src/shaders/UibGenerator.h b/libs/filamat/src/shaders/UibGenerator.h
+index a2250bda..80997b27 100644
+--- a/libs/filamat/src/shaders/UibGenerator.h
++++ b/libs/filamat/src/shaders/UibGenerator.h
+@@ -67,6 +67,8 @@ public:
+     static BufferInterfaceBlock const& getShadowUib() noexcept;
+     static BufferInterfaceBlock const& getPerRenderableBonesUib() noexcept;
+     static BufferInterfaceBlock const& getPerRenderableMorphingUib() noexcept;
++    static BufferInterfaceBlock const& getPerRenderableBonesPrevUib() noexcept;
++    static BufferInterfaceBlock const& getPerRenderableMorphingPrevUib() noexcept;
+     static BufferInterfaceBlock const& getFroxelRecordUib() noexcept;
+     static BufferInterfaceBlock const& getFroxelsUib() noexcept;
+ };
+diff --git a/shaders/src/surface_depth_main.fs b/shaders/src/surface_depth_main.fs
+index 315a72eb..5164f257 100644
+--- a/shaders/src/surface_depth_main.fs
++++ b/shaders/src/surface_depth_main.fs
+@@ -4,7 +4,8 @@ layout(location = 0) out highp vec4 fragColor;
+ #   if MATERIAL_FEATURE_LEVEL == 0
+ layout(location = 0) out highp vec4 outPicking;
+ #   else
+-layout(location = 0) out highp uvec2 outPicking;
++// object id, depth bits, and the motion vector (previous - current NDC, as float bits)
++layout(location = 0) out highp uvec4 outPicking;
+ #   endif
+ #else
+ // not color output
+@@ -61,6 +62,9 @@ void main() {
+ #else
+     outPicking.x = uint(object_uniforms_objectId);
+     outPicking.y = floatBitsToUint(vertex_position.z / vertex_position.w);
++    highp vec2 motion = vertex_prevClipPosition.xy / vertex_prevClipPosition.w - vertex_position.xy / vertex_position.w;
++    outPicking.z = floatBitsToUint(motion.x);
++    outPicking.w = floatBitsToUint(motion.y);
+ #endif
+ 
+ #else
+diff --git a/shaders/src/surface_getters.vs b/shaders/src/surface_getters.vs
+index 5eb08579..af2f619c 100644
+--- a/shaders/src/surface_getters.vs
++++ b/shaders/src/surface_getters.vs
+@@ -246,6 +246,7 @@ void morphNormal(inout vec3 n) {
+ }
+ #endif
+ 
++
+ /** @public-api */
+ vec4 getPosition() {
+     vec4 pos = mesh_position;
+@@ -337,3 +338,84 @@ vec4 computeWorldPosition() {
+ #error Unknown Vertex Domain
+ #endif
+ }
++
++#if defined(VARIANT_HAS_PICKING) && MATERIAL_FEATURE_LEVEL > 0
++//------------------------------------------------------------------------------
++// Previous-frame position (motion vectors): the same skinning / morphing with the
++// previous frame's bones and weights (bonesPrevUniforms / morphingPrevUniforms)
++//------------------------------------------------------------------------------
++#if defined(VARIANT_HAS_SKINNING_OR_MORPHING)
++vec3 mulBoneVertexPrev(vec3 v, uint i) {
++    highp mat4x3 m = transpose(bonesPrevUniforms.bones[i].transform);
++    return v.x * m[0].xyz + (v.y * m[1].xyz + (v.z * m[2].xyz + m[3].xyz));
++}
++
++void skinPositionPrev(inout vec3 p, const uvec4 ids, const vec4 weights) {
++    if (weights.w >= 0.0) {
++        p = weights.x * mulBoneVertexPrev(p, uint(ids.x))
++            + weights.y * mulBoneVertexPrev(p, uint(ids.y))
++            + weights.z * mulBoneVertexPrev(p, uint(ids.z))
++            + weights.w * mulBoneVertexPrev(p, uint(ids.w));
++        return;
++    }
++    vec3 posSum = weights.x * mulBoneVertexPrev(p, uint(ids.x));
++    posSum += weights.y * mulBoneVertexPrev(p, uint(ids.y));
++    posSum += weights.z * mulBoneVertexPrev(p, uint(ids.z));
++    uint pairIndex = uint(-weights.w - 1.);
++    uint pairStop = pairIndex + uint(ids.w - 3u);
++    for (uint i = pairIndex; i < pairStop; ++i) {
++        ivec2 texcoord = ivec2(i % MAX_SKINNING_BUFFER_WIDTH, i / MAX_SKINNING_BUFFER_WIDTH);
++        vec2 indexWeight = texelFetch(sampler1_indicesAndWeights, texcoord, 0).rg;
++        posSum += mulBoneVertexPrev(p, uint(indexWeight.r)) * indexWeight.g;
++    }
++    p = posSum;
++}
++
++void morphPositionPrev(inout vec4 p) {
++    int index = getVertexIndex() + pushConstants.morphingBufferOffset;
++    ivec3 texcoord = ivec3(index % MAX_MORPH_TARGET_BUFFER_WIDTH, index / MAX_MORPH_TARGET_BUFFER_WIDTH, 0);
++    int c = object_uniforms_morphTargetCount;
++    for (int i = 0; i < c; ++i) {
++        float w = morphingPrevUniforms.weights[i][0];
++        if (w != 0.0) {
++            texcoord.z = i;
++            p += w * texelFetch(sampler1_positions, texcoord, 0);
++        }
++    }
++}
++#endif
++
++vec4 getPrevPosition() {
++    vec4 pos = mesh_position;
++#if defined(VARIANT_HAS_SKINNING_OR_MORPHING)
++    if ((object_uniforms_flagsChannels & FILAMENT_OBJECT_MORPHING_POSITION_BIT) != 0) {
++#if defined(LEGACY_MORPHING)
++        pos += morphingPrevUniforms.weights[0] * mesh_custom0;
++        pos += morphingPrevUniforms.weights[1] * mesh_custom1;
++        pos += morphingPrevUniforms.weights[2] * mesh_custom2;
++        pos += morphingPrevUniforms.weights[3] * mesh_custom3;
++#else
++        morphPositionPrev(pos);
++#endif
++    }
++    if ((object_uniforms_flagsChannels & FILAMENT_OBJECT_SKINNING_ENABLED_BIT) != 0) {
++        skinPositionPrev(pos.xyz, mesh_bone_indices, mesh_bone_weights);
++    }
++#endif
++    return pos;
++}
++
++// The previous frame's world position of the vertex (object domain: the previous model matrix;
++// the other domains have no history and reuse the current position).
++vec4 computePrevWorldPosition() {
++#if defined(VERTEX_DOMAIN_OBJECT)
++    mat4 transform = object_uniforms_prevWorldFromModelMatrix;
++    vec3 position = getPrevPosition().xyz;
++    return mulMat4x4Float3(transform, position);
++#elif defined(VERTEX_DOMAIN_WORLD)
++    return vec4(getPrevPosition().xyz, 1.0);
++#else
++    return computeWorldPosition();
++#endif
++}
++#endif
+diff --git a/shaders/src/surface_instancing.glsl b/shaders/src/surface_instancing.glsl
+index 339978e4..05ace82b 100644
+--- a/shaders/src/surface_instancing.glsl
++++ b/shaders/src/surface_instancing.glsl
+@@ -8,6 +8,9 @@ highp int object_uniforms_morphTargetCount;
+ highp int object_uniforms_flagsChannels;                   // see packFlags() below (0x00000fll)
+ highp int object_uniforms_objectId;                        // used for picking
+ highp float object_uniforms_userData;   // TODO: We need a better solution, this currently holds the average local scale for the renderable
++#if defined(VARIANT_HAS_PICKING) && MATERIAL_FEATURE_LEVEL > 0
++highp mat4 object_uniforms_prevWorldFromModelMatrix;   // motion vectors (picking variant)
++#endif
+ 
+ //------------------------------------------------------------------------------
+ // Instance access
+@@ -45,6 +48,9 @@ void initObjectUniforms() {
+     object_uniforms_flagsChannels               = objectUniforms.data[i].flagsChannels;
+     object_uniforms_objectId                    = objectUniforms.data[i].objectId;
+     object_uniforms_userData                    = objectUniforms.data[i].userData;
++#if defined(VARIANT_HAS_PICKING) && MATERIAL_FEATURE_LEVEL > 0
++    object_uniforms_prevWorldFromModelMatrix    = objectUniforms.data[i].prevWorldFromModelMatrix;
++#endif
+ }
+ 
+ #if defined(FILAMENT_HAS_FEATURE_INSTANCING) && defined(MATERIAL_HAS_INSTANCES)
+diff --git a/shaders/src/surface_main.vs b/shaders/src/surface_main.vs
+index 2ab56c07..81889580 100644
+--- a/shaders/src/surface_main.vs
++++ b/shaders/src/surface_main.vs
+@@ -223,6 +223,15 @@ void main() {
+     vertex_worldPosition.w = depth;
+ #endif
+ 
++#if defined(VARIANT_HAS_PICKING) && MATERIAL_FEATURE_LEVEL > 0
++    // motion vectors: the previous frame's clip-space position of the same vertex
++#if defined(VERTEX_DOMAIN_DEVICE)
++    vertex_prevClipPosition = position;
++#else
++    vertex_prevClipPosition = frameUniforms.prevClipFromWorldMatrix * computePrevWorldPosition();
++#endif
++#endif
++
+     // this must happen before we compensate for vulkan below
+     vertex_position = position;
+ 
+diff --git a/shaders/src/surface_types.glsl b/shaders/src/surface_types.glsl
+index 6dff64b0..f32779fc 100644
+--- a/shaders/src/surface_types.glsl
++++ b/shaders/src/surface_types.glsl
+@@ -31,7 +31,8 @@ struct PerRenderableData {
+     highp int objectId;                        // used for picking
+     highp float userData;   // TODO: We need a better solution, this currently holds the average local scale for the renderable
+ #if MATERIAL_FEATURE_LEVEL > 0
+-    highp vec4 reserved[8];
++    highp mat4 prevWorldFromModelMatrix;    // the previous frame's world <- model (motion vectors)
++    highp vec4 reserved[4];
+ #endif
+ };
+ 
+diff --git a/shaders/src/surface_varyings.glsl b/shaders/src/surface_varyings.glsl
+index 4b5c1c19..f5fa19a9 100644
+--- a/shaders/src/surface_varyings.glsl
++++ b/shaders/src/surface_varyings.glsl
+@@ -2,8 +2,15 @@
+ // Varyings
+ //------------------------------------------------------------------------------
+ 
++// (centroid is not available at feature level 0 / ESSL 1)
++#if MATERIAL_FEATURE_LEVEL > 0
++#define SMOOTH_INTERPOLATION centroid
++#else
++#define SMOOTH_INTERPOLATION
++#endif
++
+ #if defined(HAS_ATTRIBUTE_COLOR)
+-LAYOUT_LOCATION(4) VARYING mediump vec4 vertex_color;
++LAYOUT_LOCATION(4) SMOOTH_INTERPOLATION VARYING mediump vec4 vertex_color;
+ #endif
+ 
+ #if defined(HAS_ATTRIBUTE_UV0) && !defined(HAS_ATTRIBUTE_UV1)
+@@ -27,6 +34,11 @@ LAYOUT_LOCATION(8) SHADING_INTERPOLATION VARYING mediump vec4 vertex_worldTangen
+ 
+ LAYOUT_LOCATION(9) VARYING highp vec4 vertex_position;
+ 
++#if defined(VARIANT_HAS_PICKING) && MATERIAL_FEATURE_LEVEL > 0
++// the previous frame's clip-space position (motion vectors, written by the picking depth variant)
++LAYOUT_LOCATION(12) VARYING highp vec4 vertex_prevClipPosition;
++#endif
++
+ #if defined(FILAMENT_HAS_FEATURE_INSTANCING)
+ LAYOUT_LOCATION(10) flat VARYING highp int instance_index;
+ highp int logical_instance_index;
+diff --git a/third_party/imgui/tnt/CMakeLists.txt b/third_party/imgui/tnt/CMakeLists.txt
+index 814ce0e1..67291562 100644
+--- a/third_party/imgui/tnt/CMakeLists.txt
++++ b/third_party/imgui/tnt/CMakeLists.txt
+@@ -33,4 +33,7 @@ add_library(${TARGET} STATIC ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
+ 
+ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR} ${PRIVATE_HDR_DIR})
+ 
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(FILES ${PUBLIC_HDRS} DESTINATION include/imgui)
++
+ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+diff --git a/third_party/libsdl2/tnt/CMakeLists.txt b/third_party/libsdl2/tnt/CMakeLists.txt
+index 4dc51cc1..1a16af7c 100755
+--- a/third_party/libsdl2/tnt/CMakeLists.txt
++++ b/third_party/libsdl2/tnt/CMakeLists.txt
+@@ -213,9 +213,13 @@ endif()
+ # specify where the public headers of this library are
+ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ 
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(DIRECTORY ${PUBLIC_HDR_DIR}/ DESTINATION include/SDL2 FILES_MATCHING PATTERN "*.h")
++
+ if (WIN32)
+     # Windows needs a WinMain static library.
+     add_library(${TARGET}main ${SRC_DIR}/main/windows/SDL_windows_main.c)
++    install(TARGETS ${TARGET}main ARCHIVE DESTINATION lib/${DIST_DIR})
+     if(NOT MSVC)
+         # Making this option public because the warning occurs in public headers
+         target_compile_options(${TARGET} PUBLIC -Wno-pragma-pack)
