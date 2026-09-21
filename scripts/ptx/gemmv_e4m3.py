@@ -53,7 +53,7 @@ def generate(K, flags, splits, stages=STAGES, bstages=BSTAGES, prefetch=PREFETCH
               ("u64", "pPartial"), ("u64", "pCount"),
               ("u32", "rows"), ("u32", "inputStride"), ("u32", "inputColumnBase"), ("u32", "Nmatrix"),
               ("u32", "weightColumnOffset"), ("u32", "outputStride"), ("u32", "outputColumnOffset"), ("u32", "auxHalfOffset"),
-              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal")]
+              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal"), ("u64", "pError")]
     p.entry(name, params, shared_bytes, THREADS, max_regs, dynamic_shared=True)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); colGroup = p.special("ctaid.x"); rowGroup = p.special("ctaid.y"); split = p.special("ctaid.z")
@@ -151,7 +151,7 @@ def generate(K, flags, splits, stages=STAGES, bstages=BSTAGES, prefetch=PREFETCH
         issue_B(s)
     p.emit("cp.async.commit_group;")
     pWaitOn = p.setp("ne.u64", P["pWait"], "0")
-    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp)
+    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp, error64=P["pError"])
     if res:
         # split 0 stages the residual tile [192][128 B] (16-byte chunk ^= row & 7) at RES_OFF, within group 0
         pSeed = p.setp("eq.u32", split, zero32)

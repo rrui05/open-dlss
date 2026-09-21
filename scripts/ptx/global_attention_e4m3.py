@@ -29,7 +29,7 @@ def generate(padded):
     name = f"global_attention_e4m3_p{padded}"
     p = Ptx()
     params = [("u64", "pQkv"), ("u64", "pAux"), ("u64", "pOut"), ("u32", "tokens"), ("u32", "heads"), ("u32", "scaleWordOffset"),
-              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal")]
+              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal"), ("u64", "pError")]
     p.entry(name, params, shared_bytes, THREADS, None, dynamic_shared=True)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); head = p.special("ctaid.x"); qb = p.special("ctaid.y")
@@ -48,7 +48,7 @@ def generate(padded):
     hs2 = imm(p, "0x45A845A8")
     # ---- chain wait (the QKV rows are produced by the chained GEMM)
     pWaitOn = p.setp("ne.u64", P["pWait"], "0")
-    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp)
+    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp, error64=P["pError"])
 
     def load_row(token, valid, part):
         """16 words of f16 (part 0 = Q, 1 = K, 2 = V of the head) for `token` (zeros when not valid)."""

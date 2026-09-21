@@ -30,10 +30,11 @@
   <h1>NR parity</h1>
   <p class="lead">
     The port run on a recorded frame, compared byte for byte against what native produced from the same
-    input. This is the browser twin of <code>dlss5vk parity</code>: same fixtures, same comparison, same
-    standard &mdash; every E4M3 byte identical, not close. Which comparisons run depends on what the fixture
-    recorded: <code>nr512</code> has the block boundaries and stops at block 69, <code>nr768</code> has the
-    head and the composed image and covers everything after it. <code>tools/check.mjs</code> runs both.
+    input. This is the browser twin of <code>dlss5vk parity</code>: same fixtures, same contract, same
+    standard &mdash; every E4M3 byte identical, not close. A fixture declares its checks and the page runs
+    exactly those or refuses the fixture: <code>nr512</code> gates the block boundaries (and its 8-bit image,
+    within one code), <code>nr768</code> the head and the composed image. <code>tools/check.mjs</code> runs
+    both.
   </p>
   <div class="split">
     <div class="panel">
@@ -69,15 +70,23 @@ const reporting = query.has('report');
 const cell = (text, cls) => { const td = document.createElement('td'); td.textContent = text;
                               if (cls) td.className = cls; return td; };
 
+const show = (value) => (Number.isInteger(value) && value >= 0 && value < 256
+                         ? `0x${value.toString(16).padStart(2, '0')}` : String(value));
+
 function describe(result) {
-  if (!result) return ['-', 'dim'];
-  if (typeof result === 'string') return [result, 'dim'];
-  if (result.mismatches === 0) return ['exact', 'ok'];
+  if (typeof result === 'string') return [result, 'bad'];
+  if (result.verdict === 'bit-exact') return [`bit-exact (${result.count})`, 'ok'];
+  if (result.verdict === 'within-tolerance') {
+    return [`within one code (${result.count - result.tolerated} exact, ${result.tolerated} one code off)`, 'ok'];
+  }
+  if (result.verdict === 'signed-zero') {
+    return [`NOT BIT-EXACT: ${result.signedZeros} of ${result.count} differ only in the sign of zero`, 'bad'];
+  }
   const deltas = result.deltas.map(([d, n]) => `${d > 0 ? '+' : ''}${d}:${n}`).join(' ');
-  return [`${result.mismatches}/${result.count} (${(100 * result.mismatches / result.count).toFixed(3)}%) ` +
+  return [`MISMATCH ${result.mismatches}/${result.count} (${(100 * result.mismatches / result.count).toFixed(3)}%) ` +
           `max|d| ${result.maxAbs.toPrecision(3)} rmse ${result.rmse.toPrecision(3)} ` +
-          `first@${result.first.index} got 0x${result.first.actual.toString(16).padStart(2, '0')} ` +
-          `exp 0x${result.first.expected.toString(16).padStart(2, '0')} [${deltas}]`, 'bad'];
+          `first@${result.first.index} got ${show(result.first.actual)} exp ${show(result.first.expected)}` +
+          (deltas ? ` [${deltas}]` : ''), 'bad'];
 }
 
 const report = {
@@ -104,11 +113,13 @@ const report = {
     rows.appendChild(tr);
     tr.scrollIntoView({ block: 'nearest' });
   },
-  done: (exact, total) => {
-    const text = exact === total ? `PARITY PASS: ${exact}/${total} boundaries exact`
-                                 : `PARITY FAIL: ${exact}/${total} boundaries exact`;
+  done: (summary) => {
+    const ran = summary['bit-exact'] + summary['within-tolerance'] + summary.failed;
+    const pass = summary.failed === 0 && ran > 0;
+    const text = `PARITY ${pass ? 'PASS' : 'FAIL'}: ${summary['bit-exact']} bit-exact, ` +
+                 `${summary['within-tolerance']} within tolerance, ${summary.failed} failed`;
     verdict.textContent = text;
-    verdict.className = exact === total ? 'ok' : 'bad';
+    verdict.className = pass ? 'ok' : 'bad';
     finish(text);
   },
 };

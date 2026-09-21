@@ -397,6 +397,8 @@ int main(int argc, char** argv) {
   const char* styleNames[] = {"off", "natural", "cinematic", "custom"};
   const char* networkStyleNames[] = {"off", "natural", "cinematic"};
   bool historyReset = true;
+  mat4 previousClipFromRotated;
+  bool hasPreviousCamera = false;
   bool autoOrbit = false;
   bool mouseLook = false;
   float fpsValue = 0.0f;
@@ -534,9 +536,20 @@ int main(int argc, char** argv) {
       animator->updateBoneMatrices();
     }
 
+    // ---- the camera's motion at infinity, for the motion unpack's background pixels: previous clip <- current clip
+    // through the view rotations (a point at infinity does not see the translation)
+    mat4 eyeFromWorld = camera->getViewMatrix();
+    eyeFromWorld[3] = double4(0, 0, 0, 1);
+    const mat4 clipFromRotated = camera->getProjectionMatrix() * eyeFromWorld;
+    if (!hasPreviousCamera) { previousClipFromRotated = clipFromRotated; hasPreviousCamera = true; }
+    // an unchanged camera leaves the background exactly where it was (the product with the inverse is not exactly 1)
+    const mat4f background = clipFromRotated == previousClipFromRotated ? mat4f() : mat4f(previousClipFromRotated * inverse(clipFromRotated));
+    previousClipFromRotated = clipFromRotated;
+
     // ---- the frame
+    if (nr->chainTimedOut()) { engine->flushAndWait(); nr->fallBackToBarriers(); historyReset = true; }
     if (historyReset) { nr->resetHistory(); historyReset = false; }
-    NrPass::Frame nrFrame = nr->beginFrame(controls);
+    NrPass::Frame nrFrame = nr->beginFrame(controls, &background[0][0]);
     auto cpuStart = std::chrono::high_resolution_clock::now();
     NrPass* pass = nr.get();
     queueGpuWork(*engine, {}, [pass, nrFrame](void* commands, std::vector<GpuImage>&) { pass->recordStamp(commands, nrFrame, NrPass::kFrameStart); });
@@ -649,7 +662,11 @@ int main(int argc, char** argv) {
           for (int r = 0; r < 4; r++) { for (int c = 0; c < 4; c++) cameras << (*m)[c][r] << (c < 3 ? " " : "\n"); }
         }
       }
-      if (f == 99) { engine->flushAndWait(); nr->saveRaw(options.capturePrefix + "-pre-scene.raw", 0); }
+      if (f == 99) {
+        engine->flushAndWait();
+        nr->saveRaw(options.capturePrefix + "-pre-scene.raw", 0);
+        nr->saveRaw(options.capturePrefix + "-pre-velocity.raw", 2);
+      }
       if (f == 100) {
         capture("nr-moving");
         nr->saveRaw(options.capturePrefix + "-moving-scene.raw", 0);

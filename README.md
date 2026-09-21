@@ -53,6 +53,7 @@ build\dlss5vk.exe bench   --model <dir> --width 768 --height 768
 build\dlss5vk.exe profile --model <dir> --width 768 --height 768   # per-dispatch timings
 build\dlss5vk.exe parity  --model <dir> --fixture <dir>            # bit-exactness against a fixture
 build\dlss5vk.exe verify  --model <dir> --fixture <dir>            # block-0 kernel-by-kernel bisect
+python scripts\ptx\test_fast_divmod.py                             # the PTX divider, over every n < 2^24 (numpy)
 ```
 
 The demo can be double-clicked. It lists every scene under `build\scenes` in the **Demo scene** dropdown and
@@ -117,11 +118,27 @@ at load.
 
 ## Fixtures
 
-`parity` compares against recorded captures of the original, which are not part of this repository. It takes a
-directory with `manifest.json` (`sourceDimensions`, `fullDimensions`, `proxy` = an RGBA f32 image file,
-optional `nativeOutput` = the expected RGBA f32 output for the same proxy, optional `blocks` / `transitions` =
-expected E4M3 block boundaries) and reports every mismatch. `verify` additionally needs `inputFeatures` and the
-block-0 boundary.
+`parity` compares against recorded captures of the original, which are not part of this repository. A fixture is a
+directory with a `manifest.json`:
+
+| key | |
+| --- | --- |
+| `sourceDimensions`, `fullDimensions` | the valid size and the padded field |
+| `proxy` *or* `inputFeatures` | the input: an RGBA f32 image (with `conditioning`, `seed`, `autoMask`), or the f32 features themselves |
+| `checks` | what the fixture gates, any of `"boundaries"`, `"head"`, `"output"`; required and never empty |
+| `blocks`, `transitions` | `"boundaries"`: E4M3 references (`block` / `id`, `width`, `height`, `channels`, `file`) |
+| `omittedBoundaries` | `"boundaries"`: `{name: reason}` for each comparable boundary the fixture has no reference for |
+| `referenceHead` | `"head"`: the f32 RGBA head |
+| `nativeOutput` | `"output"`: the composed image, `dtype` `"f32"` (RGBA halves, needs `proxy`) or `"u8"` (an 8-bit capture) |
+
+Everything is validated before the GPU runs, and a fixture that fails any of it is refused: a declared check without
+its reference, a reference that is missing, short or names nothing in the graph, a reference no declared check uses,
+or a comparable boundary (blocks 0-69, the five encoder transitions) with neither a reference nor a reason. Verdicts
+are **bit-exact** (the pass), **equal only up to the sign of zero** (a failure), **within one code** (the 8-bit
+capture only, reported apart) or a mismatch; see [docs/numerics.md](docs/numerics.md). The head and the output are
+compared on the production schedule, resubmitted `--repeat` times (default 3), which must also agree with the same
+graph under barriers; the boundaries come from an instrumented run, whose head must agree with production's. `verify`
+additionally needs `inputFeatures` and a `block-0` reference.
 
 ## Tuning switches
 
@@ -140,7 +157,10 @@ only the PTX kernels take part in it.
 - `DLSS5VK_NO_FUSE_PRE`, `POOL`, `UPRES` and `POST` set to 1 drop one fusion each.
 - `DLSS5VK_CHAIN_MASK` is a bit mask: 1 expert stages, 2 c32 blocks, 4 split GEMMs. Default 3.
 - `DLSS5VK_DEFER_MAX` is the widest stage whose projection GEMM is fused. Default 128.
-- `DLSS5VK_DEBUG=1` enables the validation layers, `DLSS5VK_LIST_EXTENSIONS=1` lists extensions.
+- `DLSS5VK_VALIDATION=1` runs under the Khronos validation layer (refused if it is not installed: a Vulkan SDK, or
+  `VK_LAYER_PATH` at a build of Vulkan-ValidationLayers); an error it reports fails the run. `DLSS5VK_DEBUG=1`
+  only prints the driver's own messages (the PTX compiler's among them). `DLSS5VK_LIST_EXTENSIONS=1` lists
+  extensions.
 
 ## Documentation
 

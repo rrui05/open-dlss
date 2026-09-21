@@ -280,7 +280,7 @@ def fast_divmod(p, n, d, dRcp):
     qf = p.reg("f32"); p.emit(f"mul.rn.f32 {qf}, {f}, {dRcp};")
     q = p.reg("b32"); p.emit(f"cvt.rzi.u32.f32 {q}, {qf};")
     r = p.reg("b32"); p.emit(f"mul.lo.u32 {r}, {q}, {d};"); p.emit(f"sub.u32 {r}, {n}, {r};")
-    pNeg = p.setp("gt.s32", r, 0x7fffffff)   # r < 0 as signed: q one too large
+    pNeg = p.setp("lt.s32", r, 0)            # r < 0 as signed: q one too large
     pBig = p.setp("ge.u32", r, d)            # r >= d: q one too small (only when r >= 0)
     p.emit(f"@{pNeg} sub.u32 {q}, {q}, 1;"); p.emit(f"@{pNeg} add.u32 {r}, {r}, {d};")
     pBig2 = p.reg("pred"); p.emit(f"and.pred {pBig2}, {pBig}, !{pNeg};")
@@ -314,13 +314,18 @@ def acc_to_a_smem(p, tiles, cBase, aLane, zero=None):
 # Consumers: every warp polls its counters (lanes in parallel) with ld.acquire.gpu until all reach the expected count.
 
 SLEEP_MAX = 256   # ns: polling backoff ceiling
+WAIT_LIMIT_NS = 1_000_000_000   # a wait this long is a failed scheduling assumption (docs/execution.md), not a slow frame
 
 
-def sync_wait(p, base64, first, last, expected, lane, guard=None, warp=None):
+def sync_wait(p, base64, first, last, expected, lane, guard=None, warp=None, *, error64):
     """Spin until counters [first .. last] (at most 32) at base64 (u64 byte address of counter 0) are all >= expected
     (a register, or a callable emitting the expected count for the counter index register). `guard` (pred) skips the
-    wait when false. With `warp` given, only warp 0 polls (exponential backoff 128 ns .. 1 us) and a bar.sync
-    releases the workgroup; otherwise every warp polls for itself."""
+    wait when false. With `warp` given, only warp 0 polls (exponential backoff 128 .. 256 ns) and a bar.sync
+    releases the workgroup; otherwise every warp polls for itself.
+    A wait that lasts WAIT_LIMIT_NS gives up instead of hanging: it sets bit 31 of the counters it is stuck on (which
+    releases every other waiter on them), adds one to the u32 at error64 and, if it is the first, records the low
+    32 bits of a stuck counter's address at error64 + 4. Every other wait still spinning then gives up too, so the
+    frame completes one limit later and the host reports it."""
     skip = p.label("NOWAIT")
     if guard is not None: p.emit(f"@!{guard} bra {skip};")
     if warp is not None:
@@ -332,6 +337,7 @@ def sync_wait(p, base64, first, last, expected, lane, guard=None, warp=None):
     if callable(expected): expected = expected(idx)
     addr = p.add64(base64, p.widen(p.shl32(idx, 2)))
     sleep = p.reg("b32"); p.emit(f"mov.u32 {sleep}, 128;")
+    start = p.reg("b64"); p.emit(f"mov.u64 {start}, %globaltimer;")
     loop = p.label("WAIT")
     p.emit(f"{loop}:")
     v = p.reg("b32"); p.emit(f"mov.u32 {v}, 0xffffffff;")
@@ -343,7 +349,18 @@ def sync_wait(p, base64, first, last, expected, lane, guard=None, warp=None):
     p.emit(f"nanosleep.u32 {sleep};")
     p.emit(f"shl.b32 {sleep}, {sleep}, 1;")
     p.emit(f"min.u32 {sleep}, {sleep}, {SLEEP_MAX};")
-    p.emit(f"bra {loop};")
+    elapsed = p.reg("b64"); p.emit(f"mov.u64 {elapsed}, %globaltimer;"); p.emit(f"sub.u64 {elapsed}, {elapsed}, {start};")
+    pLate = p.setp("gt.u64", elapsed, WAIT_LIMIT_NS)
+    gaveUp = p.reg("b32"); p.emit(f"ld.relaxed.gpu.global.u32 {gaveUp}, [{error64}];")   # once one wait gave up, all do
+    pAbandon = p.setp("ne.u32", gaveUp, 0)
+    pGiveUp = p.reg("pred"); p.emit(f"or.pred {pGiveUp}, {pLate}, {pAbandon};")
+    p.emit(f"@!{pGiveUp} bra {loop};")
+    pStuck = p.reg("pred"); p.emit(f"and.pred {pStuck}, {pMine}, !{pOk};")
+    p.emit(f"@{pStuck} red.relaxed.gpu.global.or.b32 [{addr}], 0x80000000;")
+    pLane0 = p.setp("eq.u32", lane, 0)
+    p.emit(f"@{pLane0} red.relaxed.gpu.global.add.u32 [{error64}], 1;")
+    addrLow = p.reg("b32"); p.emit(f"cvt.u32.u64 {addrLow}, {addr};")
+    first_ = p.reg("b32"); p.emit(f"@{pStuck} atom.relaxed.gpu.global.cas.b32 {first_}, [{error64}+4], 0, {addrLow};")
     p.emit(f"{done}:")
     if warp is not None:
         p.emit(f"{joinL}:")

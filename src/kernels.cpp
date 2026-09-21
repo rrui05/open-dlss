@@ -56,6 +56,7 @@ Kernels::~Kernels() {
   if (profileQueries_) vkDestroyQueryPool(context_.device(), profileQueries_, nullptr);
   context_.destroyBuffer(siluTable_);
   context_.destroyBuffer(syncBuffer_);
+  context_.destroyBuffer(chainStatus_);
   context_.destroyBuffer(splitScratch_);
 }
 
@@ -65,12 +66,12 @@ void Kernels::setSiluTable(const std::vector<uint16_t>& table) {
   context_.upload(siluTable_, table.data(), 65536 * 2);
 }
 
-VkPipeline Kernels::pipeline(const char* shader, const vk::SpecConstants& constants) {
+VkPipeline Kernels::pipeline(const char* shader, const vk::SpecConstants& constants, uint32_t requiredSubgroupSize) {
   std::string key = shader;
   for (uint32_t value : constants.data) key += ":" + std::to_string(value);
   auto it = pipelines_.find(key);
   if (it != pipelines_.end()) return it->second.pipeline;
-  vk::Pipeline created = context_.createComputePipeline(modules_.at(shader), constants, shader, 32);
+  vk::Pipeline created = context_.createComputePipeline(modules_.at(shader), constants, shader, requiredSubgroupSize);
   pipelines_[key] = created;
   return created.pipeline;
 }
@@ -135,6 +136,52 @@ void Kernels::resetSync(VkCommandBuffer commands) {
   if (syncBuffer_.buffer == VK_NULL_HANDLE) syncAddress(0, kSyncBands);
   vkCmdFillBuffer(commands, syncBuffer_.buffer, 0, VK_WHOLE_SIZE, 0);
   context_.transferBarrier(commands);
+  chainLaunches_.clear();
+}
+
+void Kernels::noteChain(VkDeviceAddress waitA, VkDeviceAddress waitB, VkDeviceAddress signal) {
+  if (waitA || waitB || signal) chainLaunches_.push_back({stageLabel_ + " | " + dispatchLabel_, {waitA, waitB}, signal});
+}
+
+void Kernels::checkChainOrder() const {
+  for (size_t i = 0; i < chainLaunches_.size(); ++i) {
+    const ChainLaunch& launch = chainLaunches_[i];
+    for (VkDeviceAddress wait : launch.waits) {
+      if (!wait) continue;
+      if (wait == launch.signal) throw std::runtime_error("chain order: " + launch.label + " waits on the counters it signals");
+      bool signalledBefore = false;
+      for (size_t j = 0; j < i && !signalledBefore; ++j) signalledBefore = chainLaunches_[j].signal == wait;
+      if (!signalledBefore) throw std::runtime_error("chain order: " + launch.label + " waits on counters no earlier launch signals");
+    }
+  }
+}
+
+VkDeviceAddress Kernels::chainStatusAddress() {
+  if (chainStatus_.buffer == VK_NULL_HANDLE) {
+    chainStatus_ = context_.createBuffer(16, true, "chain status");
+    memset(chainStatus_.mapped, 0, 16);
+  }
+  return context_.deviceAddress(chainStatus_);
+}
+
+Kernels::ChainTimeouts Kernels::chainTimeouts() const {
+  ChainTimeouts timeouts;
+  if (!chainStatus_.mapped) return timeouts;
+  const volatile uint32_t* status = static_cast<const volatile uint32_t*>(chainStatus_.mapped);
+  timeouts.waits = status[0];
+  if (timeouts.waits && syncBuffer_.buffer) {
+    const uint32_t base = (uint32_t)context_.deviceAddress(syncBuffer_), offset = status[1] - base;
+    timeouts.counter = offset < kSyncSlots * kSyncSlotBytes
+                           ? "slot " + std::to_string(offset / kSyncSlotBytes) + " region " +
+                                 std::to_string(offset % kSyncSlotBytes / kSyncRegionBytes) + " counter " +
+                                 std::to_string(offset % kSyncRegionBytes / 4)
+                           : "an address outside the counters";
+  }
+  return timeouts;
+}
+
+void Kernels::resetChainTimeouts() {
+  if (chainStatus_.mapped) memset(chainStatus_.mapped, 0, 16);
 }
 
 void Kernels::cudaLaunchTracked(VkCommandBuffer commands, VkCudaFunctionNV function, uint32_t gridX, uint32_t gridY,
@@ -229,12 +276,14 @@ void Kernels::gemmFp8(VkCommandBuffer commands, const GemmFp8Args& a) {
       uint32_t rows = a.rows, inputStride = a.input->channels, inputColumnBase = a.inputColumnBase, Nmatrix = a.Nmatrix,
                weightColumnOffset = a.weightColumnOffset, outputStride = a.output->channels, outputColumnOffset = a.outputColumnOffset,
                auxHalfOffset = a.auxByteOffset / 2, waitExpected = a.chainWaitExpected;
+      VkDeviceAddress pError = chainStatusAddress();
       const void* params[] = {&pA, &pW, &pRes, &pAux, &pOut, &pOut16, &pPartial, &pCount, &rows, &inputStride, &inputColumnBase, &Nmatrix,
-                              &weightColumnOffset, &outputStride, &outputColumnOffset, &auxHalfOffset, &pWait, &waitExpected, &pSignal};
+                              &weightColumnOffset, &outputStride, &outputColumnOffset, &auxHalfOffset, &pWait, &waitExpected, &pSignal, &pError};
       check(kernel.dynamicShared, "gemmv PTX without a dynamic_shared size");
       dispatchLabel_ = "gemmv_ptx " + std::to_string(a.rows) + "x" + std::to_string(a.K) + "->" + std::to_string(a.N) + " f" +
                        std::to_string(vflags) + (vsplits > 1 ? " s" + std::to_string(vsplits) : "");
-      cudaLaunchTracked(commands, kernel.function, colGroups, rowGroups, vsplits, 32 * warps, kernel.dynamicShared, params, 19, a.chained);
+      noteChain(pWait, 0, pSignal);
+      cudaLaunchTracked(commands, kernel.function, colGroups, rowGroups, vsplits, 32 * warps, kernel.dynamicShared, params, 20, a.chained);
       return;
     }
   }
@@ -313,11 +362,13 @@ void Kernels::gemmFp8(VkCommandBuffer commands, const GemmFp8Args& a) {
     if ((pWaitRows || pSignal || pWaitBands) && !width)
       throw std::runtime_error("PTX GEMM chaining needs the token row width (" + stageLabel_ + ": " + std::to_string(a.rows) + "x" +
                                std::to_string(a.K) + "->" + std::to_string(a.N) + ")");
+    VkDeviceAddress pError = chainStatusAddress();
     const void* params[] = {&pA, &pW, &pRes, &pAux, &pOut, &pOut16, &rows, &inputStride, &inputColumnBase, &Nmatrix,
                             &weightColumnOffset, &outputStride, &outputColumnOffset, &auxHalfOffset,
-                            &pWaitRows, &waitExpected, &waitShiftY, &pSignal, &width, &pWaitBands, &waitMul, &waitGroupRows};
+                            &pWaitRows, &waitExpected, &waitShiftY, &pSignal, &width, &pWaitBands, &waitMul, &waitGroupRows, &pError};
     dispatchLabel_ = "gemm_ptx " + std::to_string(a.rows) + "x" + std::to_string(a.K) + "->" + std::to_string(a.N) + " f" + std::to_string(pflags);
-    cudaLaunchTracked(commands, kernel.function, a.N / 64, (a.rows + 63) / 64, 1, kernel.threads ? kernel.threads : 128, 0, params, 22, a.chained);
+    noteChain(pWaitRows, pWaitBands, pSignal);
+    cudaLaunchTracked(commands, kernel.function, a.N / 64, (a.rows + 63) / 64, 1, kernel.threads ? kernel.threads : 128, 0, params, 23, a.chained);
     return;
   }
   if (a.chainWaitRows || a.chainWaitBands || a.chainSignal || a.chained)
@@ -453,7 +504,7 @@ void Kernels::preprocessFromProxy(VkCommandBuffer commands, const vk::Buffer& pr
   bindings[0] = &proxy;
   bindings[7] = &features.buffer;
   dispatchLabel_ = "preprocess";
-  dispatch(commands, pipeline("preprocess", {}), bindings, &push, sizeof(push), (a.fullWidth + 7) / 8,
+  dispatch(commands, pipeline("preprocess", {}, 0), bindings, &push, sizeof(push), (a.fullWidth + 7) / 8,
            (a.fullHeight + 7) / 8, 1);
 }
 
@@ -593,14 +644,16 @@ void Kernels::fusedBlock32Ptx(VkCommandBuffer commands, const FusedBlock32Args& 
            auxAdapterHalf = a.adapterScaleByteOffset / 2, lowWidth = a.pooled ? a.pooledWidth : a.lowWidth;
   VkDeviceAddress pWait = a.chainWait, pSignal = a.chainSignal;
   uint32_t waitExpected = a.chainWaitExpected, waitShiftY = a.chainWaitShiftY, waitScale = a.chainWaitScale;
+  VkDeviceAddress pError = chainStatusAddress();
   const void* params[] = {&pState, &pLow, &pW1, &pW2, &pWqkv, &pWproj, &pAux, &pPrior, &pOutE4, &pOut2, &pWf16,
                           &width, &height, &shiftX, &shiftY, &windowsX, &windows, &auxFfnHalf, &auxAttnHalf, &scaleWord,
-                          &auxInputHalf, &auxAdapterHalf, &lowWidth, &pWait, &waitExpected, &waitShiftY, &waitScale, &pSignal};
+                          &auxInputHalf, &auxAdapterHalf, &lowWidth, &pWait, &waitExpected, &waitShiftY, &waitScale, &pSignal, &pError};
   // Persistent: eight resident workgroups per SM, each walking windows. The grid must stay co-resident, which is
   // also what keeps a chained consumer from starving the producer it spins on.
   uint32_t groups = std::min(windows, 8 * context_.smCount());
   dispatchLabel_ = "block32_ptx " + std::to_string(windows) + "w f" + std::to_string(flags);
-  cudaLaunchTracked(commands, kernel.function, groups, 1, 1, 128, 0, params, 28, a.chained);
+  noteChain(pWait, 0, pSignal);
+  cudaLaunchTracked(commands, kernel.function, groups, 1, 1, 128, 0, params, 29, a.chained);
 }
 
 bool Kernels::fusedBlock32IsPtx(const FusedBlock32Args& a) {
@@ -767,12 +820,14 @@ void Kernels::expertFfnPtx(VkCommandBuffer commands, const ExpertFfnArgs& a, con
   VkDeviceAddress pWaitRows = chain.waitRows, pWaitBands = chain.waitBands, pSignal = chain.signal;
   uint32_t waitExpected = chain.waitExpected, waitShiftY = chain.waitShiftY, width = a.width, waitMul = chain.waitMul, waitGroupRows = chain.waitGroupRows;
   check(!(pWaitRows || pWaitBands || pSignal) || width, "PTX FFN chaining needs the token row width");
+  VkDeviceAddress pError = chainStatusAddress();
   const void* params[] = {&pA, &pW1, &pW2, &pW3, &pAux, &pOut, &rows, &auxHalf, &pAtt, &pPrev, &pWproj, &auxAttnHalf, &pAuxPrev,
-                          &pStateOut, &storeState, &pWaitRows, &waitExpected, &waitShiftY, &pWaitBands, &pSignal, &width, &waitMul, &waitGroupRows};
+                          &pStateOut, &storeState, &pWaitRows, &waitExpected, &waitShiftY, &pWaitBands, &pSignal, &width, &waitMul, &waitGroupRows, &pError};
   const uint32_t groups = (a.rows + 16 * rowTiles - 1) / (16 * rowTiles);
   dispatchLabel_ = "ffn_ptx " + std::to_string(a.rows) + "x" + std::to_string(a.channels) + " e" + std::to_string(E) + " r" +
                    std::to_string(rowTiles) + (proj ? " +proj" : "");
-  cudaLaunchTracked(commands, kernel.function, groups, 1, 1, 32 * E * rowTiles, sharedBytes, params, 23, chain.chained);
+  noteChain(pWaitRows, pWaitBands, pSignal);
+  cudaLaunchTracked(commands, kernel.function, groups, 1, 1, 32 * E * rowTiles, sharedBytes, params, 24, chain.chained);
 }
 
 void Kernels::qkvAttention(VkCommandBuffer commands, const Activation& input, const vk::Buffer& weights, uint32_t Nmatrix,
@@ -796,10 +851,12 @@ void Kernels::qkvAttention(VkCommandBuffer commands, const Activation& input, co
              items = heads * windows;
     VkDeviceAddress pWait = chain.waitBands, pSignal = chain.signal;
     uint32_t waitMul = chain.waitMul, waitGroupRows = chain.waitGroupRows;
-    const void* params[] = {&pState, &pW, &pPrior, &pAux, &pOut, &w, &h, &sx, &sy, &wxs, &scaleWord, &wc, &items, &pWait, &pSignal, &waitMul, &waitGroupRows};
+    VkDeviceAddress pError = chainStatusAddress();
+    const void* params[] = {&pState, &pW, &pPrior, &pAux, &pOut, &w, &h, &sx, &sy, &wxs, &scaleWord, &wc, &items, &pWait, &pSignal, &waitMul, &waitGroupRows, &pError};
     dispatchLabel_ = "qkv_ptx " + std::to_string(windows) + "w x" + std::to_string(heads) + " K" + std::to_string(heads * 32);
     check((heads & (heads - 1)) == 0 && windows * heads < (1u << 24), "PTX qkv item indexing");
-    cudaLaunchTracked(commands, kernel.function, std::min(items, qkvGroups), 1, 1, 128, 0, params, 17, chain.chained);
+    noteChain(pWait, 0, pSignal);
+    cudaLaunchTracked(commands, kernel.function, std::min(items, qkvGroups), 1, 1, 128, 0, params, 18, chain.chained);
     return;
   }
   check(!chain.waitBands && !chain.waitRows && !chain.signal && !chain.chained,
@@ -881,9 +938,11 @@ void Kernels::globalNormalizePtx(VkCommandBuffer commands, const Activation& qkv
   VkDeviceAddress pQkv = context_.deviceAddress(qkv.buffer), pAux = context_.deviceAddress(tensor.raw), pOut = context_.deviceAddress(normalized.buffer);
   VkDeviceAddress pWait = chain ? chain->waitRows : 0, pSignal = chain ? chain->signal : 0;
   uint32_t tok = tokens, pad = paddedTokens, h = heads, scaleWord = scaleByteOffset / 4, waitExpected = chain ? chain->waitExpected : 0;
-  const void* params[] = {&pQkv, &pAux, &pOut, &tok, &pad, &h, &scaleWord, &pWait, &waitExpected, &pSignal};
+  VkDeviceAddress pError = chainStatusAddress();
+  const void* params[] = {&pQkv, &pAux, &pOut, &tok, &pad, &h, &scaleWord, &pWait, &waitExpected, &pSignal, &pError};
   dispatchLabel_ = "global_normalize_ptx " + std::to_string(tokens) + "t x" + std::to_string(heads);
-  cudaLaunchTracked(commands, kernel.function, paddedTokens / 64, heads, 1, 64, 0, params, 10, chain && chain->chained);
+  noteChain(pWait, 0, pSignal);
+  cudaLaunchTracked(commands, kernel.function, paddedTokens / 64, heads, 1, 64, 0, params, 11, chain && chain->chained);
 }
 
 void Kernels::globalAttentionStream(VkCommandBuffer commands, const Activation& normalized, Activation& attended, uint32_t tokens,
@@ -895,9 +954,11 @@ void Kernels::globalAttentionStream(VkCommandBuffer commands, const Activation& 
   VkDeviceAddress pNorm = context_.deviceAddress(normalized.buffer), pOut = context_.deviceAddress(attended.buffer);
   VkDeviceAddress pWait = chain ? chain->waitRows : 0, pSignal = chain ? chain->signal : 0;
   uint32_t tok = tokens, pad = paddedTokens, h = heads, waitExpected = chain ? chain->waitExpected : 0;
-  const void* params[] = {&pNorm, &pOut, &tok, &pad, &h, &pWait, &waitExpected, &pSignal};
+  VkDeviceAddress pError = chainStatusAddress();
+  const void* params[] = {&pNorm, &pOut, &tok, &pad, &h, &pWait, &waitExpected, &pSignal, &pError};
   dispatchLabel_ = "global_attention_stream_ptx " + std::to_string(tokens) + "t x" + std::to_string(heads);
-  cudaLaunchTracked(commands, kernel.function, heads, paddedTokens / 64, 1, 128, 0, params, 8, chain && chain->chained);
+  noteChain(pWait, 0, pSignal);
+  cudaLaunchTracked(commands, kernel.function, heads, paddedTokens / 64, 1, 128, 0, params, 9, chain && chain->chained);
 }
 
 void Kernels::globalAttention(VkCommandBuffer commands, const Activation& qkv, const Tensor& tensor, uint32_t scaleByteOffset,
@@ -914,10 +975,12 @@ void Kernels::globalAttention(VkCommandBuffer commands, const Activation& qkv, c
     VkDeviceAddress pQkv = context_.deviceAddress(qkv.buffer), pAux = context_.deviceAddress(tensor.raw), pOut = context_.deviceAddress(attended.buffer);
     VkDeviceAddress pWait = chain ? chain->waitRows : 0, pSignal = chain ? chain->signal : 0;
     uint32_t tok = tokens, h = heads, scaleWord = scaleByteOffset / 4, waitExpected = chain ? chain->waitExpected : 0;
-    const void* params[] = {&pQkv, &pAux, &pOut, &tok, &h, &scaleWord, &pWait, &waitExpected, &pSignal};
+    VkDeviceAddress pError = chainStatusAddress();
+    const void* params[] = {&pQkv, &pAux, &pOut, &tok, &h, &scaleWord, &pWait, &waitExpected, &pSignal, &pError};
     check(kernel.dynamicShared, "global attention PTX without a dynamic_shared size");
     dispatchLabel_ = "global_attention_ptx " + std::to_string(tokens) + "t x" + std::to_string(heads);
-    cudaLaunchTracked(commands, kernel.function, heads, paddedTokens / 64, 1, 128, kernel.dynamicShared, params, 9, chain && chain->chained);
+    noteChain(pWait, 0, pSignal);
+    cudaLaunchTracked(commands, kernel.function, heads, paddedTokens / 64, 1, 128, kernel.dynamicShared, params, 10, chain && chain->chained);
     return;
   }
   // Keys are staged in chunks of 256 tokens (16 KB); beyond one chunk the q/k/v are normalized once by

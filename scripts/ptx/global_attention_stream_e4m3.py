@@ -40,7 +40,7 @@ def generate_normalize():
     name = "global_normalize_e4m3"
     p = Ptx()
     params = [("u64", "pQkv"), ("u64", "pAux"), ("u64", "pOut"), ("u32", "tokens"), ("u32", "padded"), ("u32", "heads"),
-              ("u32", "scaleWordOffset"), ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal")]
+              ("u32", "scaleWordOffset"), ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal"), ("u64", "pError")]
     p.entry(name, params, 0, 64)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); tb = p.special("ctaid.x"); head = p.special("ctaid.y")
@@ -49,7 +49,7 @@ def generate_normalize():
     token = p.add32(p.shl32(tb, 6), tid)
     valid = p.setp("lt.u32", token, P["tokens"])
     pWaitOn = p.setp("ne.u64", P["pWait"], "0")
-    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp)
+    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp, error64=P["pError"])
     rowBytes = p.mul32(P["heads"], p.imm32(192))
     headByte = p.mul32(head, p.imm32(192))
     learned = p.reg("f32"); p.emit(f"ld.global.nc.f32 {learned}, [{p.add64(P['pAux'], p.widen(p.shl32(p.add32(P['scaleWordOffset'], head), 2)))}];")
@@ -101,7 +101,7 @@ def generate_attention(stages=4):
     shared_bytes = STAGE0 + stages * STAGE_BYTES
     p = Ptx()
     params = [("u64", "pNorm"), ("u64", "pOut"), ("u32", "tokens"), ("u32", "padded"), ("u32", "heads"),
-              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal")]
+              ("u64", "pWait"), ("u32", "waitExpected"), ("u64", "pSignal"), ("u64", "pError")]
     p.entry(name, params, shared_bytes, 128)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); head = p.special("ctaid.x"); qb = p.special("ctaid.y")
@@ -113,7 +113,7 @@ def generate_attention(stages=4):
     channels = p.mul32(P["heads"], p.imm32(32))
     blocks = p.shr32(P["padded"], 6)
     pWaitOn = p.setp("ne.u64", P["pWait"], "0")
-    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp)
+    sync_wait(p, P["pWait"], zero32, zero32, P["waitExpected"], lane, pWaitOn, warp, error64=P["pError"])
     # ---- source addresses (this head)
     headRows = p.mul32(head, P["padded"])
     planeBytes = p.mul32(p.mul32(P["heads"], P["padded"]), p.imm32(32))

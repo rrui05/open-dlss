@@ -3,8 +3,9 @@
 ## The Vulkan surface
 
 `vk::Context` is deliberately small: one device, one compute queue, storage buffers only, no images, no render
-passes. The demo hands it a device created by Filament instead of creating one (`vk::DeviceRequirements` is the
-feature/extension chain both paths use, so the renderer's device carries what the kernels need).
+passes. In the demo it adopts the device the demo creates and Filament also runs on, instead of creating one
+(`vk::DeviceRequirements` is the feature/extension chain both paths use, so that device carries what the kernels
+need).
 
 * **Descriptors.** One layout, **12 storage buffers**, every kernel binding into the same slots; unbound
   slots get a shared dummy buffer. Two pools in rotation, so a frame's sets stay valid while the next is
@@ -15,8 +16,13 @@ feature/extension chain both paths use, so the renderer's device carries what th
 * **Barriers.** Compute to compute only (`computeBarrier`). Including the transfer stages made the driver
   flush caches between every dispatch, tens of microseconds each once L2 is dirty. Captures and uploads use
   `transferBarrier` explicitly.
-* **Subgroups.** Every pipeline is created with `requiredSubgroupSize = 32` and full subgroups; the
-  cooperative-matrix fragment layouts assume it.
+* **Subgroups.** Every pipeline that uses subgroups is created with `requiredSubgroupSize = 32` and full
+  subgroups; the cooperative-matrix fragment layouts assume it. (`preprocess.comp`, 8x8 and subgroup-free, asks
+  for nothing: a full-subgroup requirement on a workgroup that is not a multiple of 32 is invalid.)
+* **Features.** `DeviceRequirements` is the whole list; note `maintenance4`, which `gemm_fp8.comp` needs because
+  its workgroup size is a specialization constant (`LocalSizeId`). `DLSS5VK_VALIDATION=1` runs everything under the
+  Khronos validation layer; the tool, the gates and the demo run clean under it, synchronization validation
+  included.
 * **PTX.** `VK_NV_cuda_kernel_launch`: the generated `.ptx` text becomes a `VkCudaModuleNV`, the driver JITs
   it, and launches go into the same command buffer as the dispatches.
 
@@ -126,22 +132,46 @@ A consumer knows both the counter address and the count to wait for, which is wh
 
 The primitives are in `swin.py`: a producer ends with `fence.acq_rel.gpu`, a `bar.sync`, then thread 0 doing
 `red.release.gpu.global.add.u32` on each counter; a consumer polls with `ld.acquire.gpu.global.u32` plus
-`vote.sync.all` and a `nanosleep` backoff from 128 ns to 1 us. Release/acquire at device scope is what makes the
+`vote.sync.all` and a `nanosleep` backoff from 128 to 256 ns. Release/acquire at device scope is what makes the
 producer's stores visible, not the counter itself.
 
-Two properties make this safe:
+A spinning workgroup holds an SM slot, so the question is whether every wait finishes. Two things are needed:
 
-* **no cycles**: every wait is on a launch recorded earlier in the same command buffer, and the chains are
-  linear (FFN -> attention -> projection -> next FFN);
-* **co-residency**: the chained kernels are persistent grids sized from `smCount()` (8 workgroups per SM for
-  the 32-channel block, 12 for the QKV kernel, 2 for the GLSL fused block), so a consumer cannot fill the GPU
-  ahead of the producer it is spinning on.
+* **the waits form a forward DAG**: every wait is on counters a launch recorded *earlier* in the same command
+  buffer signals, never on the waiting launch's own (FFN -> attention -> projection -> next FFN; the ViT's GEMM ->
+  attention -> GEMM). `Kernels::checkChainOrder` checks this, on the counter addresses, at the end of every
+  recording. No workgroup waits on another workgroup of its own launch.
+* **the GPU issues all workgroups of a launch before any workgroup of a later launch on the same queue.** Then a
+  waiting workgroup's producers are already resident or finished, and by induction over launch order every
+  workgroup completes, whatever the occupancy. This is what NVIDIA hardware does, and it is **not a Vulkan
+  guarantee**: Vulkan lets commands with no barrier between them run in any order, and nothing documents the
+  issue order. The mechanism is therefore NVIDIA-only (it already is: `VK_NV_cuda_kernel_launch`), and it is
+  made to fail safe instead of trusted.
 
-The third property is the one that is easy to get wrong: **a chained launch must actually be a PTX launch.** The
-GLSL kernels neither wait nor signal, so arming a chain around one either hangs the GPU (a consumer spinning on
-a counter nobody increments) or races (a producer with no barrier after it). `Graph::Routes::chain` therefore
-decides once, from every route the chain links, and the three GLSL kernels that could be reached by a chained
-call reject one with a `check()`.
+Persistent-grid sizing (8 workgroups per SM for the 32-channel block, 12 for the QKV kernel, from `smCount()`) is a
+performance choice, not part of the argument: nothing requires a chained grid to be co-resident with itself or with
+its producer.
+
+**The watchdog.** A wait that lasts `WAIT_LIMIT_NS` (1 s, `%globaltimer`) gives up: it sets bit 31 of the counters
+it is stuck on, which releases every other waiter on them, adds itself to a host-visible status word
+(`Kernels::chainTimeouts`, the `pError` parameter of every chained kernel) and records the first stuck counter;
+from then on every spinning wait gives up at its next poll. The frame completes, one limit late, with wrong bytes,
+and the host knows: `parity`, `bench` and `profile` fail with the counter's slot, region and index, and the demo
+rebuilds its graph with barriers (`NrPass::fallBackToBarriers`). A violated assumption is a reported, failed frame,
+not a hang. The limit is far above any real wait (a whole 4K frame is 30 ms); the check costs nothing measurable,
+since it only runs inside a wait that did not succeed at once.
+
+**The gates.** `parity` compares the production schedule (no captures, chained) with the same graph under barriers
+and with itself over repeated submissions, beside the instrumented schedule that captures the boundaries
+(numerics.md). Under a second queue that fills 28 to 56 of the 56 SMs with long-running kernels, chained frames
+completed with the undisturbed head, bit for bit and without a watchdog timeout; that is evidence on one machine,
+not the guarantee - the watchdog and `DLSS5VK_CHAIN=0` are.
+
+The property that is easy to get wrong is simpler: **a chained launch must actually be a PTX launch.** The GLSL
+kernels neither wait nor signal, so arming a chain around one either hangs the GPU (a consumer spinning on a counter
+nobody increments) or races (a producer with no barrier after it). `Graph::Routes::chain` therefore decides once,
+from every route the chain links, and the three GLSL kernels that could be reached by a chained call reject one with
+a `check()`.
 
 One capacity bound comes out of this: a counter is indexed by pixel-row band (`row / 8`) or by window row, and a
 region holds `kSyncCountersPerRegion = 512` of them, so chaining covers field heights up to 4080. Above that the
@@ -196,7 +226,9 @@ split still fits); and `Kernels::tileCounters` hands out per-frame counter slots
 | `no device with VK_KHR_cooperative_matrix + VK_EXT_shader_float8` | wrong GPU or driver |
 | `cannot read PTX kernel ...` | `scripts/build.ps1` did not run, or `DLSS5VK_PTX_DIR` points elsewhere |
 | `chained GEMM has no PTX route` / `... does not implement counter chaining` | a chain was armed around a GLSL kernel; a route predicate is out of step with `Graph::Routes` |
-| `VK_ERROR_DEVICE_LOST` in a chained run | a consumer is spinning on a counter that is never signalled, the same bug one step later |
+| `chain order: ... waits on counters no earlier launch signals` | a route change wired a wait to the wrong counters; caught at record time |
+| `N chained wait(s) timed out, the first on slot S region R counter C` | a wait lasted a second: an expected count that is never reached (a producer that signals less than its consumer counts), or the launch-order assumption failed; the frame is wrong, `DLSS5VK_CHAIN=0` runs without chaining |
+| `DLSS5VK_VALIDATION=1 but VK_LAYER_KHRONOS_validation is not installed` | the switch needs the Khronos validation layer (a Vulkan SDK, or `VK_LAYER_PATH` at a build of it); `DLSS5VK_DEBUG=1` alone only routes the driver's messages |
 | `split-K partials exceed the scratch buffer` | a larger split reached the fixed scratch after it was sized |
 | `stage SHA-256 mismatch` | a corrupt or mismatched model directory |
 | `fixture full dimensions disagree with the runtime profile` | the fixture was made with a different field rule |

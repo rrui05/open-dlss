@@ -38,9 +38,12 @@ The window can be resized; the network re-fits to the new size.
 - `--nr 0` runs without the network, `--temporal 0` without history
 - `--style 1|2`, `--intensity x`, `--animation n`
 - `--frames N --capture prefix` is the scripted run: it captures at frames 40, 100, 160 and 200 of a
-  static, orbit, settle, NR-off sequence, and dumps raw scene, motion and velocity buffers at frames 99 and
-  100. `--orbit deg` yaws the camera by that much per frame from frame 40.
-- `DLSS5_DEMO_VALIDATION=1` enables the Khronos validation layer, which needs a Vulkan SDK.
+  static, orbit, settle, NR-off sequence, and dumps the raw scene and velocity buffers at frames 99 and 100 and
+  the unpacked motion (with its history flag) at 100. `--orbit deg` yaws the camera by that much per frame from
+  frame 40.
+- `DLSS5_DEMO_VALIDATION=1` enables the Khronos validation layer and refuses to start without it (a Vulkan SDK, or
+  `VK_LAYER_PATH` at a build of Vulkan-ValidationLayers; `VK_KHRONOS_VALIDATION_VALIDATE_SYNC=true` adds
+  synchronization validation). The NR pass runs clean under both; the remaining messages are Filament's.
 
 ## Scenes
 

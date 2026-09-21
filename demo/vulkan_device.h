@@ -16,4 +16,5 @@ class VulkanDevice {
  private:
   GpuDevice handles_;
   std::string deviceName_;
+  uint64_t messenger_ = 0;   // VkDebugUtilsMessengerEXT, with DLSS5_DEMO_VALIDATION=1
 };

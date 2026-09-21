@@ -173,6 +173,14 @@ class Kernels {
   static constexpr uint32_t kSyncRegionBytes = 2048, kSyncCountersPerRegion = kSyncRegionBytes / 4;
   VkDeviceAddress syncAddress(int block, SyncRegion region);
   void resetSync(VkCommandBuffer commands);   // zero the counters (top of every frame)
+  // Every counter wait of a recording must be on counters an earlier launch of the same recording signals, and on
+  // none the waiting launch signals itself: the chain is a forward DAG. Graph::record checks it every time.
+  void checkChainOrder() const;
+  // A wait that outlives swin.WAIT_LIMIT_NS gives up instead of hanging (the frame completes with wrong bytes) and
+  // records itself in a host-visible word that only resetChainTimeouts() clears; read it once the frame is done.
+  struct ChainTimeouts { uint32_t waits = 0; std::string counter; };   // counter: where the first stuck wait was
+  ChainTimeouts chainTimeouts() const;
+  void resetChainTimeouts();
   struct Chain {
     VkDeviceAddress waitRows = 0; uint32_t waitExpected = 0, waitShiftY = 0;   // window-row counters (attention output)
     VkDeviceAddress waitBands = 0; uint32_t waitMul = 1, waitGroupRows = 64;   // row-band counters (FFN / projection output), signals per row group, the producer's rows per workgroup
@@ -246,7 +254,9 @@ class Kernels {
   void setSiluTable(const std::vector<uint16_t>& table);
 
  private:
-  VkPipeline pipeline(const char* shader, const vk::SpecConstants& constants);
+  // requiredSubgroupSize 0: no subgroup requirement (kernels without subgroup operations and a workgroup that is not a
+  // multiple of 32)
+  VkPipeline pipeline(const char* shader, const vk::SpecConstants& constants, uint32_t requiredSubgroupSize = 32);
   void dispatch(VkCommandBuffer commands, VkPipeline pipeline, const vk::Buffer* const bindings[vk::kGenericBindings],
                 const void* push, uint32_t pushBytes, uint32_t x, uint32_t y, uint32_t z);
   void cudaLaunchTracked(VkCommandBuffer commands, VkCudaFunctionNV function, uint32_t gridX, uint32_t gridY,
@@ -255,6 +265,11 @@ class Kernels {
   vk::Buffer syncBuffer_{};
   static constexpr uint32_t kSyncSlotBytes = 6144, kSyncSlots = 96, kTileCounterSlot = 72;   // slots >= 72 hold tile counters
   uint32_t tileCounterCursor_ = 0;
+  vk::Buffer chainStatus_{};   // host-visible: [0] waits that timed out, [1] low 32 bits of the first stuck counter's address
+  VkDeviceAddress chainStatusAddress();
+  struct ChainLaunch { std::string label; VkDeviceAddress waits[2]; VkDeviceAddress signal; };
+  std::vector<ChainLaunch> chainLaunches_;   // this recording's PTX launches with counters, in order
+  void noteChain(VkDeviceAddress waitA, VkDeviceAddress waitB, VkDeviceAddress signal);
   void dispatchLinear(VkCommandBuffer commands, VkPipeline pipeline,
                       const vk::Buffer* const bindings[vk::kGenericBindings], const void* push, uint32_t pushBytes,
                       uint32_t count);

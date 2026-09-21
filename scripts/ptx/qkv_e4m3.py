@@ -38,7 +38,7 @@ def generate(C, max_regs=None):
     params = [("u64", "pState"), ("u64", "pWqkv"), ("u64", "pPrior"), ("u64", "pAux"), ("u64", "pOut"),
               ("u32", "width"), ("u32", "height"), ("u32", "shiftX"), ("u32", "shiftY"), ("u32", "windowsX"),
               ("u32", "scaleWord"), ("u32", "windowCount"), ("u32", "itemCount"),
-              ("u64", "pWait"), ("u64", "pSignal"), ("u32", "waitMul"), ("u32", "waitGroupRows")]   # chaining: this block's FFN row bands (wait, waitMul signals per row group of waitGroupRows rows), window rows (signal); 0 = off
+              ("u64", "pWait"), ("u64", "pSignal"), ("u32", "waitMul"), ("u32", "waitGroupRows"), ("u64", "pError")]   # chaining: this block's FFN row bands (wait, waitMul signals per row group of waitGroupRows rows), window rows (signal); 0 = off
     p.entry(name, params, SHARED_BYTES, THREADS, max_regs)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); ctaid = p.special("ctaid.x"); nctaid = p.special("nctaid.x")
@@ -130,7 +130,7 @@ def generate(C, max_regs=None):
         g2 = pWaitOn
         if guard is not None:
             g2 = p.reg("pred"); p.emit(f"and.pred {g2}, {pWaitOn}, {guard};")
-        sync_wait(p, P["pWait"], gm["band0"], gm["band1"], lambda b: band_expected(p, b, P["width"], rowsTotal, P["waitMul"], P["waitGroupRows"]), lane, g2, warp)
+        sync_wait(p, P["pWait"], gm["band0"], gm["band1"], lambda b: band_expected(p, b, P["width"], rowsTotal, P["waitMul"], P["waitGroupRows"]), lane, g2, warp, error64=P["pError"])
 
     def issue_stage(gm, stageIndex, step, guard=None):
         # the head's weight tiles (L1-cached, constant) and the window's A tile (L2 only: produced by the chained FFN)

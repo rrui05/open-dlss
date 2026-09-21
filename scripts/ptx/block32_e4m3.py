@@ -41,7 +41,7 @@ def generate(flags, max_regs=None):
               ("u32", "width"), ("u32", "height"), ("u32", "shiftX"), ("u32", "shiftY"), ("u32", "windowsX"),
               ("u32", "windowCount"), ("u32", "auxFfnHalf"), ("u32", "auxAttnHalf"), ("u32", "scaleWord"),
               ("u32", "auxInputHalf"), ("u32", "auxAdapterHalf"), ("u32", "lowWidth"),
-              ("u64", "pWait"), ("u32", "waitExpected"), ("u32", "waitShiftY"), ("u32", "waitScale"), ("u64", "pSignal")]
+              ("u64", "pWait"), ("u32", "waitExpected"), ("u32", "waitShiftY"), ("u32", "waitScale"), ("u64", "pSignal"), ("u64", "pError")]
     # chaining (pWait / pSignal = 0: off): wait on the producer block's window rows covering this window's pixel rows
     # (waitScale 0: same resolution, 1: producer at 2x (pool), 2: producer at half (upres / post)), signal this block's
     p.entry(name, params, SHARED_BYTES, THREADS, max_regs)
@@ -200,7 +200,7 @@ def generate(flags, max_regs=None):
         g2 = pWaitOn
         if guard is not None:
             g2 = p.reg("pred"); p.emit(f"and.pred {g2}, {pWaitOn}, {guard};")
-        sync_wait(p, P["pWait"], gm["wr0"], gm["wr1"], P["waitExpected"], lane, g2, warp)
+        sync_wait(p, P["pWait"], gm["wr0"], gm["wr1"], P["waitExpected"], lane, g2, warp, error64=P["pError"])
 
     def load_v4(base, byteOff, pred, produced):
         """produced: written by a chained (barrier-free) launch -> L2 path; else the non-coherent (texture) path."""

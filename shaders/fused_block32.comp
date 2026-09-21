@@ -105,8 +105,6 @@ const uint W1T = 0u, W2T = 256u, WQKV = 544u, WPROJ = 736u;
 #define B16x16H coopmat<float16_t, gl_ScopeSubgroup, 16, 16, gl_MatrixUseB>
 #define ACC16x64 coopmat<float16_t, gl_ScopeSubgroup, 16, 64, gl_MatrixUseAccumulator>
 #define ACC16x128 coopmat<float16_t, gl_ScopeSubgroup, 16, 128, gl_MatrixUseAccumulator>
-#define E4ACC16x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseAccumulator>
-#define E4ACC16x64 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 64, gl_MatrixUseAccumulator>
 #define A16x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseA>
 #define A16x64 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 64, gl_MatrixUseA>
 #define A16x128 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 128, gl_MatrixUseA>
@@ -380,16 +378,22 @@ void main() {
     }
     subgroupBarrier();
     coopMatLoad(x, scratch32, SCR, 8u, gl_CooperativeMatrixLayoutRowMajor);
-    if ((FLAGS & F_SKIP_F16) == 0u) {
-      E4ACC16x32 skipE4;
-      coopMatLoad(skipE4, scratch32, SCR, 8u, gl_CooperativeMatrixLayoutRowMajor);
-      cInit = ACC16x32(skipE4);   // exact widening
-    }
     subgroupBarrier();
-    if ((FLAGS & F_SKIP_F16) != 0u) {
+    {
+      // the FFN skip as an f16 accumulator: the f16 skip, or the state's codes widened to halves (exact). An E4M3
+      // accumulator matrix would widen in one conversion, but no implementation advertises that matrix type.
+      uvec4 lo = sk0, hi = sk1;
+      if ((FLAGS & F_SKIP_F16) == 0u) {
+        uint halves[8];
+        [[unroll]] for (uint i = 0u; i < 8u; ++i) {
+          uint codes = (xw[i >> 1u] >> ((i & 1u) * 16u)) & 0xffffu;
+          halves[i] = packFloat2x16(f16vec2(uintBitsToFloate4m3EXT(u8vec2(codes & 0xffu, codes >> 8u))));
+        }
+        lo = uvec4(halves[0], halves[1], halves[2], halves[3]); hi = uvec4(halves[4], halves[5], halves[6], halves[7]);
+      }
       const uint w = SCR + (ldRow * 4u + ldWord * 2u) * 4u;
-      scratch32[w] = sk0.x; scratch32[w + 1u] = sk0.y; scratch32[w + 2u] = sk0.z; scratch32[w + 3u] = sk0.w;
-      scratch32[w + 4u] = sk1.x; scratch32[w + 5u] = sk1.y; scratch32[w + 6u] = sk1.z; scratch32[w + 7u] = sk1.w;
+      scratch32[w] = lo.x; scratch32[w + 1u] = lo.y; scratch32[w + 2u] = lo.z; scratch32[w + 3u] = lo.w;
+      scratch32[w + 4u] = hi.x; scratch32[w + 5u] = hi.y; scratch32[w + 6u] = hi.z; scratch32[w + 7u] = hi.w;
       subgroupBarrier();
       coopMatLoad(cInit, scratch32, SCR, 16u, gl_CooperativeMatrixLayoutRowMajor);
       subgroupBarrier();

@@ -80,6 +80,11 @@ class Context {
   uint32_t queueFamily() const { return queueFamily_; }
   uint32_t queueIndex() const { return queueIndex_; }
   VkInstance instance() const { return instance_; }
+  // Instance diagnostics of the tool's own instance. DLSS5VK_VALIDATION=1 enables VK_LAYER_KHRONOS_validation and
+  // refuses to start without it; DLSS5VK_DEBUG=1 only installs a debug messenger for the driver's own messages
+  // (PTX compiler diagnostics among them), which checks nothing.
+  bool validationEnabled() const { return validation_; }
+  static uint32_t validationErrors();   // error-severity validation messages so far, over every Context
 
   VkDevice device() const { return device_; }
 
@@ -142,6 +147,8 @@ class Context {
  private:
   uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags required);
   VkInstance instance_ = VK_NULL_HANDLE;
+  VkDebugUtilsMessengerEXT messenger_ = VK_NULL_HANDLE;
+  bool validation_ = false;
   VkPhysicalDevice physical_ = VK_NULL_HANDLE;
   VkDevice device_ = VK_NULL_HANDLE;
   VkQueue queue_ = VK_NULL_HANDLE;

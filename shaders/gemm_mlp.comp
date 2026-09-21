@@ -56,7 +56,6 @@ shared uint stage32[4u * 16u * 16u];          // output row tiles as 32-bit word
 
 #define ACC16x128 coopmat<float16_t, gl_ScopeSubgroup, 16, 128, gl_MatrixUseAccumulator>
 #define ACCOUT coopmat<float16_t, gl_ScopeSubgroup, 16, NOUT, gl_MatrixUseAccumulator>
-#define E4OUT coopmat<floate4m3_t, gl_ScopeSubgroup, 16, NOUT, gl_MatrixUseAccumulator>
 #define A16x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseA>
 #define A16x128 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 128, gl_MatrixUseA>
 #define B32x128 coopmat<floate4m3_t, gl_ScopeSubgroup, 32, 128, gl_MatrixUseB>

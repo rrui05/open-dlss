@@ -77,7 +77,7 @@ Three facts explain most of the code:
 | per-channel skip scales | one f16 each; per-head attention scale: one f32 |
 | proxy and head RGB | sRGB **code values** in 0..1; the network sees `(code - 0.5) / 8` |
 | head channels | 0-2 an RGB residual added at 1/4 in code space, 3 a temporal-blend logit |
-| motion vector | uv of the render target, current -> previous, y down, zero where there is no usable history |
+| motion vector | uv of the render target, current -> previous, y down, plus a flag: whether the previous position is on screen (whether there is a history); the background moves with the camera's rotation |
 
 ## Invariants
 
@@ -91,13 +91,14 @@ Three facts explain most of the code:
 | every value crossing a kernel boundary is E4M3 or f16, rounded f32 -> f16 -> E4M3 in that order | `numerics.md` | the output diverges from native even though the real-valued function is unchanged |
 | NaN publishes as +0 and the sign of a zero survives | `common.glsl` | the E4M3 NaN code poisons the MMA that reads it; `-0` differences break byte equality with the captures |
 | the chained activation permutation stays inside each 16-product group | it rotates bits 1-3 of the index, leaving bit 4 alone | folding it into the weight rows would change the F13 grouping, i.e. the arithmetic |
-| a chained launch is always a PTX launch, and only ever waits on a launch recorded earlier | `Graph::Routes::chain` plus `check()`s in the GLSL kernels | a GLSL kernel neither waits nor signals: the GPU hangs, or a producer with no barrier races its consumer |
-| chained grids stay co-resident (sized from `smCount()`) | `execution.md` | a consumer could fill the GPU ahead of the producer it spins on |
+| a chained launch is always a PTX launch, and only ever waits on a launch recorded earlier | `Graph::Routes::chain`, `check()`s in the GLSL kernels, `Kernels::checkChainOrder` at every recording | a GLSL kernel neither waits nor signals: the GPU hangs, or a producer with no barrier races its consumer |
+| the GPU issues a launch's workgroups before any of a later launch on the same queue | NVIDIA's behaviour, not a Vulkan guarantee (`execution.md`); the chained waits' watchdog turns a violation into a reported, failed frame | a consumer could hold the SMs its producer needs; without the watchdog, a hang |
 | a counter index never exceeds 512 per sync region | checked against the field height; chaining falls back to barriers above it | indices run into the neighbouring region |
 | the sync counters are zero at the top of every recording | `Kernels::resetSync` | a consumer sees a stale count and starts early |
 | re-recording the graph allocates nothing and a label collides with nothing | `Graph::allocate` keys by label and shape, `usedThisRecord_` | two logical tensors would silently alias |
 | the split-K scratch is sized once | its device address is baked into already-recorded launches | recorded launches would write through a dangling address |
 | history images alternate by frame parity | frame N reads `history[N & 1]`, writes `history[1 - (N & 1)]` | the temporal loop reads the frame it is writing |
+| a pixel without a history gets the no-history input and blend weight 0 | the motion unpack's flag, read by the preprocess and the composite | the previous frame's colour at the same pixel - another surface's - stands in for a history that does not exist |
 
 ## What has no derivation
 

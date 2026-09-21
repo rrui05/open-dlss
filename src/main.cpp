@@ -1,5 +1,5 @@
 // dlss5vk: standalone Vulkan DLSS-NR runner.
-//   dlss5vk parity --model <nr model dir> --fixture <fixtures/nr512> [--shaders <dir>] [--dump <dir>]
+//   dlss5vk parity --model <nr model dir> --fixture <fixtures/nr512> [--repeat N] [--shaders <dir>] [--dump <dir>]
 //   dlss5vk bench  --model <nr model dir> --width W --height H [--frames N]
 #include <algorithm>
 #include <chrono>
@@ -7,9 +7,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <array>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -55,36 +57,12 @@ std::string executableDirectory(const char* argv0) {
   return slash == std::string::npos ? "." : path.substr(0, slash);
 }
 
-struct Comparison {
-  size_t count = 0, mismatches = 0, signedZeros = 0;
-  size_t firstIndex = SIZE_MAX;
-  uint8_t firstActual = 0, firstExpected = 0;
-  double maxAbs = 0, sumSquares = 0;
-  std::map<int, size_t> codeDeltaHistogram;  // signed E4M3 code distance
-};
-
-Comparison compareE4(const std::vector<uint8_t>& actual, const std::vector<uint8_t>& expected) {
-  Comparison c;
-  c.count = expected.size();
-  for (size_t i = 0; i < expected.size(); ++i) {
-    uint8_t a = actual[i], e = expected[i];
-    if (a == e) continue;
-    // +0 and -0 decode to the same value and multiply identically, so a difference in the sign of a zero is
-    // counted and reported but is not a mismatch.
-    if ((a & 0x7f) == 0 && (e & 0x7f) == 0) { ++c.signedZeros; continue; }
-    ++c.mismatches;
-    if (c.firstIndex == SIZE_MAX) { c.firstIndex = i; c.firstActual = a; c.firstExpected = e; }
-    double da = num::e4m3ToF32(a), de = num::e4m3ToF32(e);
-    double diff = std::fabs(da - de);
-    c.maxAbs = std::max(c.maxAbs, diff);
-    c.sumSquares += diff * diff;
-    int signedA = (a & 0x80) ? -(int)(a & 0x7f) : (int)(a & 0x7f);
-    int signedE = (e & 0x80) ? -(int)(e & 0x7f) : (int)(e & 0x7f);
-    int delta = signedA - signedE;
-    delta = std::max(-9, std::min(9, delta));
-    c.codeDeltaHistogram[delta]++;
-  }
-  return c;
+// After a frame: a chained wait that gave up means its output is wrong (docs/execution.md, "Barrier-free chaining").
+void checkChainTimeouts(const nr::Kernels& kernels) {
+  const nr::Kernels::ChainTimeouts timeouts = kernels.chainTimeouts();
+  if (timeouts.waits)
+    throw std::runtime_error(std::to_string(timeouts.waits) + " chained wait(s) timed out, the first on " + timeouts.counter +
+                             ": the frame is invalid (DLSS5VK_CHAIN=0 runs without chaining)");
 }
 
 // DLSS5VK_UNFUSED=1 runs the least fused form of the graph (the GLSL reference kernels).
@@ -93,233 +71,497 @@ static bool fusedBlocksEnabled() {
   return !(unfused && !strcmp(unfused, "1"));
 }
 
+// ---- parity ----------------------------------------------------------------------------------------------------
+// A fixture declares the comparisons it exists for ("checks") and carries one reference per comparison. The whole
+// declaration is validated before the GPU runs and nothing is ever dropped from a count: a declared check that
+// cannot run, a missing, malformed or unknown reference, or a reference no declared check uses rejects the fixture.
+// Every verdict names the equality it proved (docs/numerics.md): bit-exact, equal only up to the sign of zero (a
+// failure: not the same bytes), or within a stated tolerance.
+
+struct BoundaryReference { std::string name, file; uint32_t width = 0, height = 0, channels = 0; };
+
+struct FixturePlan {
+  uint32_t validWidth = 0, validHeight = 0, fullWidth = 0, fullHeight = 0;
+  std::string proxyFile, featuresFile;
+  uint32_t proxyWidth = 0, proxyHeight = 0;
+  bool checkBoundaries = false, checkHead = false, checkOutput = false;
+  std::vector<BoundaryReference> boundaries;                  // graph order
+  std::vector<std::pair<std::string, std::string>> omitted;   // boundary, why the fixture has no reference for it
+  std::string headFile, outputFile;
+  bool outputBytes = false;                                   // an RGBA8 image (a tolerance check), not RGBA f32 halves
+};
+
+int64_t fileSize(const std::string& path) {
+  std::error_code error;
+  const uintmax_t size = std::filesystem::file_size(path, error);
+  return error ? -1 : (int64_t)size;
+}
+
+FixturePlan planFixture(const json::Value& manifest, const std::string& fixtureDir) {
+  FixturePlan plan;
+  std::vector<std::string> problems;
+  auto fail = [&](const std::string& text) { problems.push_back(text); };
+  auto dims = [&](const char* key, uint32_t& width, uint32_t& height) {
+    if (!manifest.has(key) || manifest[key].kind != json::Value::Array || manifest[key].size() != 2) {
+      fail(std::string("\"") + key + "\" must be [width, height]");
+      return;
+    }
+    width = (uint32_t)manifest[key][0].integer(); height = (uint32_t)manifest[key][1].integer();
+  };
+  auto positive = [&](const std::string& what, const json::Value& entry, const char* key) -> uint32_t {
+    if (!entry.has(key) || entry[key].integer() <= 0) { fail(what + ": \"" + key + "\" missing or not positive"); return 0; }
+    return (uint32_t)entry[key].integer();
+  };
+  // A reference file must exist and hold exactly the bytes its shape says.
+  auto reference = [&](const std::string& what, const json::Value& entry, int64_t bytes) -> std::string {
+    if (!entry.has("file") || entry["file"].str().empty()) { fail(what + ": no \"file\""); return ""; }
+    const std::string path = fixtureDir + "/" + entry["file"].str();
+    const int64_t size = fileSize(path);
+    if (size < 0) fail(what + ": cannot read " + path);
+    else if (size != bytes) fail(what + ": " + path + " holds " + std::to_string(size) + " bytes, its shape needs " + std::to_string(bytes));
+    return path;
+  };
+  dims("sourceDimensions", plan.validWidth, plan.validHeight);
+  dims("fullDimensions", plan.fullWidth, plan.fullHeight);
+  const int64_t fullRows = (int64_t)plan.fullWidth * plan.fullHeight;
+
+  // The input: the proxy image the features are generated from, or the recorded features themselves.
+  if (manifest.has("proxy") == manifest.has("inputFeatures")) fail("exactly one of \"proxy\" and \"inputFeatures\" is the input");
+  if (manifest.has("proxy")) {
+    const json::Value& proxy = manifest["proxy"];
+    plan.proxyWidth = positive("proxy", proxy, "width");
+    plan.proxyHeight = positive("proxy", proxy, "height");
+    plan.proxyFile = reference("proxy", proxy, (int64_t)plan.proxyWidth * plan.proxyHeight * 16);
+    for (const char* key : {"conditioning", "seed", "autoMask"})
+      if (!manifest.has(key)) fail(std::string("a proxy fixture needs \"") + key + "\"");
+  } else if (manifest.has("inputFeatures")) {
+    plan.featuresFile = reference("inputFeatures", manifest["inputFeatures"], fullRows * 16 * 4);
+  }
+
+  // The declared check set.
+  std::set<std::string> checks;
+  if (!manifest.has("checks") || manifest["checks"].kind != json::Value::Array || manifest["checks"].size() == 0) {
+    fail("\"checks\" must list what the fixture gates: \"boundaries\", \"head\", \"output\"");
+  } else {
+    for (const json::Value& check : manifest["checks"].array) {
+      if (check.str() != "boundaries" && check.str() != "head" && check.str() != "output") fail("unknown check \"" + check.str() + "\"");
+      else if (!checks.insert(check.str()).second) fail("check \"" + check.str() + "\" listed twice");
+    }
+  }
+  plan.checkBoundaries = checks.count("boundaries") != 0;
+  plan.checkHead = checks.count("head") != 0;
+  plan.checkOutput = checks.count("output") != 0;
+
+  // Boundaries: every stored output the graph has a reference name for is either compared or declared omitted,
+  // with a reason, so a shortened export cannot pass as a smaller suite.
+  const bool hasBoundaryKeys = (manifest.has("blocks") && manifest["blocks"].size()) ||
+                               (manifest.has("transitions") && manifest["transitions"].size()) || manifest.has("omittedBoundaries");
+  if (plan.checkBoundaries) {
+    std::map<std::string, BoundaryReference> byName;
+    auto add = [&](const std::string& name, const json::Value& entry) {
+      BoundaryReference ref{name};
+      ref.width = positive(name, entry, "width"); ref.height = positive(name, entry, "height");
+      ref.channels = positive(name, entry, "channels");
+      ref.file = reference(name, entry, (int64_t)ref.width * ref.height * ref.channels);
+      if (!byName.emplace(name, ref).second) fail(name + " listed twice");
+    };
+    if (manifest.has("blocks"))
+      for (const json::Value& entry : manifest["blocks"].array) {
+        if (!entry.has("block")) { fail("a \"blocks\" entry has no \"block\""); continue; }
+        add("block-" + std::to_string(entry["block"].integer()), entry);
+      }
+    if (manifest.has("transitions"))
+      for (const json::Value& entry : manifest["transitions"].array) {
+        if (!entry.has("id")) { fail("a \"transitions\" entry has no \"id\""); continue; }
+        add("transition-" + entry["id"].str(), entry);
+      }
+    std::map<std::string, std::string> omitted;
+    if (manifest.has("omittedBoundaries"))
+      for (const auto& [name, reason] : manifest["omittedBoundaries"].object) {
+        if (reason.str().empty()) fail("omitted boundary " + name + " gives no reason");
+        omitted[name] = reason.str();
+      }
+    const std::vector<std::string>& names = nr::Graph::referenceBoundaryNames();
+    for (const auto& [name, ref] : byName)
+      if (std::find(names.begin(), names.end(), name) == names.end()) fail(name + " is not a boundary of this graph");
+    for (const auto& [name, reason] : omitted) {
+      if (std::find(names.begin(), names.end(), name) == names.end()) fail("omitted " + name + " is not a boundary of this graph");
+      if (byName.count(name)) fail(name + " is both compared and declared omitted");
+    }
+    std::vector<std::string> unaccounted;
+    for (const std::string& name : names) {
+      if (byName.count(name)) plan.boundaries.push_back(byName[name]);
+      else if (omitted.count(name)) plan.omitted.emplace_back(name, omitted[name]);
+      else unaccounted.push_back(name);
+    }
+    if (!unaccounted.empty()) {
+      std::string list;
+      for (size_t i = 0; i < unaccounted.size() && i < 8; ++i) list += (i ? ", " : "") + unaccounted[i];
+      fail(std::to_string(unaccounted.size()) + " of " + std::to_string(names.size()) + " graph boundaries have neither a reference nor an omission reason (" +
+           list + (unaccounted.size() > 8 ? ", ..." : "") + ")");
+    }
+  } else if (hasBoundaryKeys) {
+    fail("the fixture carries boundary references but does not declare the \"boundaries\" check");
+  }
+
+  if (plan.checkHead != manifest.has("referenceHead"))
+    fail(plan.checkHead ? "the \"head\" check needs \"referenceHead\"" : "\"referenceHead\" is carried but the \"head\" check is not declared");
+  else if (plan.checkHead)
+    plan.headFile = reference("referenceHead", manifest["referenceHead"], fullRows * 16);
+
+  if (plan.checkOutput != manifest.has("nativeOutput")) {
+    fail(plan.checkOutput ? "the \"output\" check needs \"nativeOutput\"" : "\"nativeOutput\" is carried but the \"output\" check is not declared");
+  } else if (plan.checkOutput) {
+    const json::Value& output = manifest["nativeOutput"];
+    const std::string dtype = output.has("dtype") ? output["dtype"].str() : "";
+    const uint32_t width = positive("nativeOutput", output, "width"), height = positive("nativeOutput", output, "height");
+    if (width != plan.validWidth || height != plan.validHeight) fail("nativeOutput is not the source size");
+    if (dtype == "f32") {
+      if (plan.proxyFile.empty()) fail("an f32 nativeOutput is composed from the proxy, and the fixture has none");
+      plan.outputFile = reference("nativeOutput", output, (int64_t)width * height * 16);
+    } else if (dtype == "u8") {
+      plan.outputBytes = true;
+      plan.outputFile = reference("nativeOutput", output, (int64_t)width * height * 4);
+    } else {
+      fail("nativeOutput \"dtype\" must be \"f32\" (RGBA f32 halves) or \"u8\" (RGBA8)");
+    }
+  }
+
+  if (!problems.empty()) {
+    for (const std::string& problem : problems) fprintf(stderr, "fixture: %s\n", problem.c_str());
+    throw std::runtime_error("fixture rejected (" + std::to_string(problems.size()) + " problem" + (problems.size() == 1 ? "" : "s") +
+                             "); nothing was run");
+  }
+  return plan;
+}
+
+// One comparison, element by element. `signedZeros` counts elements that differ only in the sign of a zero;
+// `tolerated` those within the check's stated tolerance; `differing` everything else.
+struct Tally {
+  size_t count = 0, differing = 0, signedZeros = 0, tolerated = 0;
+  size_t first = SIZE_MAX;
+  double maxAbs = 0, sumSquares = 0;
+  std::map<int, size_t> codeDeltas;   // E4M3: signed code distance, clamped to +-9
+  void miss(size_t index, double difference) {
+    if (first == SIZE_MAX) first = index;
+    ++differing;
+    maxAbs = std::max(maxAbs, std::fabs(difference));
+    sumSquares += difference * difference;
+  }
+};
+
+Tally compareE4(const std::vector<uint8_t>& actual, const std::vector<uint8_t>& expected) {
+  Tally t;
+  t.count = expected.size();
+  for (size_t i = 0; i < expected.size(); ++i) {
+    const uint8_t a = actual[i], e = expected[i];
+    if (a == e) continue;
+    if ((a & 0x7f) == 0 && (e & 0x7f) == 0) { ++t.signedZeros; continue; }
+    t.miss(i, (double)num::e4m3ToF32(a) - num::e4m3ToF32(e));
+    const int signedA = (a & 0x80) ? -(int)(a & 0x7f) : (int)(a & 0x7f);
+    const int signedE = (e & 0x80) ? -(int)(e & 0x7f) : (int)(e & 0x7f);
+    t.codeDeltas[std::max(-9, std::min(9, signedA - signedE))]++;
+  }
+  return t;
+}
+
+// f32 elements by bit pattern: +0 and -0 differ, a NaN equals only the same NaN.
+Tally compareBits(const float* actual, const float* expected, size_t count) {
+  Tally t;
+  t.count = count;
+  for (size_t i = 0; i < count; ++i) {
+    uint32_t a, e;
+    memcpy(&a, actual + i, 4); memcpy(&e, expected + i, 4);
+    if (a == e) continue;
+    if (((a | e) & 0x7fffffffu) == 0) { ++t.signedZeros; continue; }
+    t.miss(i, (double)actual[i] - expected[i]);
+  }
+  return t;
+}
+
+// Truncation (toward zero) to the half grid: the composite's publication of the neural result.
+float truncateHalf(float value) {
+  uint32_t bits; memcpy(&bits, &value, 4);
+  const uint32_t signBit = (bits >> 16) & 0x8000u, exponent = (bits >> 23) & 0xffu, mantissa = bits & 0x7fffffu;
+  uint32_t halfBits;
+  if (exponent == 0xffu) halfBits = signBit | (mantissa ? 0x7e00u : 0x7c00u);
+  else {
+    const int halfExponent = (int)exponent - 112;
+    if (halfExponent >= 31) halfBits = signBit | 0x7c00u;
+    else if (halfExponent <= 0) halfBits = halfExponent < -10 ? signBit : signBit | ((mantissa | 0x800000u) >> (14 - halfExponent));
+    else halfBits = signBit | ((uint32_t)halfExponent << 10) | (mantissa >> 13);
+  }
+  return num::f16ToF32((uint16_t)halfBits);
+}
+
+// The composed RGB of one frame with no history, as the demo composite publishes it:
+// neural = clamp((head / 32 + centred) * 8 + 0.5, 0, 1), truncated to the half grid. `inner * 8` is exact, so there
+// is one rounding whether or not the last multiply-add is contracted.
+float composed(float head, float centred) {
+  const float inner = std::fmaf(head, 0.03125f, centred);
+  return truncateHalf(std::fmin(std::fmax(inner * 8.0f + 0.5f, 0.0f), 1.0f));
+}
+
+Tally compareOutput(const FixturePlan& plan, const float* head, const std::vector<uint8_t>& input, const std::vector<uint8_t>& reference) {
+  const float* values = reinterpret_cast<const float*>(input.data());
+  Tally t;
+  t.count = (size_t)plan.validWidth * plan.validHeight * 3;
+  for (uint32_t y = 0; y < plan.validHeight; ++y)
+    for (uint32_t x = 0; x < plan.validWidth; ++x)
+      for (uint32_t c = 0; c < 3; ++c) {
+        const float h = head[((size_t)y * plan.fullWidth + x) * 4 + c];
+        const size_t pixel = (size_t)y * plan.validWidth + x;
+        if (plan.outputBytes) {
+          // An RGBA8 capture is the same image quantized to eight bits by a rounding this repository does not know
+          // exactly, so the check is a tolerance: one code either way. The centred proxy is the features' lane 4 + c.
+          const float centred = values[((size_t)y * plan.fullWidth + x) * 16 + 4 + c];
+          const int published = (int)std::fmin(255.0f, std::fmax(0.0f, std::floor(composed(h, centred) * 255.0f + 0.5f)));
+          const int expected = reference[pixel * 4 + c];
+          if (published == expected) continue;
+          if (std::abs(published - expected) == 1) { ++t.tolerated; continue; }
+          t.miss(pixel * 3 + c, published - expected);
+        } else {
+          const float centred = std::fmaf(values[pixel * 4 + c], 0.125f, -0.0625f);
+          const float published = composed(h, centred);
+          const float expected = reinterpret_cast<const float*>(reference.data())[pixel * 4 + c];
+          const Tally one = compareBits(&published, &expected, 1);
+          t.signedZeros += one.signedZeros;
+          if (one.differing) t.miss(pixel * 3 + c, (double)published - expected);
+        }
+      }
+  return t;
+}
+
+enum class Verdict { BitExact, SignedZeroOnly, WithinTolerance, Mismatch };
+
+Verdict verdictOf(const Tally& t) {
+  if (t.differing) return Verdict::Mismatch;
+  if (t.signedZeros) return Verdict::SignedZeroOnly;
+  return t.tolerated ? Verdict::WithinTolerance : Verdict::BitExact;
+}
+
+std::string describe(const Tally& t) {
+  char text[256];
+  switch (verdictOf(t)) {
+    case Verdict::BitExact: snprintf(text, sizeof(text), "bit-exact (%zu)", t.count); break;
+    case Verdict::SignedZeroOnly:
+      snprintf(text, sizeof(text), "NOT BIT-EXACT: %zu of %zu differ only in the sign of zero", t.signedZeros, t.count); break;
+    case Verdict::WithinTolerance:
+      snprintf(text, sizeof(text), "within one code (%zu exact, %zu one code off)", t.count - t.tolerated, t.tolerated); break;
+    case Verdict::Mismatch:
+      snprintf(text, sizeof(text), "MISMATCH %zu/%zu (%.4f%%) max|d| %.6g rmse %.6g%s", t.differing, t.count, 100.0 * t.differing / t.count,
+               t.maxAbs, std::sqrt(t.sumSquares / t.count), t.signedZeros ? " (+ signed zeros)" : "");
+      break;
+  }
+  return text;
+}
+
+// A graph built for one schedule, recorded and submitted `submissions` times on the same buffers (as the demo
+// resubmits its frame); `repeatable` says whether every submission gave the first one's head.
+struct GraphRun {
+  std::vector<uint8_t> head;
+  std::map<std::string, std::vector<uint8_t>> boundaries;
+  double minGpuMs = 1e30;
+  uint32_t dispatches = 0;
+  bool chained = false, repeatable = true;
+};
+
+GraphRun runGraph(vk::Context& context, nr::Model& model, nr::Kernels& kernels, const nr::Geometry& geometry,
+                  const nr::Activation& features, bool chain, bool capture, int submissions) {
+  const bool chainBefore = nr::Kernels::chainEnabled();
+  nr::Kernels::setChainEnabled(chainBefore && chain);
+  GraphRun run;
+  {
+    nr::Graph::Options options;
+    options.captureBoundaries = capture;
+    options.fusedBlocks = fusedBlocksEnabled();
+    nr::Graph graph(context, model, kernels, geometry, options);
+    run.chained = graph.chained();
+    VkQueryPool queries = context.createTimestampPool(2);
+    for (int submission = 0; submission < submissions; ++submission) {
+      context.resetDescriptorPool();
+      VkCommandBuffer commands = context.beginCommands();
+      vkCmdResetQueryPool(commands, queries, 0, 2);
+      vkCmdWriteTimestamp(commands, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queries, 0);
+      graph.record(commands, features);
+      vkCmdWriteTimestamp(commands, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queries, 1);
+      context.endAndSubmit(commands, true);
+      checkChainTimeouts(kernels);
+      std::vector<double> stamps = context.readTimestampsMs(queries, 2);
+      run.minGpuMs = std::min(run.minGpuMs, stamps[1] - stamps[0]);
+      run.dispatches = kernels.dispatchCount();
+      std::vector<uint8_t> head = context.download(graph.head().buffer, graph.head().validBytes());
+      if (submission == 0) run.head = std::move(head);
+      else run.repeatable = run.repeatable && head == run.head;
+    }
+    vkDestroyQueryPool(context.device(), queries, nullptr);
+    for (const auto& [name, activation] : graph.boundaries())
+      run.boundaries[name] = context.download(activation->buffer, activation->validBytes());
+  }
+  nr::Kernels::setChainEnabled(chainBefore);
+  return run;
+}
+
 int runParity(int argc, char** argv) {
   std::string modelDir = argValue(argc, argv, "--model");
   std::string fixtureDir = argValue(argc, argv, "--fixture");
   std::string shaderDir = argValue(argc, argv, "--shaders", executableDirectory(argv[0]) + "/shaders");
   std::string dumpDir = argValue(argc, argv, "--dump");
+  const int repeats = std::max(2, atoi(argValue(argc, argv, "--repeat", "3").c_str()));
   if (modelDir.empty() || fixtureDir.empty()) {
-    fprintf(stderr, "usage: dlss5vk parity --model <dir> --fixture <dir> [--shaders <dir>] [--dump <dir>]\n");
+    fprintf(stderr, "usage: dlss5vk parity --model <dir> --fixture <dir> [--repeat N] [--shaders <dir>] [--dump <dir>]\n");
     return 2;
   }
   json::Value manifest = json::parse(readText(fixtureDir + "/manifest.json"));
-  uint32_t validWidth = (uint32_t)manifest["sourceDimensions"][0].integer();
-  uint32_t validHeight = (uint32_t)manifest["sourceDimensions"][1].integer();
+  const FixturePlan plan = planFixture(manifest, fixtureDir);
 
   vk::Context context;
   printf("device: %s\n", context.deviceName().c_str());
   auto started = std::chrono::steady_clock::now();
   nr::Model model(context, modelDir, !hasFlag(argc, argv, "--no-verify"));
-  auto loaded = std::chrono::steady_clock::now();
-  printf("model loaded in %.2f s\n", std::chrono::duration<double>(loaded - started).count());
+  printf("model loaded in %.2f s\n", std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count());
   nr::Kernels kernels(context, shaderDir);
   kernels.setSiluTable(ref::siluTable());
-  nr::Geometry geometry = nr::Geometry::fromValid(validWidth, validHeight);
-  printf("geometry %ux%u -> full %ux%u, levels", validWidth, validHeight, geometry.fullWidth, geometry.fullHeight);
+  nr::Geometry geometry = nr::Geometry::fromValid(plan.validWidth, plan.validHeight);
+  printf("geometry %ux%u -> full %ux%u, levels", plan.validWidth, plan.validHeight, geometry.fullWidth, geometry.fullHeight);
   for (auto level : geometry.levels) printf(" %ux%u", level.width, level.height);
   printf("\n");
-  if (geometry.fullWidth != (uint32_t)manifest["fullDimensions"][0].integer() ||
-      geometry.fullHeight != (uint32_t)manifest["fullDimensions"][1].integer())
+  if (geometry.fullWidth != plan.fullWidth || geometry.fullHeight != plan.fullHeight)
     throw std::runtime_error("fixture full dimensions disagree with the runtime profile");
+  printf("checks:%s%s%s\n", plan.checkBoundaries ? " boundaries" : "", plan.checkHead ? " head" : "", plan.checkOutput ? " output" : "");
+  if (plan.checkBoundaries) {
+    printf("  boundaries: %zu references, %zu declared omitted\n", plan.boundaries.size(), plan.omitted.size());
+    std::map<std::string, std::vector<std::string>> byReason;
+    for (const auto& [name, reason] : plan.omitted) byReason[reason].push_back(name);
+    for (const auto& [reason, names] : byReason)
+      printf("    omitted (%s): %s%s%s\n", reason.c_str(), names.front().c_str(), names.size() > 1 ? " .. " : "",
+             names.size() > 1 ? names.back().c_str() : "");
+  }
+  if (plan.checkOutput) printf("  output: %s\n", plan.outputBytes ? "RGBA8, compared within one code" : "RGBA f32 halves, bit-exact");
 
-  nr::Graph::Options options;
-  options.captureBoundaries = true;
-  options.fusedBlocks = fusedBlocksEnabled();
-  nr::Graph graph(context, model, kernels, geometry, options);
+  // The features the graph reads, generated from the proxy on the GPU or uploaded as recorded.
   const uint32_t fullRows = geometry.fullWidth * geometry.fullHeight;
-  nr::Activation* features = graph.allocate("input features", fullRows, 16, nr::Format::F32);
+  nr::Activation features;
+  features.format = nr::Format::F32; features.rows = fullRows; features.channels = 16; features.allocRows = nr::alignRows(fullRows);
+  features.label = "input features";
+  features.buffer = context.createBuffer((VkDeviceSize)features.allocRows * 16 * 4, false, "input features");
+  context.fillZero(features.buffer);
+  std::vector<uint8_t> inputBytes = readFile(plan.proxyFile.empty() ? plan.featuresFile : plan.proxyFile);
   vk::Buffer proxyBuffer;
-  nr::Kernels::PreprocessArgs preprocess{};
-  std::vector<uint8_t> proxyBytes;
-  uint32_t sourceWidth = 0, sourceHeight = 0;
-  if (manifest.has("proxy")) {
-    const json::Value& proxy = manifest["proxy"];
-    proxyBytes = readFile(fixtureDir + "/" + proxy["file"].str());
-    sourceWidth = (uint32_t)proxy["width"].integer(); sourceHeight = (uint32_t)proxy["height"].integer();
-    if (proxyBytes.size() != (size_t)sourceWidth * sourceHeight * 16) throw std::runtime_error("proxy size mismatch");
-    proxyBuffer = context.createBuffer(proxyBytes.size(), false, "proxy");
-    context.upload(proxyBuffer, proxyBytes.data(), proxyBytes.size());
+  if (!plan.proxyFile.empty()) {
+    proxyBuffer = context.createBuffer(inputBytes.size(), false, "proxy");
+    context.upload(proxyBuffer, inputBytes.data(), inputBytes.size());
     const json::Value& conditioning = manifest["conditioning"];
-    preprocess = {geometry.fullWidth, geometry.fullHeight, validWidth, validHeight, sourceWidth, sourceHeight,
-                  (uint32_t)manifest["seed"].integer(), manifest["autoMask"].boolean,
-                  (float)conditioning["localTone"].number, (float)conditioning["localStructure"].number,
-                  (float)conditioning["skinStructure"].number, (float)conditioning["style"].number};
-  } else {
-    std::vector<uint8_t> featureBytes = readFile(fixtureDir + "/" + manifest["inputFeatures"]["file"].str());
-    if (featureBytes.size() != (size_t)fullRows * 16 * 4) throw std::runtime_error("input feature size mismatch");
-    context.upload(features->buffer, featureBytes.data(), featureBytes.size());
-  }
-
-  auto recordStart = std::chrono::steady_clock::now();
-  VkCommandBuffer commands = context.beginCommands();
-  VkQueryPool queries = context.createTimestampPool(2);
-  vkCmdResetQueryPool(commands, queries, 0, 2);
-  vkCmdWriteTimestamp(commands, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queries, 0);
-  if (proxyBuffer.buffer) kernels.preprocessFromProxy(commands, proxyBuffer, *features, preprocess);
-  if (proxyBuffer.buffer && !dumpDir.empty()) {
+    nr::Kernels::PreprocessArgs preprocess{geometry.fullWidth, geometry.fullHeight, plan.validWidth, plan.validHeight,
+                                           plan.proxyWidth, plan.proxyHeight, (uint32_t)manifest["seed"].integer(),
+                                           manifest["autoMask"].boolean, (float)conditioning["localTone"].number,
+                                           (float)conditioning["localStructure"].number, (float)conditioning["skinStructure"].number,
+                                           (float)conditioning["style"].number};
+    VkCommandBuffer commands = context.beginCommands();
+    kernels.preprocessFromProxy(commands, proxyBuffer, features, preprocess);
     context.endAndSubmit(commands, true);
-    std::vector<uint8_t> bytes = context.download(features->buffer, features->validBytes());
-    std::ofstream out(dumpDir + "/features.f32", std::ios::binary);
-    out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-    commands = context.beginCommands();
+  } else {
+    context.upload(features.buffer, inputBytes.data(), inputBytes.size());
   }
-  graph.record(commands, *features);
-  vkCmdWriteTimestamp(commands, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queries, 1);
-  auto recorded = std::chrono::steady_clock::now();
-  context.endAndSubmit(commands, true);
-  auto finished = std::chrono::steady_clock::now();
-  std::vector<double> stamps = context.readTimestampsMs(queries, 2);
-  printf("recorded %u dispatches in %.1f ms (pipeline compilation included); GPU %.3f ms; wall %.1f ms\n",
-         kernels.dispatchCount(), std::chrono::duration<double, std::milli>(recorded - recordStart).count(),
-         stamps[1] - stamps[0], std::chrono::duration<double, std::milli>(finished - recorded).count());
-  printf("NaN weight codes replaced: %zu\n", model.nanWeightsReplaced());
-
-  size_t exactBoundaries = 0, totalBoundaries = 0, signedZeroTotal = 0;
-  bool firstMismatchReported = false;
-  auto compareEntry = [&](const std::string& name, const json::Value& entry) {
-    auto it = graph.boundaries().find(name);
-    if (it == graph.boundaries().end()) {
-      printf("%-16s missing in graph\n", name.c_str());
-      return;
-    }
-    const nr::Activation& activation = *it->second;
-    std::vector<uint8_t> expected = readFile(fixtureDir + "/" + entry["file"].str());
-    std::vector<uint8_t> actual = context.download(activation.buffer, activation.validBytes());
-    if (actual.size() != expected.size()) {
-      printf("%-16s size mismatch %zu vs %zu\n", name.c_str(), actual.size(), expected.size());
-      return;
-    }
-    if (!dumpDir.empty()) {
-      std::ofstream out(dumpDir + "/" + name + ".u8", std::ios::binary);
-      out.write(reinterpret_cast<const char*>(actual.data()), actual.size());
-    }
-    Comparison c = compareE4(actual, expected);
-    ++totalBoundaries;
-    if (c.mismatches == 0) {
-      ++exactBoundaries;
-      printf("%-16s %ux%ux%u exact\n", name.c_str(), activation.rows / (uint32_t)entry["height"].integer(),
-             (uint32_t)entry["height"].integer(), activation.channels);
-    } else {
-      uint32_t width = (uint32_t)entry["width"].integer();
-      uint32_t channels = activation.channels;
-      size_t pixel = c.firstIndex / channels;
-      printf("%-16s MISMATCH %zu/%zu (%.4f%%) max|d| %.5f rmse %.6f first@ x%zu y%zu c%zu: got 0x%02x exp 0x%02x",
-             name.c_str(), c.mismatches, c.count, 100.0 * c.mismatches / c.count, c.maxAbs,
-             std::sqrt(c.sumSquares / c.count), pixel % width, pixel / width, c.firstIndex % channels,
-             c.firstActual, c.firstExpected);
-      if (!firstMismatchReported) {
-        printf("  code-delta histogram:");
-        for (auto& [delta, count] : c.codeDeltaHistogram) printf(" %+d:%zu", delta, count);
-        firstMismatchReported = true;
-      }
-      printf("\n");
-    }
+  if (!dumpDir.empty()) {
+    std::vector<uint8_t> bytes = context.download(features.buffer, features.validBytes());
+    std::ofstream(dumpDir + "/features.f32", std::ios::binary).write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  }
+  size_t failures = 0, tolerated = 0, bitExact = 0;
+  auto require = [&](bool ok, const char* what) {
+    printf("%s: %s\n", what, ok ? "identical" : "DIFFERENT");
+    if (!ok) ++failures;
   };
-  // Report in graph order: block 0, transitions interleaved.
-  std::vector<std::pair<double, std::pair<std::string, const json::Value*>>> ordered;
-  for (const json::Value& entry : manifest["blocks"].array) {
-    int block = (int)entry["block"].integer();
-    ordered.push_back({(double)block, {"block-" + std::to_string(block), &entry}});
-  }
-  for (const json::Value& entry : manifest["transitions"].array) {
-    std::string id = entry["id"].str();
-    double from = atof(id.c_str());
-    ordered.push_back({from + 0.5, {"transition-" + id, &entry}});
-  }
-  std::sort(ordered.begin(), ordered.end(), [](auto& a, auto& b) { return a.first < b.first; });
-  for (auto& item : ordered) compareEntry(item.second.first, *item.second.second);
-  printf("\n%zu / %zu boundaries exact\n", exactBoundaries, totalBoundaries);
 
-  // Head: statistics, plus a bitwise comparison when the fixture carries a reference head.
-  bool headExact = true;
-  {
-    const nr::Activation& head = graph.head();
-    std::vector<uint8_t> bytes = context.download(head.buffer, head.validBytes());
-    const float* values = reinterpret_cast<const float*>(bytes.data());
-    size_t count = head.rows * head.channels;
-    if (manifest.has("referenceHead")) {
-      std::vector<uint8_t> reference = readFile(fixtureDir + "/" + manifest["referenceHead"]["file"].str());
-      if (reference.size() != bytes.size()) throw std::runtime_error("reference head size mismatch");
-      const float* expected = reinterpret_cast<const float*>(reference.data());
-      size_t mismatches = 0, first = SIZE_MAX; double maxAbs = 0;
-      for (size_t i = 0; i < count; ++i) {
-        if (values[i] == expected[i]) continue;
-        if (first == SIZE_MAX) first = i;
-        ++mismatches;
-        maxAbs = std::max(maxAbs, (double)std::fabs(values[i] - expected[i]));
-      }
-      headExact = mismatches == 0;
-      if (headExact) printf("head vs reference: exact (%zu values)\n", count);
-      else {
-        size_t pixel = first / 4;
-        printf("head vs reference: MISMATCH %zu/%zu (%.4f%%) max|d| %.6f first@ x%zu y%zu c%zu got %.8g exp %.8g\n",
-               mismatches, count, 100.0 * mismatches / count, maxAbs, pixel % geometry.fullWidth,
-               pixel / geometry.fullWidth, first % 4, values[first], expected[first]);
-      }
-    }
-    if (manifest.has("nativeOutput") && !proxyBytes.empty()) {
-      // The fixture's reference RGB output for the same proxy (one frame, no history): compose the head as the
-      // demo composite does - neural = clamp((head / 32 + proxy / 8 - 1 / 16) * 8 + 0.5, 0, 1) in f32, published by
-      // truncation to the half grid - and compare every RGB half.
-      std::vector<uint8_t> nativeBytes = readFile(fixtureDir + "/" + manifest["nativeOutput"]["file"].str());
-      if (nativeBytes.size() != (size_t)sourceWidth * sourceHeight * 16) throw std::runtime_error("native output size mismatch");
-      const float* native = reinterpret_cast<const float*>(nativeBytes.data());
-      const float* proxy = reinterpret_cast<const float*>(proxyBytes.data());
-      auto truncateHalf = [](float value) {
-        uint32_t bits; memcpy(&bits, &value, 4);
-        uint32_t signBit = (bits >> 16) & 0x8000u, exponent = (bits >> 23) & 0xffu, mantissa = bits & 0x7fffffu, halfBits;
-        if (exponent == 0xffu) halfBits = signBit | (mantissa ? 0x7e00u : 0x7c00u);
-        else {
-          int halfExponent = (int)exponent - 112;
-          if (halfExponent >= 31) halfBits = signBit | 0x7c00u;
-          else if (halfExponent <= 0) halfBits = halfExponent < -10 ? signBit : signBit | ((mantissa | 0x800000u) >> (14 - halfExponent));
-          else halfBits = signBit | ((uint32_t)halfExponent << 10) | (mantissa >> 13);
-        }
-        return num::f16ToF32((uint16_t)halfBits);
-      };
-      size_t mismatches = 0, first = SIZE_MAX, fmaMismatches = 0; double maxAbs = 0;
-      for (uint32_t y = 0; y < sourceHeight; ++y)
-        for (uint32_t x = 0; x < sourceWidth; ++x)
-          for (uint32_t c = 0; c < 3; ++c) {
-            float h = values[((size_t)y * geometry.fullWidth + x) * 4 + c];
-            float p = proxy[((size_t)y * sourceWidth + x) * 4 + c];
-            float inner = std::fmaf(h, 0.03125f, std::fmaf(p, 0.125f, -0.0625f));
-            float neural = std::fmin(std::fmax(inner * 8.0f + 0.5f, 0.0f), 1.0f);
-            float published = truncateHalf(neural);
-            float expected = native[((size_t)y * sourceWidth + x) * 4 + c];
-            if (published != expected) {
-              // the same with the last multiply-add contracted (both spellings are checked; the report says which)
-              float alt = truncateHalf(std::fmin(std::fmax(std::fmaf(inner, 8.0f, 0.5f), 0.0f), 1.0f));
-              if (alt == expected) { ++fmaMismatches; continue; }
-              if (first == SIZE_MAX) first = ((size_t)y * sourceWidth + x) * 4 + c;
-              ++mismatches;
-              maxAbs = std::max(maxAbs, (double)std::fabs(published - expected));
-            }
-          }
-      const size_t total = (size_t)sourceWidth * sourceHeight * 3;
-      if (mismatches == 0) printf("composed RGB vs native output: exact (%zu halves%s)\n", total,
-                                  fmaMismatches ? (", " + std::to_string(fmaMismatches) + " only with the contracted spelling").c_str() : "");
-      else {
-        size_t pixel = first / 4;
-        printf("composed RGB vs native output: MISMATCH %zu/%zu (%.4f%%) max|d| %.6f first@ x%zu y%zu c%zu\n", mismatches, total,
-               100.0 * mismatches / total, maxAbs, pixel % sourceWidth, pixel / sourceWidth, first % 4);
-        headExact = false;
-      }
-    }
-    double sum = 0, sumSquares = 0; size_t nonFinite = 0;
-    for (size_t i = 0; i < count; ++i) {
-      if (!std::isfinite(values[i])) { ++nonFinite; continue; }
-      sum += values[i]; sumSquares += (double)values[i] * values[i];
-    }
-    printf("head: %zu values, mean %.6f, rms %.6f, non-finite %zu\n", count, sum / count, std::sqrt(sumSquares / count), nonFinite);
-    if (!dumpDir.empty()) {
-      std::ofstream out(dumpDir + "/head.f32", std::ios::binary);
-      out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-    }
+  // The production schedule (no captures, chaining as configured) is what the head and output references are
+  // compared against, resubmitted several times: its head must not change between submissions.
+  const GraphRun production = runGraph(context, model, kernels, geometry, features, true, false, repeats);
+  printf("production schedule (%s, no captures): %u dispatches, GPU %.3f ms (min of %d)\n",
+         production.chained ? "counter chaining" : "barriers", production.dispatches, production.minGpuMs, repeats);
+  printf("NaN weight codes replaced: %zu\n", model.nanWeightsReplaced());
+  require(production.repeatable, ("head over " + std::to_string(repeats) + " production submissions").c_str());
+  // Chaining is scheduling, not arithmetic: the same graph with a barrier after every launch gives the same head.
+  if (production.chained)
+    require(runGraph(context, model, kernels, geometry, features, false, false, 1).head == production.head, "head with barriers instead of chaining");
+  else
+    printf("chaining is off in this configuration: the barrier schedule is the production schedule\n");
+  // Boundaries come from an instrumented schedule, which adds a copy and two barriers at every boundary (and
+  // materializes the deferred projections); that must not change the head either.
+  GraphRun instrumented;
+  if (plan.checkBoundaries) {
+    instrumented = runGraph(context, model, kernels, geometry, features, true, true, 1);
+    require(instrumented.head == production.head, "head of the instrumented schedule (boundary captures) vs production");
   }
-  vkDestroyQueryPool(context.device(), queries, nullptr);
+
+  printf("\n");
+  auto count = [&](const Tally& t) {
+    const Verdict v = verdictOf(t);
+    if (v == Verdict::BitExact) ++bitExact;
+    else if (v == Verdict::WithinTolerance) ++tolerated;
+    else ++failures;
+  };
+  bool codeHistogramShown = false;
+  for (const BoundaryReference& ref : plan.boundaries) {
+    auto it = instrumented.boundaries.find(ref.name);
+    if (it == instrumented.boundaries.end()) {
+      printf("%-16s NOT CAPTURED by this route\n", ref.name.c_str());
+      ++failures;
+      continue;
+    }
+    const std::vector<uint8_t> expected = readFile(ref.file);
+    if (it->second.size() != expected.size()) {
+      printf("%-16s SHAPE: the graph has %zu bytes, the reference %zu\n", ref.name.c_str(), it->second.size(), expected.size());
+      ++failures;
+      continue;
+    }
+    if (!dumpDir.empty())
+      std::ofstream(dumpDir + "/" + ref.name + ".u8", std::ios::binary).write(reinterpret_cast<const char*>(it->second.data()), it->second.size());
+    const Tally t = compareE4(it->second, expected);
+    count(t);
+    printf("%-16s %ux%ux%u %s", ref.name.c_str(), ref.width, ref.height, ref.channels, describe(t).c_str());
+    if (t.differing) {
+      const size_t pixel = t.first / ref.channels;
+      printf(" first@ x%zu y%zu c%zu: got 0x%02x exp 0x%02x", pixel % ref.width, pixel / ref.width, t.first % ref.channels,
+             it->second[t.first], expected[t.first]);
+      if (!codeHistogramShown) {
+        printf("  code-delta histogram:");
+        for (auto& [delta, n] : t.codeDeltas) printf(" %+d:%zu", delta, n);
+        codeHistogramShown = true;
+      }
+    }
+    printf("\n");
+  }
+
+  const float* head = reinterpret_cast<const float*>(production.head.data());
+  const size_t headValues = (size_t)fullRows * 4;
+  if (plan.checkHead) {
+    const std::vector<uint8_t> reference = readFile(plan.headFile);
+    const Tally t = compareBits(head, reinterpret_cast<const float*>(reference.data()), headValues);
+    count(t);
+    printf("head vs reference: %s", describe(t).c_str());
+    if (t.differing) printf(" first@ x%zu y%zu c%zu", (t.first / 4) % geometry.fullWidth, (t.first / 4) / geometry.fullWidth, t.first % 4);
+    printf("\n");
+  }
+  if (plan.checkOutput) {
+    const Tally t = compareOutput(plan, head, inputBytes, readFile(plan.outputFile));
+    count(t);
+    printf("composed RGB vs native output: %s", describe(t).c_str());
+    if (t.differing) printf(" first@ x%zu y%zu c%zu", (t.first / 3) % plan.validWidth, (t.first / 3) / plan.validWidth, t.first % 3);
+    printf("\n");
+  }
+  double sum = 0, sumSquares = 0; size_t nonFinite = 0;
+  for (size_t i = 0; i < headValues; ++i) {
+    if (!std::isfinite(head[i])) { ++nonFinite; continue; }
+    sum += head[i]; sumSquares += (double)head[i] * head[i];
+  }
+  printf("head: %zu values, mean %.6f, rms %.6f, non-finite %zu\n", headValues, sum / headValues, std::sqrt(sumSquares / headValues), nonFinite);
+  if (!dumpDir.empty())
+    std::ofstream(dumpDir + "/head.f32", std::ios::binary).write(reinterpret_cast<const char*>(production.head.data()), production.head.size());
   if (proxyBuffer.buffer) context.destroyBuffer(proxyBuffer);
-  return exactBoundaries == totalBoundaries && headExact ? 0 : 1;
+  context.destroyBuffer(features.buffer);
+
+  printf("\nVERDICT: %s - %zu bit-exact, %zu within tolerance, %zu failed\n", failures ? "FAIL" : "PASS", bitExact, tolerated, failures);
+  return failures ? 1 : 0;
 }
 
 int runBench(int argc, char** argv) {
@@ -346,6 +588,7 @@ int runBench(int argc, char** argv) {
     VkCommandBuffer commands = context.beginCommands();
     graph.record(commands, *features);
     context.endAndSubmit(commands, true);
+    checkChainTimeouts(kernels);
   }
   VkQueryPool queries = context.createTimestampPool(2);
   std::vector<double> samples;
@@ -357,6 +600,7 @@ int runBench(int argc, char** argv) {
     graph.record(commands, *features);
     vkCmdWriteTimestamp(commands, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queries, 1);
     context.endAndSubmit(commands, true);
+    checkChainTimeouts(kernels);
     std::vector<double> stamps = context.readTimestampsMs(queries, 2);
     samples.push_back(stamps[1] - stamps[0]);
     printf("frame %d: %.3f ms GPU (%u dispatches)\n", frame, samples.back(), kernels.dispatchCount());
@@ -390,6 +634,7 @@ int runShaderInfo(int argc, char** argv) {
   VkCommandBuffer commands = context.beginCommands();
   graph.record(commands, *features);
   context.endAndSubmit(commands, true);
+  checkChainTimeouts(kernels);
   for (const auto& [key, pipeline] : kernels.pipelines()) {
     if (!filter.empty() && key.find(filter) == std::string::npos) continue;
     printf("== %s\n%s\n", key.c_str(), context.pipelineStatistics(pipeline, sass).c_str());
@@ -441,6 +686,7 @@ int runProfile(int argc, char** argv) {
     VkCommandBuffer commands = context.beginCommands();
     graph.record(commands, *features);
     context.endAndSubmit(commands, true);
+    checkChainTimeouts(kernels);
   }
   std::map<std::string, double> byLabel;
   std::map<std::string, double> byStage;
@@ -454,6 +700,7 @@ int runProfile(int argc, char** argv) {
     kernels.beginProfile(commands, 4096);
     graph.record(commands, *features);
     context.endAndSubmit(commands, true);
+    checkChainTimeouts(kernels);
     std::vector<nr::Kernels::ProfileEntry> entries = kernels.endProfile();
     if (best.empty()) best = entries;
     for (size_t i = 0; i < entries.size() && i < best.size(); ++i)
@@ -484,17 +731,29 @@ int runProfile(int argc, char** argv) {
 }
 }  // namespace
 
+int runCommand(int argc, char** argv) {
+  if (argc >= 2 && !strcmp(argv[1], "verify")) return runVerify(argc, argv);
+  if (argc >= 2 && !strcmp(argv[1], "shaderinfo")) return runShaderInfo(argc, argv);
+  if (argc >= 2 && !strcmp(argv[1], "profile")) return runProfile(argc, argv);
+  if (argc >= 2 && !strcmp(argv[1], "parity")) return runParity(argc, argv);
+  if (argc >= 2 && !strcmp(argv[1], "bench")) return runBench(argc, argv);
+  fprintf(stderr, "usage: dlss5vk parity|verify|bench|profile|shaderinfo --model <dir> ...\n");
+  return 2;
+}
+
 int main(int argc, char** argv) {
+  int code = 1;
   try {
-    if (argc >= 2 && !strcmp(argv[1], "verify")) return runVerify(argc, argv);
-    if (argc >= 2 && !strcmp(argv[1], "shaderinfo")) return runShaderInfo(argc, argv);
-    if (argc >= 2 && !strcmp(argv[1], "profile")) return runProfile(argc, argv);
-    if (argc >= 2 && !strcmp(argv[1], "parity")) return runParity(argc, argv);
-    if (argc >= 2 && !strcmp(argv[1], "bench")) return runBench(argc, argv);
-    fprintf(stderr, "usage: dlss5vk parity|verify|bench|profile|shaderinfo --model <dir> ...\n");
-    return 2;
+    code = runCommand(argc, argv);
   } catch (const std::exception& error) {
     fprintf(stderr, "error: %s\n", error.what());
-    return 1;
   }
+  // With the validation layer on, an error it reported fails the run, whatever the command concluded.
+  const char* validation = getenv("DLSS5VK_VALIDATION");
+  if (validation && *validation && strcmp(validation, "0")) {
+    const uint32_t errors = vk::Context::validationErrors();
+    printf("validation: %u error%s reported by the layer\n", errors, errors == 1 ? "" : "s");
+    if (errors && code == 0) code = 1;
+  }
+  return code;
 }

@@ -52,12 +52,20 @@ class NrPass {
     uint32_t parity = 0;
     bool enabled = true;
     uint8_t params[128];
+    float background[16];   // column-major: previous clip <- current clip for points at infinity (see beginFrame)
   };
   // per frame, main thread, before the renderer's frame: rotates the history parity, reads the timings of the frame
-  // that used this parity last, snapshots the controls
-  Frame beginFrame(const NrControls& controls);
+  // that used this parity last, snapshots the controls. `background` (column-major 4x4) maps the current clip space to
+  // the previous frame's for points at infinity: previous projection x view rotation x inverse(current projection x
+  // view rotation), the views without their translation. The motion unpack uses it where the renderer drew nothing,
+  // or its skybox, which the renderer draws at infinity with a zero motion vector.
+  Frame beginFrame(const NrControls& controls, const float background[16]);
   void endFrame() { ++frames_; ++framesSinceReset_; }
   void resetHistory() { framesSinceReset_ = 0; }
+  // A chained wait gave up (the kernels' watchdog, docs/execution.md): that frame was wrong. Call with the renderer
+  // idle; the graph is rebuilt with a barrier after every launch, as DLSS5VK_CHAIN=0 would have it.
+  bool chainTimedOut() const { return kernels_->chainTimeouts().waits != 0; }
+  void fallBackToBarriers();
 
   // The renderer's thread, inside its command buffer, outside of any render pass. `color` (rgba16f) and `velocity`
   // (rgba32ui: id, depth bits, motion x/y bits) are the renderer's textures as it left them; `output` (rgba8) is
@@ -74,8 +82,8 @@ class NrPass {
   const std::string& deviceName() const { return context_->deviceName(); }
 
   // debugging / verification, with the renderer idle: the composited rgba8 output (or the HDR scene color,
-  // tone-mapped) as a binary PPM; raw dumps: kind 0 = scene color (rgb f32), 1 = motion (rg f32, uv units),
-  // 2 = the renderer's velocity buffer (rgba32ui: id, depth bits, motion bits)
+  // tone-mapped) as a binary PPM; raw dumps: kind 0 = scene color (rgb f32), 1 = motion (f32 x, y in uv units and
+  // 1 / 0 = the previous position on / off screen), 2 = the renderer's velocity buffer (rgba32ui: id, depth bits, motion bits)
   void saveOutput(const std::string& path, bool sceneInstead = false);
   void saveRaw(const std::string& path, int kind);
 

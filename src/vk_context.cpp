@@ -1,6 +1,7 @@
 #include "vk_context.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include <fstream>
 
@@ -8,7 +9,24 @@ namespace vk {
 
 namespace {
 constexpr VkDeviceSize kStagingBytes = 256ull << 20;  // 256 MiB staging window
+constexpr const char* kValidationLayer = "VK_LAYER_KHRONOS_validation";
+std::atomic<uint32_t> g_validationErrors{0};
+
+bool envFlag(const char* name) {
+  const char* value = getenv(name);
+  return value && *value && strcmp(value, "0") != 0;
 }
+
+VkBool32 VKAPI_PTR onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
+                                  const VkDebugUtilsMessengerCallbackDataEXT* data, void*) {
+  if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) && (type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT))
+    ++g_validationErrors;
+  fprintf(stderr, "[vk] %s\n", data->pMessage ? data->pMessage : "");
+  return VK_FALSE;
+}
+}  // namespace
+
+uint32_t Context::validationErrors() { return g_validationErrors.load(); }
 
 Context::Context() {
   if (volkInitialize() != VK_SUCCESS) throw std::runtime_error("vulkan-1.dll unavailable");
@@ -18,25 +36,34 @@ Context::Context() {
   app.apiVersion = VK_API_VERSION_1_3;
   VkInstanceCreateInfo instanceInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   instanceInfo.pApplicationInfo = &app;
-  // DLSS5VK_DEBUG=1: debug messenger (the driver reports PTX compiler diagnostics through it).
-  const bool debug = getenv("DLSS5VK_DEBUG") != nullptr;
+  validation_ = envFlag("DLSS5VK_VALIDATION");
+  const bool debug = envFlag("DLSS5VK_DEBUG");
   const char* instanceExtensions[] = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
-  if (debug) { instanceInfo.enabledExtensionCount = 1; instanceInfo.ppEnabledExtensionNames = instanceExtensions; }
+  if (validation_ || debug) { instanceInfo.enabledExtensionCount = 1; instanceInfo.ppEnabledExtensionNames = instanceExtensions; }
+  if (validation_) {
+    uint32_t count = 0;
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&count, nullptr));
+    std::vector<VkLayerProperties> layers(count);
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&count, layers.data()));
+    auto layer = std::find_if(layers.begin(), layers.end(), [](const VkLayerProperties& l) { return !strcmp(l.layerName, kValidationLayer); });
+    if (layer == layers.end())
+      throw std::runtime_error(std::string("DLSS5VK_VALIDATION=1 but ") + kValidationLayer +
+                               " is not installed (a Vulkan SDK, or VK_LAYER_PATH at a Vulkan-ValidationLayers build)");
+    instanceInfo.enabledLayerCount = 1;
+    instanceInfo.ppEnabledLayerNames = &kValidationLayer;
+    fprintf(stderr, "validation: %s enabled (API %u.%u.%u)\n", kValidationLayer, VK_API_VERSION_MAJOR(layer->specVersion),
+            VK_API_VERSION_MINOR(layer->specVersion), VK_API_VERSION_PATCH(layer->specVersion));
+  }
   VK_CHECK(vkCreateInstance(&instanceInfo, nullptr, &instance_));
   volkLoadInstance(instance_);
-  if (debug) {
+  if (validation_ || debug) {
     VkDebugUtilsMessengerCreateInfoEXT messengerInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
-    messengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    messengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    if (debug) messengerInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
     messengerInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    messengerInfo.pfnUserCallback = [](VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT,
-                                       const VkDebugUtilsMessengerCallbackDataEXT* data, void*) -> VkBool32 {
-      fprintf(stderr, "[vk] %s\n", data->pMessage ? data->pMessage : "");
-      return VK_FALSE;
-    };
-    VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
-    vkCreateDebugUtilsMessengerEXT(instance_, &messengerInfo, nullptr, &messenger);
+    messengerInfo.pfnUserCallback = onDebugMessage;
+    VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance_, &messengerInfo, nullptr, &messenger_));
   }
 
   uint32_t count = 0;
@@ -170,6 +197,7 @@ DeviceRequirements::DeviceRequirements() {
   f13.subgroupSizeControl = VK_TRUE;
   f13.computeFullSubgroups = VK_TRUE;
   f13.synchronization2 = VK_TRUE;
+  f13.maintenance4 = VK_TRUE;   // LocalSizeId: gemm_fp8.comp takes its workgroup size from a specialization constant
   coop.pNext = &f13;
   coop.cooperativeMatrix = VK_TRUE;
   coop2.pNext = &coop;
@@ -259,6 +287,7 @@ Context::~Context() {
   vkDestroyCommandPool(device_, commandPool_, nullptr);
   if (owned_) {
     vkDestroyDevice(device_, nullptr);
+    if (messenger_) vkDestroyDebugUtilsMessengerEXT(instance_, messenger_, nullptr);
     vkDestroyInstance(instance_, nullptr);
   }
 }

@@ -175,7 +175,8 @@ void main() {
   uint feature = (id.y * params.fullWidth + id.x) * 4u;
   vec3 h = vec3(head[feature], head[feature + 1u], head[feature + 2u]);
   vec3 neural = clamp(fma(h, vec3(0.03125), fma(proxyCode, vec3(0.125), vec3(-0.0625))) * 8.0 + 0.5, vec3(0.0), vec3(1.0));
-  if (params.historyValid != 0u) {
+  // without a history (a reset, or a pixel whose previous position was off screen) the blend weight is 0
+  if (params.historyValid != 0u && hasHistory(motionTex, vec2(id), vec2(params.validWidth, params.validHeight))) {
     float scale = clamp(params.blendScale, 0.0, 1.0);
     float weight = clamp((1.0 / (1.0 + exp2(head[feature + 3u] * uintBitsToFloat(0xbfb8aa3bu)))) * scale, 0.0, 1.0);
     vec3 hist = historySample(historyPrev, motionTex, vec2(id), vec2(params.validWidth, params.validHeight));

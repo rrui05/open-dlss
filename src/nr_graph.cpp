@@ -193,6 +193,20 @@ Activation* Graph::allocate(const std::string& label, uint32_t rows, uint32_t ch
   return activations_.back().get();
 }
 
+const std::vector<std::string>& Graph::referenceBoundaryNames() {
+  static const std::vector<std::string> names = [] {
+    std::vector<std::string> list;
+    const int transitionsAfter[] = {0, 4, 8, 14, 22};
+    for (int block = 0; block <= 69; ++block) {
+      list.push_back("block-" + std::to_string(block));
+      if (std::find(std::begin(transitionsAfter), std::end(transitionsAfter), block) != std::end(transitionsAfter))
+        list.push_back("transition-" + std::to_string(block) + "-" + std::to_string(block + 1));
+    }
+    return list;
+  }();
+  return names;
+}
+
 void Graph::capture(VkCommandBuffer commands, const std::string& name, const Activation& source) {
   if (!options_.captureBoundaries) return;
   Activation* copy = allocate("boundary " + name, source.rows, source.channels, source.format);
@@ -986,6 +1000,7 @@ void Graph::record(VkCommandBuffer commands, const Activation& inputFeatures) {
       kernels_.gemmF16(commands, post);
     }
   }
+  kernels_.checkChainOrder();
 }
 
 }  // namespace nr

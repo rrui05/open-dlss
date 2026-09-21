@@ -8,9 +8,10 @@
 //   parity nr512   75 block boundaries against what native produced from recorded input features
 //   parity nr768   the head and the composed image against what native produced from a recorded proxy
 //
-// The boundary fixture stops at block 69: it says nothing about the full-resolution post block, the head
-// matrix, or the composition. The end-to-end fixture carries no boundaries: it says nothing about where
-// inside the network a difference began. Run both or neither.
+// The boundary fixture stops at block 69: of the full-resolution post block, the head matrix and the
+// composition it sees only an 8-bit image, compared within one code. The end-to-end fixture carries no
+// boundaries: it says nothing about where inside the network a difference began. Run both or neither. A page
+// fails on a fixture that does not carry every reference its checks declare.
 //
 // NR_FIXTURES must point at the directory holding nr512 and nr768. NR_HEADED=1 opens real windows.
 

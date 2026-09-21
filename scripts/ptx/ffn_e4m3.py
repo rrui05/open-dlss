@@ -44,7 +44,7 @@ def generate(C, rowt, max_regs=None, proj=False):
               ("u64", "pAtt"), ("u64", "pFfnPrev"), ("u64", "pWproj"), ("u32", "auxAttnHalf"), ("u64", "pAuxPrev"),
               ("u64", "pStateOut"), ("u32", "storeState"),
               ("u64", "pWaitRows"), ("u32", "waitExpected"), ("u32", "waitShiftY"), ("u64", "pWaitBands"), ("u64", "pSignal"),
-              ("u32", "width"), ("u32", "waitMul"), ("u32", "waitGroupRows")]   # chaining (0 = off): wait on the previous block's window rows / state row bands (waitMul signals per row group of waitGroupRows rows), signal this block's FFN row bands
+              ("u32", "width"), ("u32", "waitMul"), ("u32", "waitGroupRows"), ("u64", "pError")]   # chaining (0 = off): wait on the previous block's window rows / state row bands (waitMul signals per row group of waitGroupRows rows), signal this block's FFN row bands
     p.entry(name, params, sharedBytes, threads, max_regs, dynamic_shared=True)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); ctaid = p.special("ctaid.x")
@@ -77,10 +77,10 @@ def generate(C, rowt, max_regs=None, proj=False):
     yLast = p.reg("b32"); p.emit(f"div.u32 {yLast}, {rowLast}, {P['width']};")
     pWaitRowsOn = p.setp("ne.u64", P["pWaitRows"], 0)
     wy0 = p.shr32(p.add32(yFirst, P["waitShiftY"]), 3); wy1 = p.shr32(p.add32(yLast, P["waitShiftY"]), 3)
-    sync_wait(p, P["pWaitRows"], wy0, wy1, P["waitExpected"], lane, pWaitRowsOn, warp)
+    sync_wait(p, P["pWaitRows"], wy0, wy1, P["waitExpected"], lane, pWaitRowsOn, warp, error64=P["pError"])
     pWaitBandsOn = p.setp("ne.u64", P["pWaitBands"], 0)
     b0 = p.shr32(yFirst, 3); b1 = p.shr32(yLast, 3)
-    sync_wait(p, P["pWaitBands"], b0, b1, lambda b: band_expected(p, b, P["width"], P["rows"], P["waitMul"], P["waitGroupRows"]), lane, pWaitBandsOn, warp)
+    sync_wait(p, P["pWaitBands"], b0, b1, lambda b: band_expected(p, b, P["width"], P["rows"], P["waitMul"], P["waitGroupRows"]), lane, pWaitBandsOn, warp, error64=P["pError"])
 
     # ---- W1 ring copies: E x 256 chunks per stage, 2 per thread: c = tid + threads i -> expert c >> 8, row (c & 255) >> 1, half c & 1
     w1Copies = []

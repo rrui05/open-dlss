@@ -52,8 +52,10 @@ void main() {
   vec3 noise = gaussian3(id.x, id.y, params.seed);
   uint base = (id.y * params.fullWidth + id.x) * 4u;
   features[base + 0u] = vec4(noise, 1.0);
+  // lanes 7-9: the reprojected previous output, centred like the proxy; without a history (a reset, or a surface the
+  // previous frame did not show) the current proxy stands in, as on the first frame
   vec3 history = centered;
-  if (params.historyValid != 0u) {
+  if (params.historyValid != 0u && hasHistory(motionTex, vec2(sourceX, sourceY), vec2(params.validWidth, params.validHeight))) {
     vec3 h = historySample(historyPrev, motionTex, vec2(sourceX, sourceY), vec2(params.validWidth, params.validHeight));
     history = vec3(roundF16(roundF16(roundF16(h.r) - 0.5) * 0.125), roundF16(roundF16(roundF16(h.g) - 0.5) * 0.125),
                    roundF16(roundF16(roundF16(h.b) - 0.5) * 0.125));

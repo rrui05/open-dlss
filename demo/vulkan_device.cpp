@@ -39,6 +39,16 @@ VulkanDevice::VulkanDevice() {
   const bool validation = wantsValidation();
   if (validation) instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   const char* layers[] = {"VK_LAYER_KHRONOS_validation"};
+  if (validation) {
+    uint32_t layerCount = 0;
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
+    std::vector<VkLayerProperties> available(layerCount);
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, available.data()));
+    bool found = false;
+    for (const VkLayerProperties& layer : available) found = found || !strcmp(layer.layerName, layers[0]);
+    if (!found) throw std::runtime_error("DLSS5_DEMO_VALIDATION=1 but VK_LAYER_KHRONOS_validation is not installed");
+    fprintf(stderr, "[vk] validation: %s enabled\n", layers[0]);
+  }
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO};
   app.pApplicationName = "dlss5-demo";
   app.apiVersion = VK_API_VERSION_1_3;
@@ -60,7 +70,8 @@ VulkanDevice::VulkanDevice() {
                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     messengerInfo.pfnUserCallback = debugCallback;
     VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
-    vkCreateDebugUtilsMessengerEXT(instance, &messengerInfo, nullptr, &messenger);
+    VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &messengerInfo, nullptr, &messenger));
+    messenger_ = (uint64_t)messenger;
   }
 
   // ---- the physical device: the first one exposing the NR kernels' extensions
@@ -144,5 +155,6 @@ VulkanDevice::VulkanDevice() {
 
 VulkanDevice::~VulkanDevice() {
   if (handles_.device) vkDestroyDevice((VkDevice)handles_.device, nullptr);
+  if (messenger_) vkDestroyDebugUtilsMessengerEXT((VkInstance)handles_.instance, (VkDebugUtilsMessengerEXT)messenger_, nullptr);
   if (handles_.instance) vkDestroyInstance((VkInstance)handles_.instance, nullptr);
 }

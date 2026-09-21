@@ -86,14 +86,32 @@ value accumulator instead of the weights. Its exponential constants and Q scalin
 
 ## What "bit-exact" is measured to mean
 
-`dlss5vk parity` compares every captured block and transition boundary byte for byte and the composed RGB half
-for half. At 512x512 that is 75 boundaries and 57,704,448 E4M3 bytes.
+`dlss5vk parity` (and its browser twin) runs the checks a fixture declares and names the equality each one proved:
 
-Three comparisons, zero differing bytes in each: the default PTX route against the native captures, the GLSL
-reference route (`DLSS5VK_UNFUSED=1`) against the same captures, and the two routes against each other.
+| verdict | meaning | gate |
+| --- | --- | --- |
+| bit-exact | every byte (E4M3 boundaries) or every bit pattern (the f32 head, the composed RGB halves) is identical: `+0` is not `-0`, a NaN equals only the same NaN | pass |
+| equal only up to the sign of zero | numerically equivalent, not the same bytes | **fail**, reported apart |
+| within one code | the composed image against an old 8-bit capture, whose own rounding is not known exactly | pass, reported apart |
+| mismatch | anything else | fail |
 
-Eleven further fixtures from 644x768 to 3840x2160 agree on every boundary they capture and on every RGB half of
-the composed frame.
+A fixture declares its checks (`boundaries`, `head`, `output`), and the checker refuses it before anything runs if
+a declared check has no reference, a reference is missing, short or names nothing in the graph, or a reference is
+carried that no declared check uses. A boundary fixture must account for all 75 comparable boundaries (blocks 0-69
+and the five encoder transitions; block 70 feeds the head on chip): each has a reference or is declared omitted
+with a reason. A fixture cut short therefore fails; it cannot pass as a smaller suite.
+
+The head and the composed image are compared on the **production schedule** (no captures, counter chaining as
+configured), resubmitted `--repeat` times on the same buffers; the same graph with a barrier after every launch
+must give the same head. Boundaries come from a separate **instrumented schedule** that adds a copy and two
+barriers at every boundary and materializes the deferred projections; its head must equal production's too. The
+captures localize a difference; they do not stand in for the schedule that ships.
+
+At 512x512 the boundary fixture is 75 boundaries, 57,704,448 E4M3 bytes, all bit-exact, signed zeros included,
+and the old 8-bit capture of native's image is matched within one code (786,180 channels exact, 252 one code off).
+The default PTX route, the GLSL reference route (`DLSS5VK_UNFUSED=1`) and every other route switch give the same
+bytes. Eleven further fixtures from 644x768 to 3840x2160 are bit-exact on the composed RGB halves, and the four at
+1024x768, 1920x1080, 2560x1440 and 3840x2160 on all 75 boundaries as well.
 
 Three independent implementations back that up, but not everywhere equally. `src/reference.cpp` is a CPU port of
 the arithmetic, and `dlss5vk verify` runs block 0 through it kernel by kernel, feeding each check the GPU's own
@@ -102,8 +120,8 @@ the 512 split block and **the ViT have no CPU reference**: they are checked only
 with the native captures at every block boundary. That is still ground truth rather than a shared guess, but a
 ViT failure cannot be bisected the way a block-0 failure can.
 
-`parity` treats a difference in the sign of a zero as a match but counts and reports it; the count is currently
-zero everywhere.
+`verify` compares values, not bits (a NaN equals a NaN, `+0` equals `-0`): it exists to name the kernel where a
+difference starts. `parity` is the gate.
 
 ## Two approximations that are matched behaviourally, not instruction for instruction
 

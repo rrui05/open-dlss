@@ -10,8 +10,8 @@ this file covers what it computes and why.
  Filament structure pass      -> rgba32ui velocity (object id, depth bits, motion x/y bits)
       |
       v  velocity_unpack.comp
- motion rg16f  (current -> previous, uv units, y down; zero where nothing was drawn or the
-      |         surface was off screen last frame)
+ motion rgba16f (xy: current -> previous, uv units, y down; z: 1 if that previous position
+      |          is on screen, i.e. there is a history, else 0)
       v  nr_preprocess.comp
  features f32 [field][16]  ---->  the network (src/)  ---->  head f32 [field][4]
       |                                                          |
@@ -50,9 +50,31 @@ previous world transform per renderable, the previous bones and morph weights fo
 the previous per-instance transforms, and the previous un-jittered clip-from-world per view. Cost: one
 depth-only pass.
 
-`velocity_unpack.comp` turns that into `rg16f` motion in uv units with y down, and **zeroes it where nothing was
-drawn or where the previous position falls off screen**. A reprojection that would sample outside the history
-is better treated as "no history" than as a clamped sample.
+`velocity_unpack.comp` turns that into motion in uv units with y down, plus **whether there is a history**: a
+flag, not a value of the motion. Zero motion means "the history is at this same pixel", which is a claim, so it
+cannot also stand for "there is none".
+
+| pixel | motion | history |
+| --- | --- | --- |
+| a surface whose previous position is on screen | the recorded one | yes |
+| a surface whose previous position is off screen (it entered at the edge) | - | **no** |
+| nothing drawn, or depth 0 (the skybox: Filament draws it at infinity with a zero motion vector) | the camera's reprojection of a point at infinity | yes, if on screen |
+
+The background's motion comes from the host: previous clip <- current clip through the two views' rotations only
+(`previous projection x rotation x inverse(current projection x rotation)`), because a point at infinity does not
+see the camera's translation; it is exactly the identity when the camera did not change. On the scripted orbit
+(a pure yaw, where every depth moves like infinity) it reproduces the renderer's recorded motion of every drawn
+pixel to 1e-6 NDC.
+
+Where there is no history, the preprocess gives lanes 7-9 the current proxy - the input of a first frame - and
+the composite blends with weight 0. The previous colour at the same pixel belongs to another surface.
+
+What the flag does **not** cover: a surface uncovered by motion (disocclusion) keeps its valid motion, and its
+history sample is whatever was in front of it. An object-id test cannot tell those pixels apart here - coplanar
+and overlapping renderables trade places between frames, which makes object id no surface identity, and the
+previous depth is not recorded - so that case is left to the network's per-pixel blend logit, as it always was.
+How well the network rejects such a history is its own behaviour and is not measured per pixel here; its mean
+blend weight on Bistro falls from 0.69 at rest to 0.15 during the scripted orbit.
 
 Blended (translucent) renderables are not in the structure pass, so they carry only the camera's motion;
 masked ones carry their own.
@@ -60,7 +82,9 @@ masked ones carry their own.
 Verification (`--frames 220 --capture verify --orbit 0.4`): reprojecting frame 99's color with frame 100's
 motion must reproduce frame 100. On Bistro at 1280x720 the mean error is 0.006, against 0.030 with no
 reprojection and 0.037 with the sign flipped; with an animated asset and a static camera the skinned/morphed
-path gives 0.007 against 0.014.
+path gives 0.007 against 0.014. On the Fox's skybox (842,536 pixels at 1280x720) the camera motion at infinity
+gives 0.0011 against 0.0045 for the zero motion the skybox is drawn with. With the camera still, the displayed
+frame is the same byte for byte with or without the history flag.
 
 ## History reconstruction
 
@@ -74,7 +98,8 @@ history is fed back into the network's input.
 ```
 neural  = clamp(proxy + rgb / 4, 0, 1)                         # head channels 0-2, in proxy code space
 weight  = clamp(sigmoid(head.a) * blendScale, 0, 1)            # blendScale: a learned f16 in the model
-neural  = lerp(neural, history, weight)                        # only when the history is valid
+neural  = lerp(neural, history, weight)                        # only where there is a history (not after a
+                                                               # reset, not where it came from off screen)
 history' = truncate_to_half(neural)                            # stored for the next frame
 ```
 
@@ -102,7 +127,9 @@ Two history images and two parameter buffers alternate by `frame & 1`. The NR wo
 (history parity, NR on/off)** into four secondary command buffers, because nothing in it changes between frames
 except the parameter block, which is written into the command stream with `vkCmdUpdateBuffer`. A resize (or the
 renderer handing over different images) rebuilds the descriptor sets and those four command buffers while the
-renderer is idle; the model, the kernels and the pipelines survive it.
+renderer is idle; the model, the kernels and the pipelines survive it. The same rebuild, with a barrier after every
+launch, is what happens if a chained wait ever gives up (execution.md, the watchdog): that frame is wrong, and the
+pass does not chain again.
 
 Timestamps follow the same parity: a frame's six stamps are read two frames later, when the GPU is certainly
 done with them, which is why the UI's timings lag by two frames and never stall the queue.

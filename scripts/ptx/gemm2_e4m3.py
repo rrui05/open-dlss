@@ -45,7 +45,7 @@ def generate(K, flags, max_regs=None, stagesWanted=STAGES, ksub=1, ws=False):
               ("u32", "rows"), ("u32", "inputStride"), ("u32", "inputColumnBase"), ("u32", "Nmatrix"),
               ("u32", "weightColumnOffset"), ("u32", "outputStride"), ("u32", "outputColumnOffset"), ("u32", "auxHalfOffset"),
               ("u64", "pWaitRows"), ("u32", "waitExpected"), ("u32", "waitShiftY"), ("u64", "pSignal"), ("u32", "width"),
-              ("u64", "pWaitBands"), ("u32", "waitMul"), ("u32", "waitGroupRows")]   # chaining (0 = off)
+              ("u64", "pWaitBands"), ("u32", "waitMul"), ("u32", "waitGroupRows"), ("u64", "pError")]   # chaining (0 = off)
     p.entry(name, params, shared_bytes, NT, max_regs)
     P = {n: (p.load_param_u64(n) if t == "u64" else p.load_param_u32(n)) for t, n in params}
     tid = p.special("tid.x"); colGroup = p.special("ctaid.x"); rowGroup = p.special("ctaid.y")
@@ -67,10 +67,10 @@ def generate(K, flags, max_regs=None, stagesWanted=STAGES, ksub=1, ws=False):
     yLast = p.reg("b32"); p.emit(f"div.u32 {yLast}, {rowLast}, {P['width']};")
     pWaitRowsOn = p.setp("ne.u64", P["pWaitRows"], 0)
     wy0 = p.shr32(p.add32(yFirst, P["waitShiftY"]), 3); wy1 = p.shr32(p.add32(yLast, P["waitShiftY"]), 3)
-    sync_wait(p, P["pWaitRows"], wy0, wy1, P["waitExpected"], lane, pWaitRowsOn, warp)
+    sync_wait(p, P["pWaitRows"], wy0, wy1, P["waitExpected"], lane, pWaitRowsOn, warp, error64=P["pError"])
     bandFirst = p.shr32(yFirst, 3); bandLast = p.shr32(yLast, 3)
     pWaitBandsOn = p.setp("ne.u64", P["pWaitBands"], 0)
-    sync_wait(p, P["pWaitBands"], bandFirst, bandLast, lambda b: band_expected(p, b, P["width"], P["rows"], P["waitMul"], P["waitGroupRows"]), lane, pWaitBandsOn, warp)
+    sync_wait(p, P["pWaitBands"], bandFirst, bandLast, lambda b: band_expected(p, b, P["width"], P["rows"], P["waitMul"], P["waitGroupRows"]), lane, pWaitBandsOn, warp, error64=P["pError"])
 
     # ---- cp.async chunks: 256 per stage (A rows 0..63 x 2 chunks, then W rows) = 2 per thread (8 per lane of the
     # copy warp); chunk ^= (row >> 2) & 1

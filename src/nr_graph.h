@@ -53,6 +53,11 @@ class Graph {
   const Activation& head() const { return *head_; }  // f32 [full rows][4]
   const std::map<std::string, Activation*>& boundaries() const { return boundaries_; }
   const Geometry& geometry() const { return geometry_; }
+  // Whether consecutive launches are linked by device counters instead of barriers (docs/execution.md).
+  bool chained() const { return routes_.chain || routes_.vitChain; }
+  // The stored outputs a boundary fixture can hold references for, in graph order: blocks 0-69 and the five encoder
+  // stage transitions. Block 70 feeds the head on chip; the pooled-* captures have no reference counterpart.
+  static const std::vector<std::string>& referenceBoundaryNames();
 
   Activation* allocate(const std::string& label, uint32_t rows, uint32_t channels, Format format);
 

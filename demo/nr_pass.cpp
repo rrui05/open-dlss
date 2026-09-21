@@ -22,7 +22,7 @@ struct NrPass::ParamsBlock {
 };
 
 namespace {
-struct UnpackPush { uint32_t width, height; };
+struct UnpackPush { float background[16]; uint32_t width, height; };
 }  // namespace
 
 uint32_t NrPass::shaderReadOnlyLayout() { return (uint32_t)VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; }
@@ -117,18 +117,22 @@ void NrPass::createSized(uint32_t width, uint32_t height) {
     context_->endAndSubmit(commands, true);
   }
   // ---- images (the scene color and the velocity are the renderer's; views onto them are made at the first record)
-  sceneMotion_ = createImage(width, height, VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+  // (TRANSFER_DST: each is cleared once below)
+  sceneMotion_ = createImage(width, height, VK_FORMAT_R16G16B16A16_SFLOAT,
+                             VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                              VK_IMAGE_ASPECT_COLOR_BIT);
   for (Image& h : history_)
-    h = createImage(width, height, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-  output_ = createImage(width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+    h = createImage(width, height, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                    VK_IMAGE_ASPECT_COLOR_BIT);
+  output_ = createImage(width, height, VK_FORMAT_R8G8B8A8_UNORM,
+                        VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                         VK_IMAGE_ASPECT_COLOR_BIT);
   {
     // the storage images live in GENERAL for their whole life
     VkCommandBuffer commands = context_->beginCommands();
     for (Image* image : {&sceneMotion_, &history_[0], &history_[1], &output_})
       transition(commands, *image, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                 VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
+                 VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT);
     VkClearColorValue zero{}; VkImageSubresourceRange range{VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
     for (Image* image : {&sceneMotion_, &history_[0], &history_[1], &output_})
       vkCmdClearColorImage(commands, image->image, VK_IMAGE_LAYOUT_GENERAL, &zero, 1, &range);
@@ -149,6 +153,16 @@ void NrPass::destroySized() {
   }
   features_ = nullptr;
   graph_.reset();   // frees the activations
+}
+
+void NrPass::fallBackToBarriers() {
+  const nr::Kernels::ChainTimeouts timeouts = kernels_->chainTimeouts();
+  fprintf(stderr, "[nr] %u chained wait(s) timed out, the first on %s: that frame was wrong; rebuilding with barriers\n",
+          timeouts.waits, timeouts.counter.c_str());
+  nr::Kernels::setChainEnabled(false);
+  destroySized();
+  createSized(width_, height_);
+  kernels_->resetChainTimeouts();
 }
 
 void NrPass::resize(uint32_t width, uint32_t height) {
@@ -286,7 +300,7 @@ void NrPass::updateComputeSets() {
   vkUpdateDescriptorSets(device_, 2, writes, 0, nullptr);
 }
 
-NrPass::Frame NrPass::beginFrame(const NrControls& controls) {
+NrPass::Frame NrPass::beginFrame(const NrControls& controls, const float background[16]) {
   historyIndex_ = frames_ & 1u;
   // the timestamps of the frame that used this parity last (two frames ago), when the GPU is done with them
   if (queriesWritten_[historyIndex_].load()) {
@@ -309,6 +323,7 @@ NrPass::Frame NrPass::beginFrame(const NrControls& controls) {
   Frame frame;
   frame.parity = historyIndex_;
   frame.enabled = controls.enabled;
+  memcpy(frame.background, background, sizeof(frame.background));
   ParamsBlock block{};
   block.fullWidth = geometry_.fullWidth; block.fullHeight = geometry_.fullHeight;
   block.validWidth = width_; block.validHeight = height_;
@@ -401,13 +416,18 @@ void NrPass::record(void* commandBuffer, const Frame& frame, const GpuImage& col
   barrier(commands, velocity_.image, (VkImageLayout)velocity.layout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
           VK_ACCESS_MEMORY_WRITE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_ACCESS_SHADER_READ_BIT);
   writeStamp(commands, h, kSceneEnd);
-  // motion vectors: (id, depth, motion bits) -> rg16f current -> previous in uv units
+  // motion vectors: (id, depth, motion bits) -> rgba16f: current -> previous in uv units, and whether it is on screen
   vkCmdBindPipeline(commands, VK_PIPELINE_BIND_POINT_COMPUTE, unpackPipeline_);
   vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_COMPUTE, unpackLayout_, 0, 1, &unpackSet_, 0, nullptr);
-  UnpackPush push{width_, height_};
+  UnpackPush push{};
+  memcpy(push.background, frame.background, sizeof(push.background));
+  push.width = width_; push.height = height_;
   vkCmdPushConstants(commands, unpackLayout_, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(push), &push);
   vkCmdDispatch(commands, (width_ + 7) / 8, (height_ + 7) / 8, 1);
-  context_->computeBarrier(commands);
+  // the motion image is written as a storage image and read through a sampler (computeBarrier covers storage reads only)
+  VkMemoryBarrier motionBarrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+  motionBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; motionBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  vkCmdPipelineBarrier(commands, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &motionBarrier, 0, nullptr, 0, nullptr);
   // preprocess -> network -> composite (pre-recorded)
   vkCmdExecuteCommands(commands, 1, &computeCommands_[h][frame.enabled ? 1 : 0]);
   // the composited output -> the renderer's texture (sampled by its present view)
@@ -498,10 +518,9 @@ void NrPass::saveRaw(const std::string& path, int kind) {
     file.write((const char*)bytes.data(), bytes.size());
     return;
   }
-  const uint32_t bytesPerPixel = kind == 0 ? 8 : 4;
-  const uint32_t channels = kind == 0 ? 3 : 2;
-  std::vector<uint8_t> bytes = kind == 0 ? readImage(color_.image, 8, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-                                         : readImage(sceneMotion_.image, 4, VK_IMAGE_LAYOUT_GENERAL);
+  const uint32_t bytesPerPixel = 8, channels = 3;   // rgba16f both: scene rgb; motion x, y and history 1 / 0
+  std::vector<uint8_t> bytes = readImage(kind == 0 ? color_.image : sceneMotion_.image, bytesPerPixel,
+                                         kind == 0 ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL);
   std::vector<float> out((size_t)width_ * height_ * channels);
   const uint16_t* half = (const uint16_t*)bytes.data();
   for (size_t i = 0; i < (size_t)width_ * height_; ++i)

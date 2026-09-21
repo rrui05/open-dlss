@@ -9,13 +9,15 @@ It does not change a single published byte. On an RTX 4070 SUPER:
 
 ```
 === self-test ===     SELFTEST PASS
-=== parity nr512 ===  PARITY PASS: 76/76 boundaries exact
-=== parity nr768 ===  PARITY PASS: 2/2 boundaries exact      head exact · composed rgb exact
+=== parity nr512 ===  PARITY PASS: 75 bit-exact, 1 within tolerance, 0 failed
+=== parity nr768 ===  PARITY PASS: 2 bit-exact, 0 within tolerance, 0 failed
 ```
 
-Every one of the 71 block outputs and every stage transition, compared byte for byte against what native
-produced from the same input; then the head and the composed image, compared against what native produced
-from a recorded display proxy. Same fixtures and same standard as `dlss5vk parity`.
+Every stored block output (blocks 0-69; block 70 feeds the head directly) and every stage transition, compared
+byte for byte against what native produced from the same input; then the head and the composed image, compared
+bit for bit against what native produced from a recorded display proxy. The one tolerance is named as one: the
+older 8-bit capture of native's image in `nr512`, matched within one code. Same fixtures, same fixture contract
+and same verdicts as `dlss5vk parity`.
 
 ## What the browser does not have
 
@@ -80,15 +82,17 @@ Exhaustive over all 65 536 half bit patterns wherever the domain allows it. Neit
 validated only against the other.
 
 **`/web/parity.html`**: the whole network on a recorded frame, with the resulting image beside the table. The
-browser twin of `dlss5vk parity`. It takes `?fixture=`, and there are two kinds, because neither is
-sufficient alone:
+browser twin of `dlss5vk parity`. It takes `?fixture=`; a fixture declares its checks (`boundaries`, `head`,
+`output`) and the page runs exactly those, or refuses the fixture before running anything if a reference is
+missing, short, unknown or unused (the contract is in the repository's README). Two fixtures matter, because
+neither is sufficient alone:
 
-* `nr512` carries the input features and one file per block output. It gates the network block by block —
-  and stops at block 69, so it says nothing about the full-resolution post block, the head, or the
-  composition.
+* `nr512` carries the input features and one file per stored block output. It gates the network block by
+  block and stops at block 69, so of the full-resolution post block, the head and the composition it only sees
+  an 8-bit image, which can be compared within one code and no better.
 * `nr768` carries the display proxy the network was given, the head native produced from it, and the composed
-  image. It gates exactly the part the other cannot reach, and nothing about where inside the network a
-  difference began.
+  image. It gates exactly the part the other cannot reach, bit for bit, and nothing about where inside the
+  network a difference began.
 
 `tools/check.mjs` runs both, which is the only way either is worth quoting.
 

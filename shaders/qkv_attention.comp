@@ -57,7 +57,6 @@ shared uint tile32[4 * 16 * 8];          // per subgroup: the attended row tile 
 
 #define ACC16x32 coopmat<float16_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseAccumulator>
 #define ACC16x64 coopmat<float16_t, gl_ScopeSubgroup, 16, 64, gl_MatrixUseAccumulator>
-#define E4ACC16x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseAccumulator>
 #define A16x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 32, gl_MatrixUseA>
 #define A16x64 coopmat<floate4m3_t, gl_ScopeSubgroup, 16, 64, gl_MatrixUseA>
 #define B32x32 coopmat<floate4m3_t, gl_ScopeSubgroup, 32, 32, gl_MatrixUseB>

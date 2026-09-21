@@ -74,6 +74,10 @@ Tensor2D fetch(vk::Context& context, const nr::Graph& graph, const std::string& 
   return t;
 }
 
+// Value comparisons against the CPU reference (a NaN equals a NaN, +0 equals -0): verify localizes an arithmetic
+// difference to one kernel; `parity` is the bit-exact gate.
+size_t g_mismatchedChecks = 0;
+
 struct Stats {
   size_t count = 0, mismatches = 0;
   size_t firstRow = 0, firstColumn = 0;
@@ -86,10 +90,11 @@ struct Stats {
     ++mismatches;
   }
   void report(const char* label) const {
-    if (!mismatches) printf("  %-28s exact (%zu values)\n", label, count);
+    if (!mismatches) printf("  %-28s equal (%zu values)\n", label, count);
     else printf("  %-28s MISMATCH %zu/%zu  first row %zu col %zu: gpu %.8g ref %.8g (gpu bits %04x ref bits %04x)\n",
                 label, mismatches, count, firstRow, firstColumn, firstActual, firstExpected, num::f16Bits(firstActual),
                 num::f16Bits(firstExpected));
+    if (mismatches || !count) ++g_mismatchedChecks;
   }
 };
 }  // namespace
@@ -122,6 +127,11 @@ int runVerify(int argc, char** argv) {
   const uint32_t fullRows = geometry.fullWidth * geometry.fullHeight;
   nr::Activation* features = graph.allocate("input features", fullRows, 16, nr::Format::F32);
   std::vector<uint8_t> featureBytes = readFile(fixtureDir + "/" + manifest["inputFeatures"]["file"].str());
+  if (featureBytes.size() != features->validBytes()) throw std::runtime_error("input feature size mismatch");
+  std::string block0File;
+  for (const json::Value& entry : manifest["blocks"].array)
+    if (entry["block"].integer() == 0) block0File = fixtureDir + "/" + entry["file"].str();
+  if (block0File.empty()) throw std::runtime_error("verify needs the fixture's block-0 reference");
   context.upload(features->buffer, featureBytes.data(), featureBytes.size());
   VkCommandBuffer commands = context.beginCommands();
   graph.record(commands, *features);
@@ -242,7 +252,8 @@ int runVerify(int argc, char** argv) {
   }
 
   {
-    std::vector<uint8_t> expected = readFile(fixtureDir + "/native/block-0.u8");   // the fixture's block-0 boundary
+    std::vector<uint8_t> expected = readFile(block0File);
+    if (expected.size() != (size_t)fullRows * 32) throw std::runtime_error("block-0 reference size mismatch");
     Stats s;
     for (uint32_t r = 0; r < sampleRows; ++r)
       for (uint32_t n = 0; n < 32; ++n) {
@@ -251,5 +262,6 @@ int runVerify(int argc, char** argv) {
       }
     s.report("block-0 vs fixture");
   }
-  return 0;
+  printf("%s\n", g_mismatchedChecks ? "VERIFY: MISMATCH" : "VERIFY: every kernel of block 0 equals the CPU reference (values)");
+  return g_mismatchedChecks ? 1 : 0;
 }

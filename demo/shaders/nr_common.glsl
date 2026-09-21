@@ -69,12 +69,21 @@ float proxyComponent(float scene, float paperWhite) {
   return roundF16(srgbEncode(value));
 }
 
+ivec2 motionTexel(sampler2D motionTex, vec2 pixel, vec2 valid) {
+  ivec2 size = textureSize(motionTex, 0);
+  return min(ivec2((pixel + 0.5) / valid * vec2(size)), size - 1);
+}
+
 // Where `pixel` was in the previous frame, in uv: the motion texture is already in uv units of the render target.
 vec2 historyUv(sampler2D motionTex, vec2 pixel, vec2 valid) {
   vec2 uv = (pixel + 0.5) / valid;
-  ivec2 size = textureSize(motionTex, 0);
-  ivec2 p = min(ivec2(uv * vec2(size)), size - 1);
-  return texelFetch(motionTex, p, 0).xy + uv;
+  return texelFetch(motionTex, motionTexel(motionTex, pixel, valid), 0).xy + uv;
+}
+
+// Whether the previous frame has a history for `pixel`: false where its previous position was off screen
+// (velocity_unpack.comp). Without one, the history sample below is another surface's colour and must not be used.
+bool hasHistory(sampler2D motionTex, vec2 pixel, vec2 valid) {
+  return texelFetch(motionTex, motionTexel(motionTex, pixel, valid), 0).z > 0.5;
 }
 
 // Five-tap Catmull-Rom reconstruction of the history there (the four axis taps plus the centre, with the
