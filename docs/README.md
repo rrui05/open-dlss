@@ -31,7 +31,7 @@ six pooling levels, everything in FP8 (E4M3) activations with FP16 accumulation,
 It takes one rendered frame (a low dynamic range *proxy* of it, three lanes of Gaussian noise, the previous
 frame's output reprojected, and five conditioning scalars) and produces four f32 channels per pixel: an RGB
 residual and one temporal-blend logit. The displayed image is `clamp(proxy + rgb / 4, 0, 1)` blended with the
-reprojected history by `sigmoid(logit)`. It is a denoiser / detail reconstructor, not an upscaler: input and
+reprojected history by `sigmoid(logit)`. It is a generative neural renderer, not an upscaler: input and
 output are the same resolution.
 
 ```

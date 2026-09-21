@@ -24,8 +24,9 @@ Only the valid rectangle carries image data. Outside it the sampling coordinate 
 (`2 * valid - x - 2`, no edge repeat) while the noise hash still uses the padded coordinate, so the padding is a
 reflected copy of the image with its own noise.
 
-The network is resolution-preserving. It is a denoiser and detail reconstructor conditioned on a noisy,
-tone-mapped proxy; the upsampling in the graph is internal (the decoder), not a change of output resolution.
+The network is resolution-preserving. It re-renders a tone-mapped proxy of the frame, generating detail from the
+three injected Gaussian lanes under the tone, structure, skin and style conditioning; it is given noise and does
+not remove any. The upsampling in the graph is internal (the decoder), not a change of output resolution.
 
 ## Geometry: levels and the padded field
 

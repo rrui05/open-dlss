@@ -96,8 +96,8 @@ neither is sufficient alone:
 
 `tools/check.mjs` runs both, which is the only way either is worth quoting.
 
-**`/demo/index.html`**: the demo. The viewer renders the scene with WebGL and the port denoises it with
-WebGPU, so each frame crosses between the two APIs: the colour target and the velocity buffer are read back
+**`/demo/index.html`**: the demo. The viewer renders the scene with WebGL and the port runs the network on it
+with WebGPU, so each frame crosses between the two APIs: the colour target and the velocity buffer are read back
 into typed arrays, uploaded, run through the graph, and the composition kernel writes both the displayed image
 and the next frame's history. A 1904×929 frame costs about 15 ms of readback and 465 ms of network.
 

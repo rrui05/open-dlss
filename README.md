@@ -13,8 +13,10 @@ tensor cores and no FP8.
 ## The network
 
 A U-net of shifted-window transformer blocks with a global ViT at the bottom: 71 blocks over six pooling
-levels, FP8 (E4M3) activations with FP16 accumulation, 141 MiB of weights. It is a denoiser and detail
-reconstructor, not an upscaler, so input and output are the same resolution.
+levels, FP8 (E4M3) activations with FP16 accumulation, 141 MiB of weights. It is a generative neural rendering
+network (NVIDIA's term): it re-renders the frame the engine already drew, generating detail from injected noise
+and adjusting tone, structure and skin under a style setting. Input and output are the same resolution; it is not
+an upscaler.
 
 ![The same frame with neural rendering off (left) and on (right)](docs/images/cowboy-gramps-nr-on.jpg)
 
