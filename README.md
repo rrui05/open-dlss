@@ -16,27 +16,18 @@ A U-net of shifted-window transformer blocks with a global ViT at the bottom: 71
 levels, FP8 (E4M3) activations with FP16 accumulation, 141 MiB of weights. It is a denoiser and detail
 reconstructor, not an upscaler, so input and output are the same resolution.
 
-```
- proxy + noise + history (16 f32)                                              RGBA f32
-              |                                                                    ^
-        [block 0, 32ch, full res] ------------------------ skip ----------> [block 70, 32ch] -> head
-              | 2x2 pool                                                            ^ 2x upsample
-        [blocks 1-4, 32ch, L0] --------------- skip ---------------> [blocks 66-69, 32ch, L0]
-              | pool + 32->64                                                       ^ 64->32 + upsample
-        [blocks 5-8, 64ch, L1] --------------- skip ---------------> [blocks 62-65, 64ch, L1]
-              | pool + 64->128                                                      ^
-        [blocks 9-14, 128ch, L2] -------------- skip --------------> [blocks 56-61, 128ch, L2]
-              | pool + 128->256                                                     ^
-        [blocks 15-22, 256ch, L3] ------------- skip --------------> [blocks 48-55, 256ch, L3]
-              | pool + 256->512                                                     ^
-        [blocks 23-30, 512ch, L4] ------------- skip --------------> [blocks 39-47, 512ch, L4]
-              | pool + 512->1024                                                    ^ 1024->512 + upsample
-        [blocks 31-38, 1024ch, L5: global attention over all tokens]  ---------------
-```
+![The same frame with neural rendering off (left) and on (right)](docs/images/cowboy-gramps-nr-on.jpg)
+
+*The WebGPU port at 2048x1152, NR off on the left and on on the right. Scene:
+[Cowboy Gramps](https://www.blendkit.com/asset-gallery-detail/96dce188-9c9c-4699-a45a-48663fbbbcb7/) by
+Muhammed Ismayil, CC0.*
 
 It takes one rendered frame (a low dynamic range proxy of it, three lanes of Gaussian noise, the previous
 frame's output reprojected, and five conditioning scalars) and produces four f32 channels per pixel: an RGB
-residual and one temporal-blend logit. [docs/network.md](docs/network.md) is the graph in full.
+residual and one temporal-blend logit. [docs/network.md](docs/network.md) is the graph in full. NVIDIA
+describes the model in its report,
+[DLSS 5: Generative Neural Rendering](https://research.nvidia.com/labs/adlr/DLSS5/files/DLSS5_Report.pdf)
+([project page](https://research.nvidia.com/labs/adlr/DLSS5/)).
 
 ## Build and run
 
