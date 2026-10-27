@@ -1,0 +1,23 @@
+{
+  "game": "Grand Theft Auto: San Andreas",
+  "character": "Carl Johnson (CJ)",
+  "source_page": "https://www.eurogamer.pl/cj-z-san-andreas-nigdy-nie-bede-juz-wspolpracowal-z-rockstar-aktor-nie-pojawi-sie-w-gta-6",
+  "source_image": "https://assetsio.gnwcdn.com/cj-z-san-andreas-nigdy-nie-bede-juz-wspolpracowal-z-rockstar-aktor-nie-pojawi-sie-w-gta-6-1578037339323.jpg",
+  "dimensions": [
+    887,
+    498
+  ],
+  "source_sha256": "2608ef5ff0537294a1285ae30187105b5dbba38cf8318c2866a265f18f452ab0",
+  "input_sha256": "386a3823697378a8dc9ed2147eea78cba0f80ea78d5ae7aea374b248f18ea968",
+  "decoded_rgb_sha256": "b97431c3d345d8f185f9388d571a596e395df8d0c78592cbee607c75efac0f5e",
+  "transforms": [
+    "Decode source JPEG to RGB; save lossless PNG at original resolution"
+  ],
+  "synthetic_degradation": false,
+  "face_crop_xyxy": [
+    360,
+    12,
+    590,
+    292
+  ]
+}

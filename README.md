@@ -10,6 +10,12 @@ tensor cores and no FP8.
 
 **You supply the weights**, as a model directory in the layout described below.
 
+## Reproduction results
+
+[GTA: San Andreas / CJ — single-image reproduction](reproductions/gta-cj-2026-10-27/README.md)
+contains the original input, actual model output, full-frame and face comparisons, recorded settings, and
+the runnable image harness. The run uses this repository's WebGPU port and the original 71-block network.
+
 ## The network
 
 A U-net of shifted-window transformer blocks with a global ViT at the bottom: 71 blocks over six pooling

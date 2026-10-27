@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "prefix": "probe",
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "blackwell",
+    "device": "",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32,
+    "isFallbackAdapter": false
+  },
+  "limits": {
+    "maxBufferSize": 2147483648,
+    "maxStorageBufferBindingSize": 2147483644,
+    "maxComputeWorkgroupStorageSize": 32768,
+    "maxComputeInvocationsPerWorkgroup": 1024,
+    "maxStorageBuffersPerShaderStage": 16
+  },
+  "features": [
+    "depth32float-stencil8",
+    "rg11b10ufloat-renderable",
+    "texture-formats-tier1",
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "texture-compression-bc",
+    "dual-source-blending",
+    "core-features-and-limits",
+    "chromium-experimental-sampling-resource-table",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "float32-filterable",
+    "indirect-first-instance",
+    "float32-blendable",
+    "atomic-vec2u-min-max",
+    "subgroup-size-control",
+    "texture-compression-unaligned",
+    "depth-clip-control",
+    "texture-compression-bc-sliced-3d",
+    "shader-f16",
+    "texture-formats-tier2",
+    "timestamp-query",
+    "clip-distances",
+    "primitive-index",
+    "texture-component-swizzle",
+    "subgroups"
+  ],
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0"
+}

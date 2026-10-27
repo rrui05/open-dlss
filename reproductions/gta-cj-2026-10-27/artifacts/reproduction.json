@@ -1,0 +1,73 @@
+{
+  "status": "completed",
+  "repository": "https://github.com/aloshdenny/open-dlss",
+  "commit": "b9d4f7e8dc04a946a60207db73330177a586f1f1",
+  "upstream_worktree_clean": true,
+  "model_runtime_version": "310.8.0.0",
+  "network_blocks": 71,
+  "backend": "original repository ports/browser-webgpu (unmodified Network, WGSL, and composeImage)",
+  "host_gpu": "NVIDIA GeForce RTX 5070 12 GB",
+  "input_provenance": "input_provenance.json",
+  "inference_record": "inference.json",
+  "output_checks": "output_checks.json",
+  "same_input_repeated_head_bitwise_equal": true,
+  "repeated_head_float32_elements": 1835008,
+  "native_nvidia_output_parity_verified": false,
+  "native_parity_limitation": "No matching NVIDIA native output or original author captures for this GTA image were available.",
+  "scope": "One still frame. No video/temporal-quality validation.",
+  "display_comparison": "same crop from original input and model output, nearest-neighbor display enlargement only",
+  "files": {
+    "input.png": {
+      "sha256": "386a3823697378a8dc9ed2147eea78cba0f80ea78d5ae7aea374b248f18ea968",
+      "bytes": 208916
+    },
+    "output.png": {
+      "sha256": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42",
+      "bytes": 577381
+    },
+    "comparison_full.png": {
+      "sha256": "eb5f7c981bec00d687d13ec47dcc546346d2501282fdfa9ff784f34b6f31940f",
+      "bytes": 588969
+    },
+    "comparison_face.png": {
+      "sha256": "7e96e8e4420212ae43ae9a0d2b4b2db1eb4e45998e7e15b4ec395de868466406",
+      "bytes": 225930
+    }
+  },
+  "launcher_verification": {
+    "status": "passed",
+    "command": "node harness/run.mjs --image /artifacts/input.png --prefix launchercheck --repeat 2",
+    "expected_image_sha256": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42",
+    "image_hashes": {
+      "single-enhanced.png": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42",
+      "launchercheck-enhanced.png": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42",
+      "output.png": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42"
+    },
+    "all_images_equal_expected": true,
+    "launcher_exit_code": 0,
+    "launcher_status": "completed",
+    "determinism": {
+      "repeatedSameFeatures": 2,
+      "comparisons": [
+        {
+          "againstRun": 1,
+          "run": 2,
+          "float32Elements": 1835008,
+          "bitwiseMismatches": 0
+        }
+      ],
+      "verified": true
+    },
+    "server_process_closed": true,
+    "browser_closed_by_launcher": true,
+    "ports": {
+      "8100": {
+        "closed": true
+      },
+      "9224": {
+        "closed": true
+      }
+    },
+    "gpu_errors": []
+  }
+}

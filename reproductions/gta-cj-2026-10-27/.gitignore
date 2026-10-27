@@ -1,0 +1,12 @@
+# Keep proprietary runtime/model bytes and local environments out of the repository.
+runtime/
+models/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+*.f32
+# Local browser execution evidence can contain machine paths and process identifiers.
+artifacts/*-launch.json
+artifacts/*-server-state.json
+artifacts/*.log

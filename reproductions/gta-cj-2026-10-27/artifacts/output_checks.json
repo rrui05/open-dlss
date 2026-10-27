@@ -1,0 +1,28 @@
+{
+  "browser_input_pixels_identical": true,
+  "dimensions_match": true,
+  "input_dimensions": [
+    887,
+    498
+  ],
+  "output_dimensions": [
+    887,
+    498
+  ],
+  "output_nonblank": true,
+  "output_differs_from_input": true,
+  "changed_pixel_fraction": 0.9999162376676944,
+  "mean_absolute_rgb_change_0_255": 7.511884441184505,
+  "max_absolute_rgb_change_0_255": 78,
+  "ground_truth_available": false,
+  "metric_note": "Changes relative to input only; these are not reconstruction-quality scores.",
+  "face_crop_xyxy": [
+    360,
+    12,
+    590,
+    292
+  ],
+  "display_crop_enlargement": "nearest-neighbor 3x, both sides",
+  "output_sha256": "29fdfdf1c6ad693d9e8b7df1aaddf2ae13483f61053a675a6307063889174e42",
+  "input_sha256": "386a3823697378a8dc9ed2147eea78cba0f80ea78d5ae7aea374b248f18ea968"
+}
