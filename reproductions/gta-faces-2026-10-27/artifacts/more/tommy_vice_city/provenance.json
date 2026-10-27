@@ -1,0 +1,40 @@
+{
+  "id": "tommy_vice_city",
+  "title": "Tommy / Vice City",
+  "game": "Grand Theft Auto: Vice City (original)",
+  "character": "Tommy Vercetti",
+  "source_page": "https://www.gtaboom.com/tommy-vercetti-ec14",
+  "source_image": "https://media.gtaboom.com/media/images/2f/45/Tommy_Vercetti_in_a_cutscene_1.jpg",
+  "source_sha256": "fd1786ea6f3420acaa39e824228fb7b599b0df9fddc1d67e14928bec24df1b8d",
+  "input_crop_xyxy": [
+    118,
+    48,
+    1142,
+    880
+  ],
+  "face_crop_xyxy": [
+    396,
+    112,
+    680,
+    562
+  ],
+  "source_verification": "Source gallery explicitly labels this image as Tommy Vercetti during a cutscene in the original GTA: Vice City, separately from its Definitive Edition image. Visually inspected: low-polygon game-engine model, crossed arms and teal shirt. Not a photograph or illustration.",
+  "source_limitations": "Exact capture platform, graphics settings and original screenshot author were not supplied.",
+  "source_dimensions": [
+    1260,
+    945
+  ],
+  "input_dimensions": [
+    1024,
+    832
+  ],
+  "input_sha256": "62226f57bc02ab055380e4b0f748235d440e58a0736541a7422c9da8b82bd938",
+  "decoded_input_rgb_sha256": "92a39dd57b55423fb0b0d915409bba7f25fa57ea1cca52d9333b3c7c39134147",
+  "transforms": [
+    "Decode original JPEG to RGB",
+    "Crop at original pixel scale: [118, 48, 1142, 880]",
+    "Save lossless PNG; no rescaling or synthetic degradation"
+  ],
+  "synthetic_degradation": false,
+  "rescaled_before_inference": false
+}

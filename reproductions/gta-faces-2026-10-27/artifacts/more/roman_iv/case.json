@@ -1,0 +1,50 @@
+{
+  "id": "roman_iv",
+  "title": "Roman / GTA IV",
+  "face_crop_xyxy": [
+    390,
+    0,
+    700,
+    390
+  ],
+  "provenance": {
+    "id": "roman_iv",
+    "title": "Roman / GTA IV",
+    "game": "Grand Theft Auto IV",
+    "character": "Roman Bellic",
+    "source_page": "https://vandal.elespanol.com/noticia/1350791728/gta-4-merece-un-remaster-segun-el-actor-de-roman-bellic-es-la-mejor-historia-de-gta/",
+    "source_image": "https://media.vandal.net/i/1200x675/7-2026/15/20267151816366_1.jpg",
+    "source_sha256": "3fed426d285a909c414ac8f6db2e2d55951e4a3d7e245d81e41e0c07ae42e8a2",
+    "input_crop_xyxy": [
+      100,
+      0,
+      1124,
+      675
+    ],
+    "face_crop_xyxy": [
+      390,
+      0,
+      700,
+      390
+    ],
+    "source_verification": "Source news article identifies Roman Bellic/GTA IV and contains this image. Visually inspected: game-engine cutscene, patterned shirt, hands raised, room interior; no AI-image or HD-mod claim appears in the source.",
+    "source_limitations": "Exact capture build/platform is unconfirmed. Source page does not explicitly attest an unmodified build.",
+    "source_dimensions": [
+      1200,
+      675
+    ],
+    "input_dimensions": [
+      1024,
+      675
+    ],
+    "input_sha256": "e19e1fae96b6053b897360d37df8441db9308fe9f58ed7caa9f1abfbb0be4998",
+    "decoded_input_rgb_sha256": "6719b7e0cd5f0fea7b4c55f264190a1cea87d2aad22cfd49f45307b4b0d930ab",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Crop at original pixel scale: [100, 0, 1124, 675]",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}

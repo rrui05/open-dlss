@@ -1,0 +1,171 @@
+[
+  {
+    "id": "tommy_vice_city",
+    "title": "Tommy / Vice City",
+    "game": "Grand Theft Auto: Vice City (original)",
+    "character": "Tommy Vercetti",
+    "source_page": "https://www.gtaboom.com/tommy-vercetti-ec14",
+    "source_image": "https://media.gtaboom.com/media/images/2f/45/Tommy_Vercetti_in_a_cutscene_1.jpg",
+    "source_sha256": "fd1786ea6f3420acaa39e824228fb7b599b0df9fddc1d67e14928bec24df1b8d",
+    "input_crop_xyxy": [
+      118,
+      48,
+      1142,
+      880
+    ],
+    "face_crop_xyxy": [
+      396,
+      112,
+      680,
+      562
+    ],
+    "source_verification": "Source gallery explicitly labels this image as Tommy Vercetti during a cutscene in the original GTA: Vice City, separately from its Definitive Edition image. Visually inspected: low-polygon game-engine model, crossed arms and teal shirt. Not a photograph or illustration.",
+    "source_limitations": "Exact capture platform, graphics settings and original screenshot author were not supplied."
+  },
+  {
+    "id": "niko_iv",
+    "title": "Niko / GTA IV",
+    "game": "Grand Theft Auto IV",
+    "character": "Niko Bellic",
+    "source_page": "https://www.grandtheftwiki.com/File:NikoBellic-GTAIV.jpg",
+    "source_image": "https://gtwfilesie.grandtheftwiki.com/NikoBellic-GTAIV.jpg",
+    "source_sha256": "18f645da253c1625337e86d79e29ce93f6bdb3933dd70c49ee4f154f828cacc8",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      130,
+      25,
+      375,
+      385
+    ],
+    "source_verification": "Source file page explicitly labels it an in-game screenshot of Niko Bellic in Grand Theft Auto IV. File history dates the image to 2010. Visually inspected: game-engine face, brown jacket, room background; not a photograph or AI-generated illustration.",
+    "source_limitations": "Capture platform and graphics settings were not supplied by the source."
+  },
+  {
+    "id": "roman_iv",
+    "title": "Roman / GTA IV",
+    "game": "Grand Theft Auto IV",
+    "character": "Roman Bellic",
+    "source_page": "https://vandal.elespanol.com/noticia/1350791728/gta-4-merece-un-remaster-segun-el-actor-de-roman-bellic-es-la-mejor-historia-de-gta/",
+    "source_image": "https://media.vandal.net/i/1200x675/7-2026/15/20267151816366_1.jpg",
+    "source_sha256": "3fed426d285a909c414ac8f6db2e2d55951e4a3d7e245d81e41e0c07ae42e8a2",
+    "input_crop_xyxy": [
+      100,
+      0,
+      1124,
+      675
+    ],
+    "face_crop_xyxy": [
+      390,
+      0,
+      700,
+      390
+    ],
+    "source_verification": "Source news article identifies Roman Bellic/GTA IV and contains this image. Visually inspected: game-engine cutscene, patterned shirt, hands raised, room interior; no AI-image or HD-mod claim appears in the source.",
+    "source_limitations": "Exact capture build/platform is unconfirmed. Source page does not explicitly attest an unmodified build."
+  },
+  {
+    "id": "trevor_outdoor",
+    "title": "Trevor / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Trevor Philips",
+    "source_page": "https://www.svg.com/326204/this-gta-online-ad-is-causing-a-frenzy/",
+    "source_image": "https://www.svg.com/img/gallery/this-gta-online-ad-is-causing-a-frenzy/intro-1612556521.jpg",
+    "source_sha256": "9a48ea8541d138cf9df6325e9dce3f46e16253fdfbc9697f7be4d4372c588883",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      150,
+      0,
+      500,
+      438
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history."
+  },
+  {
+    "id": "michael_daylight",
+    "title": "Michael / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Michael De Santa",
+    "source_page": "https://www.svg.com/389710/the-most-bizarre-ways-you-can-play-gta-5/",
+    "source_image": "https://www.svg.com/img/gallery/the-most-bizarre-ways-people-have-beaten-gta-5/l-intro-1619097964.jpg",
+    "source_sha256": "5b3629c7f508516b62e6add14b9ed536eb838c9d02a4cffea4fc3c58a49e33ad",
+    "input_crop_xyxy": [
+      200,
+      0,
+      1224,
+      900
+    ],
+    "face_crop_xyxy": [
+      140,
+      40,
+      850,
+      900
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history."
+  },
+  {
+    "id": "franklin_daylight",
+    "title": "Franklin / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Franklin Clinton",
+    "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+    "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Franklin500.jpg",
+    "source_sha256": "f63c3d1f95bd61e91943d3adb25381d79be6b12a8ca96df7cf46b8e96280ccca",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      95,
+      35,
+      395,
+      450
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history."
+  },
+  {
+    "id": "amanda_sunset",
+    "title": "Amanda / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Amanda De Santa",
+    "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+    "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Amanda500.jpg",
+    "source_sha256": "91df2cd13049075453f4349c0e226293070c9c06312a2db914a65d20cc8383a6",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      95,
+      0,
+      415,
+      420
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history."
+  }
+]

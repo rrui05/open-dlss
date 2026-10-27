@@ -1,0 +1,128 @@
+{
+  "status": "completed",
+  "prefix": "more-tommy_vice_city",
+  "config": {
+    "image": "/artifacts/more/tommy_vice_city/input.png",
+    "seed": 0,
+    "autoMask": true,
+    "conditioning": {
+      "localTone": 1,
+      "localStructure": 1,
+      "skinStructure": -1,
+      "style": 0
+    },
+    "intensity": 1,
+    "history": "single frame: history feature lanes equal current frame; no temporal blend",
+    "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+    "sourceDimensions": [
+      1024,
+      832
+    ],
+    "inferenceDimensions": [
+      1024,
+      832
+    ],
+    "resized": false
+  },
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "blackwell",
+    "device": "",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32,
+    "isFallbackAdapter": false
+  },
+  "adapterFeatures": [
+    "core-features-and-limits",
+    "timestamp-query",
+    "shader-f16"
+  ],
+  "geometry": {
+    "validWidth": 1024,
+    "validHeight": 832,
+    "fullWidth": 1024,
+    "fullHeight": 832,
+    "levels": [
+      {
+        "width": 512,
+        "height": 416,
+        "rows": 212992
+      },
+      {
+        "width": 256,
+        "height": 208,
+        "rows": 53248
+      },
+      {
+        "width": 128,
+        "height": 104,
+        "rows": 13312
+      },
+      {
+        "width": 64,
+        "height": 52,
+        "rows": 3328
+      },
+      {
+        "width": 32,
+        "height": 28,
+        "rows": 896
+      },
+      {
+        "width": 16,
+        "height": 16,
+        "rows": 256
+      }
+    ],
+    "fullRows": 851968,
+    "vitTokens": 256,
+    "paddedVitTokens": 256
+  },
+  "weightsUploadedBytes": 151442856,
+  "learnedBlockCount": 71,
+  "graphDispatches": 451,
+  "activationBytes": 1648558080,
+  "timings": {
+    "createMilliseconds": 16799.39999999851,
+    "preprocessMilliseconds": 28.799999997019768,
+    "networkMilliseconds": [
+      239.39999999850988,
+      176.39999999850988
+    ],
+    "readbackMilliseconds": 0
+  },
+  "elapsedMilliseconds": 17661.60000000149,
+  "gpuErrors": [],
+  "determinism": {
+    "repeatedSameFeatures": 2,
+    "comparisons": [
+      {
+        "againstRun": 1,
+        "run": 2,
+        "float32Elements": 3407872,
+        "bitwiseMismatches": 0
+      }
+    ],
+    "verified": true
+  },
+  "head": {
+    "shape": [
+      832,
+      1024,
+      4
+    ],
+    "dtype": "float32",
+    "min": -7.5,
+    "max": 0.41748046875,
+    "nonfinite": 0
+  },
+  "inputOutputDifference": {
+    "changedChannelFraction": 0.9827579596103766,
+    "meanAbsoluteByteDifference": 5.2227110251402245,
+    "rootMeanSquareByteDifference": 7.078150869158025,
+    "maximumByteDifference": 62,
+    "note": "difference from input only; not a quality metric against ground truth"
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0"
+}

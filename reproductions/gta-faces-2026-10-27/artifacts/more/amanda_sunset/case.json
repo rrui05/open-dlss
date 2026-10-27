@@ -1,0 +1,51 @@
+{
+  "id": "amanda_sunset",
+  "title": "Amanda / GTA V",
+  "face_crop_xyxy": [
+    95,
+    0,
+    415,
+    420
+  ],
+  "provenance": {
+    "id": "amanda_sunset",
+    "title": "Amanda / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Amanda De Santa",
+    "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+    "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Amanda500.jpg",
+    "source_sha256": "91df2cd13049075453f4349c0e226293070c9c06312a2db914a65d20cc8383a6",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      95,
+      0,
+      415,
+      420
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+    "source_dimensions": [
+      500,
+      500
+    ],
+    "input_dimensions": [
+      500,
+      500
+    ],
+    "input_sha256": "654e934be030948083148e4a0e0fafc168f6c3d50c4d5ce471f82eac821a3a2a",
+    "decoded_input_rgb_sha256": "aa3a0390039bc59357c37389fb3a39474e5bcc564221256d90f68d5769b68f63",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}

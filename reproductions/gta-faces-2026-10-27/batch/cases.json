@@ -1,0 +1,363 @@
+[
+  {
+    "id": "tommy_vice_city",
+    "title": "Tommy / Vice City",
+    "input_path": "artifacts/more/tommy_vice_city/input.png",
+    "face_crop_xyxy": [
+      396,
+      112,
+      680,
+      562
+    ],
+    "provenance": {
+      "id": "tommy_vice_city",
+      "title": "Tommy / Vice City",
+      "game": "Grand Theft Auto: Vice City (original)",
+      "character": "Tommy Vercetti",
+      "source_page": "https://www.gtaboom.com/tommy-vercetti-ec14",
+      "source_image": "https://media.gtaboom.com/media/images/2f/45/Tommy_Vercetti_in_a_cutscene_1.jpg",
+      "source_sha256": "fd1786ea6f3420acaa39e824228fb7b599b0df9fddc1d67e14928bec24df1b8d",
+      "input_crop_xyxy": [
+        118,
+        48,
+        1142,
+        880
+      ],
+      "face_crop_xyxy": [
+        396,
+        112,
+        680,
+        562
+      ],
+      "source_verification": "Source gallery explicitly labels this image as Tommy Vercetti during a cutscene in the original GTA: Vice City, separately from its Definitive Edition image. Visually inspected: low-polygon game-engine model, crossed arms and teal shirt. Not a photograph or illustration.",
+      "source_limitations": "Exact capture platform, graphics settings and original screenshot author were not supplied.",
+      "source_dimensions": [
+        1260,
+        945
+      ],
+      "input_dimensions": [
+        1024,
+        832
+      ],
+      "input_sha256": "62226f57bc02ab055380e4b0f748235d440e58a0736541a7422c9da8b82bd938",
+      "decoded_input_rgb_sha256": "92a39dd57b55423fb0b0d915409bba7f25fa57ea1cca52d9333b3c7c39134147",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Crop at original pixel scale: [118, 48, 1142, 880]",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "niko_iv",
+    "title": "Niko / GTA IV",
+    "input_path": "artifacts/more/niko_iv/input.png",
+    "face_crop_xyxy": [
+      130,
+      25,
+      375,
+      385
+    ],
+    "provenance": {
+      "id": "niko_iv",
+      "title": "Niko / GTA IV",
+      "game": "Grand Theft Auto IV",
+      "character": "Niko Bellic",
+      "source_page": "https://www.grandtheftwiki.com/File:NikoBellic-GTAIV.jpg",
+      "source_image": "https://gtwfilesie.grandtheftwiki.com/NikoBellic-GTAIV.jpg",
+      "source_sha256": "18f645da253c1625337e86d79e29ce93f6bdb3933dd70c49ee4f154f828cacc8",
+      "input_crop_xyxy": null,
+      "face_crop_xyxy": [
+        130,
+        25,
+        375,
+        385
+      ],
+      "source_verification": "Source file page explicitly labels it an in-game screenshot of Niko Bellic in Grand Theft Auto IV. File history dates the image to 2010. Visually inspected: game-engine face, brown jacket, room background; not a photograph or AI-generated illustration.",
+      "source_limitations": "Capture platform and graphics settings were not supplied by the source.",
+      "source_dimensions": [
+        502,
+        644
+      ],
+      "input_dimensions": [
+        502,
+        644
+      ],
+      "input_sha256": "d935b858bac96237f995caeef816ef49d943e6374314b0f073b7bc086444cd3f",
+      "decoded_input_rgb_sha256": "9728b06ed7fe604f78c388caeb73c27400aa0096203d71f69735b9c6c8ce9956",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "roman_iv",
+    "title": "Roman / GTA IV",
+    "input_path": "artifacts/more/roman_iv/input.png",
+    "face_crop_xyxy": [
+      390,
+      0,
+      700,
+      390
+    ],
+    "provenance": {
+      "id": "roman_iv",
+      "title": "Roman / GTA IV",
+      "game": "Grand Theft Auto IV",
+      "character": "Roman Bellic",
+      "source_page": "https://vandal.elespanol.com/noticia/1350791728/gta-4-merece-un-remaster-segun-el-actor-de-roman-bellic-es-la-mejor-historia-de-gta/",
+      "source_image": "https://media.vandal.net/i/1200x675/7-2026/15/20267151816366_1.jpg",
+      "source_sha256": "3fed426d285a909c414ac8f6db2e2d55951e4a3d7e245d81e41e0c07ae42e8a2",
+      "input_crop_xyxy": [
+        100,
+        0,
+        1124,
+        675
+      ],
+      "face_crop_xyxy": [
+        390,
+        0,
+        700,
+        390
+      ],
+      "source_verification": "Source news article identifies Roman Bellic/GTA IV and contains this image. Visually inspected: game-engine cutscene, patterned shirt, hands raised, room interior; no AI-image or HD-mod claim appears in the source.",
+      "source_limitations": "Exact capture build/platform is unconfirmed. Source page does not explicitly attest an unmodified build.",
+      "source_dimensions": [
+        1200,
+        675
+      ],
+      "input_dimensions": [
+        1024,
+        675
+      ],
+      "input_sha256": "e19e1fae96b6053b897360d37df8441db9308fe9f58ed7caa9f1abfbb0be4998",
+      "decoded_input_rgb_sha256": "6719b7e0cd5f0fea7b4c55f264190a1cea87d2aad22cfd49f45307b4b0d930ab",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Crop at original pixel scale: [100, 0, 1124, 675]",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "trevor_outdoor",
+    "title": "Trevor / GTA V",
+    "input_path": "artifacts/more/trevor_outdoor/input.png",
+    "face_crop_xyxy": [
+      150,
+      0,
+      500,
+      438
+    ],
+    "provenance": {
+      "id": "trevor_outdoor",
+      "title": "Trevor / GTA V",
+      "game": "Grand Theft Auto V",
+      "character": "Trevor Philips",
+      "source_page": "https://www.svg.com/326204/this-gta-online-ad-is-causing-a-frenzy/",
+      "source_image": "https://www.svg.com/img/gallery/this-gta-online-ad-is-causing-a-frenzy/intro-1612556521.jpg",
+      "source_sha256": "9a48ea8541d138cf9df6325e9dce3f46e16253fdfbc9697f7be4d4372c588883",
+      "input_crop_xyxy": null,
+      "face_crop_xyxy": [
+        150,
+        0,
+        500,
+        438
+      ],
+      "source_verification": {
+        "image_visually_inspected": true,
+        "source_page_checked": true,
+        "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+        "original_game_build": "unconfirmed",
+        "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+        "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+      },
+      "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+      "source_dimensions": [
+        780,
+        438
+      ],
+      "input_dimensions": [
+        780,
+        438
+      ],
+      "input_sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+      "decoded_input_rgb_sha256": "5855ec15551627ff8467bfd3c77c7b13f1b22977e186a08842c879428a26af72",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "michael_daylight",
+    "title": "Michael / GTA V",
+    "input_path": "artifacts/more/michael_daylight/input.png",
+    "face_crop_xyxy": [
+      140,
+      40,
+      850,
+      900
+    ],
+    "provenance": {
+      "id": "michael_daylight",
+      "title": "Michael / GTA V",
+      "game": "Grand Theft Auto V",
+      "character": "Michael De Santa",
+      "source_page": "https://www.svg.com/389710/the-most-bizarre-ways-you-can-play-gta-5/",
+      "source_image": "https://www.svg.com/img/gallery/the-most-bizarre-ways-people-have-beaten-gta-5/l-intro-1619097964.jpg",
+      "source_sha256": "5b3629c7f508516b62e6add14b9ed536eb838c9d02a4cffea4fc3c58a49e33ad",
+      "input_crop_xyxy": [
+        200,
+        0,
+        1224,
+        900
+      ],
+      "face_crop_xyxy": [
+        140,
+        40,
+        850,
+        900
+      ],
+      "source_verification": {
+        "image_visually_inspected": true,
+        "source_page_checked": true,
+        "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+        "original_game_build": "unconfirmed",
+        "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+        "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+      },
+      "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+      "source_dimensions": [
+        1600,
+        900
+      ],
+      "input_dimensions": [
+        1024,
+        900
+      ],
+      "input_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+      "decoded_input_rgb_sha256": "5d55556f9885bcaa51501672134eaa05a7b188f0c314c25bc45fc95d0c43e129",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Crop at original pixel scale: [200, 0, 1224, 900]",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "franklin_daylight",
+    "title": "Franklin / GTA V",
+    "input_path": "artifacts/more/franklin_daylight/input.png",
+    "face_crop_xyxy": [
+      95,
+      35,
+      395,
+      450
+    ],
+    "provenance": {
+      "id": "franklin_daylight",
+      "title": "Franklin / GTA V",
+      "game": "Grand Theft Auto V",
+      "character": "Franklin Clinton",
+      "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+      "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Franklin500.jpg",
+      "source_sha256": "f63c3d1f95bd61e91943d3adb25381d79be6b12a8ca96df7cf46b8e96280ccca",
+      "input_crop_xyxy": null,
+      "face_crop_xyxy": [
+        95,
+        35,
+        395,
+        450
+      ],
+      "source_verification": {
+        "image_visually_inspected": true,
+        "source_page_checked": true,
+        "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+        "original_game_build": "unconfirmed",
+        "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+        "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+      },
+      "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+      "source_dimensions": [
+        500,
+        500
+      ],
+      "input_dimensions": [
+        500,
+        500
+      ],
+      "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+      "decoded_input_rgb_sha256": "8682902355c19081e7f23f09a3d12bae792e3545982c21680e9b22f47a3fbf65",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  },
+  {
+    "id": "amanda_sunset",
+    "title": "Amanda / GTA V",
+    "input_path": "artifacts/more/amanda_sunset/input.png",
+    "face_crop_xyxy": [
+      95,
+      0,
+      415,
+      420
+    ],
+    "provenance": {
+      "id": "amanda_sunset",
+      "title": "Amanda / GTA V",
+      "game": "Grand Theft Auto V",
+      "character": "Amanda De Santa",
+      "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+      "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Amanda500.jpg",
+      "source_sha256": "91df2cd13049075453f4349c0e226293070c9c06312a2db914a65d20cc8383a6",
+      "input_crop_xyxy": null,
+      "face_crop_xyxy": [
+        95,
+        0,
+        415,
+        420
+      ],
+      "source_verification": {
+        "image_visually_inspected": true,
+        "source_page_checked": true,
+        "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+        "original_game_build": "unconfirmed",
+        "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+        "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+      },
+      "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+      "source_dimensions": [
+        500,
+        500
+      ],
+      "input_dimensions": [
+        500,
+        500
+      ],
+      "input_sha256": "654e934be030948083148e4a0e0fafc168f6c3d50c4d5ce471f82eac821a3a2a",
+      "decoded_input_rgb_sha256": "aa3a0390039bc59357c37389fb3a39474e5bcc564221256d90f68d5769b68f63",
+      "transforms": [
+        "Decode original JPEG to RGB",
+        "Save lossless PNG; no rescaling or synthetic degradation"
+      ],
+      "synthetic_degradation": false,
+      "rescaled_before_inference": false
+    }
+  }
+]

@@ -1,0 +1,124 @@
+{
+  "status": "verified",
+  "case_count": 7,
+  "all_fixed_cases_retained": true,
+  "model": "DLSS-NR 310.8.0.0 / original repository 71-block WebGPU network",
+  "original_output_bytes_preserved": true,
+  "total_repeated_head_float32_elements": 16908288,
+  "native_nvidia_output_parity_verified": false,
+  "scope": "Seven independent still frames; no native NVIDIA, motion, temporal or ground-truth quality claim.",
+  "cases": [
+    {
+      "id": "tommy_vice_city",
+      "dimensions": [
+        1024,
+        832
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 3407872,
+      "bitwise_mismatches": 0,
+      "input_sha256": "62226f57bc02ab055380e4b0f748235d440e58a0736541a7422c9da8b82bd938",
+      "output_sha256": "42e77e6714afcbf80e69a531f11b9a0a248e9fd1f90a742d3cb3d40ccf0c5a53",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "niko_iv",
+      "dimensions": [
+        502,
+        644
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 1572864,
+      "bitwise_mismatches": 0,
+      "input_sha256": "d935b858bac96237f995caeef816ef49d943e6374314b0f073b7bc086444cd3f",
+      "output_sha256": "b949151c79142102ca175403531f75d30e2457ddba6540b7a70a6ebe9a39d8c6",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "roman_iv",
+      "dimensions": [
+        1024,
+        675
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 3145728,
+      "bitwise_mismatches": 0,
+      "input_sha256": "e19e1fae96b6053b897360d37df8441db9308fe9f58ed7caa9f1abfbb0be4998",
+      "output_sha256": "f324be1002820e416dcb2537ba6193352d0b87d7ec6addfc17b027c3a550d9b3",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "trevor_outdoor",
+      "dimensions": [
+        780,
+        438
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 1703936,
+      "bitwise_mismatches": 0,
+      "input_sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+      "output_sha256": "39de20a96f8beb0b40e67456021d97fd1e7874de5dfacc55088439ea9f91352d",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "michael_daylight",
+      "dimensions": [
+        1024,
+        900
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 4456448,
+      "bitwise_mismatches": 0,
+      "input_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+      "output_sha256": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "franklin_daylight",
+      "dimensions": [
+        500,
+        500
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 1310720,
+      "bitwise_mismatches": 0,
+      "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+      "output_sha256": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    },
+    {
+      "id": "amanda_sunset",
+      "dimensions": [
+        500,
+        500
+      ],
+      "gpu_errors": 0,
+      "head_nonfinite": 0,
+      "repeated_head_float32_elements": 1310720,
+      "bitwise_mismatches": 0,
+      "input_sha256": "654e934be030948083148e4a0e0fafc168f6c3d50c4d5ce471f82eac821a3a2a",
+      "output_sha256": "28e20398ffc3be52be1691a886c23e12e96df9003115cf6cd7ee810d5860530e",
+      "original_output_bytes_preserved": true,
+      "browser_input_pixels_identical": true,
+      "native_nvidia_output_parity_verified": false
+    }
+  ]
+}

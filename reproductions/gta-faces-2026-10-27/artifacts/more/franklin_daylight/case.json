@@ -1,0 +1,51 @@
+{
+  "id": "franklin_daylight",
+  "title": "Franklin / GTA V",
+  "face_crop_xyxy": [
+    95,
+    35,
+    395,
+    450
+  ],
+  "provenance": {
+    "id": "franklin_daylight",
+    "title": "Franklin / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Franklin Clinton",
+    "source_page": "https://www.voquent.com/blog/gta-5-voice-actors/",
+    "source_image": "https://www.voquent.com/blog/wp-content/uploads/2023/01/Franklin500.jpg",
+    "source_sha256": "f63c3d1f95bd61e91943d3adb25381d79be6b12a8ca96df7cf46b8e96280ccca",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      95,
+      35,
+      395,
+      450
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+    "source_dimensions": [
+      500,
+      500
+    ],
+    "input_dimensions": [
+      500,
+      500
+    ],
+    "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+    "decoded_input_rgb_sha256": "8682902355c19081e7f23f09a3d12bae792e3545982c21680e9b22f47a3fbf65",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}

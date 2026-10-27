@@ -1,0 +1,12 @@
+runtime/
+models/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+*.f32
+batch/_work/
+artifacts/*-launch.json
+artifacts/*-server-state.json
+artifacts/**/*.log
+*.log

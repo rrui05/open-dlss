@@ -1,0 +1,162 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>OpenDLSS-NR single image reproduction</title>
+<style>body{background:#151719;color:#e3e6e8;font:15px monospace;margin:20px}canvas{max-width:48vw;height:auto}pre{white-space:pre-wrap}figure{display:inline-block;margin:0 12px 10px 0}figcaption{margin:8px 0}</style>
+<h1>OpenDLSS-NR: single frame</h1>
+<pre id="status">Loading original repository modules...</pre>
+<figure><figcaption>Input</figcaption><canvas id="input"></canvas></figure>
+<figure><figcaption>Model output</figcaption><canvas id="output"></canvas></figure>
+<script type="module">
+import { Network } from '/open-dlss/ports/browser-webgpu/src/network.js';
+import { composeImage } from '/open-dlss/ports/browser-webgpu/src/parity.js';
+
+const query = new URLSearchParams(location.search);
+const prefix = query.get('prefix') ?? 'single';
+const statusElement = document.querySelector('#status');
+const pageStarted = performance.now();
+const errors = [];
+const timings = {};
+let stage = 'initialization';
+let network;
+let config;
+const post = async (path, data) => {
+  const response = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+  if (!response.ok) throw new Error(`${path}: ${response.status} ${await response.text()}`);
+};
+function progress(message) {
+  stage = message;
+  statusElement.textContent = message;
+  console.log(message);
+  post('/progress', { status: 'running', message, prefix }).catch(console.error);
+}
+function serializeInfo(info) {
+  return Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'subgroupMinSize', 'subgroupMaxSize', 'isFallbackAdapter']
+    .map(key => [key, info?.[key] ?? null]));
+}
+function base64(bytes) {
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 32768) binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+  return btoa(binary);
+}
+function canvasPng(canvas) { return canvas.toDataURL('image/png').split(',')[1]; }
+const fail = async error => {
+  errors.push(String(error.stack ?? error));
+  statusElement.textContent = `ERROR at ${stage}\n${errors.at(-1)}`;
+  console.error(error);
+  await post('/result', { status: 'failed', prefix, stage, errors, config,
+    timings, elapsedMilliseconds: performance.now() - pageStarted, userAgent: navigator.userAgent });
+};
+window.addEventListener('unhandledrejection', event => { event.preventDefault(); fail(event.reason).catch(console.error); });
+window.addEventListener('error', event => { if (event.error) fail(event.error).catch(console.error); });
+
+try {
+  config = {
+    image: query.get('image') ?? '/artifacts/input.png',
+    seed: Number(query.get('seed') ?? 0),
+    autoMask: query.get('autoMask') !== '0',
+    conditioning: { localTone: Number(query.get('tone') ?? 1), localStructure: Number(query.get('structure') ?? 1),
+      skinStructure: Number(query.get('skin') ?? -1), style: 0 },
+    intensity: 1,
+    history: 'single frame: history feature lanes equal current frame; no temporal blend',
+    outputComposition: 'original src/parity.js composeImage; no display transform, sharpening, or post-enhancement',
+  };
+  progress('decoding input image');
+  const source = new Image();
+  source.src = config.image;
+  await source.decode();
+  const width = Number(query.get('width') ?? source.naturalWidth);
+  const height = Number(query.get('height') ?? source.naturalHeight);
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 33 || height < 33) throw new Error('input dimensions must be integer and at least 33x33');
+  config.sourceDimensions = [source.naturalWidth, source.naturalHeight];
+  config.inferenceDimensions = [width, height];
+  config.resized = width !== source.naturalWidth || height !== source.naturalHeight;
+  const input = document.querySelector('#input');
+  input.width = width; input.height = height;
+  const inputContext = input.getContext('2d', { willReadFrequently: true });
+  inputContext.drawImage(source, 0, 0, width, height);
+  const rgba = inputContext.getImageData(0, 0, width, height);
+  const proxy = Float32Array.from(rgba.data, value => value / 255);
+  const manifest = { proxy: { width, height }, seed: config.seed, autoMask: config.autoMask, conditioning: config.conditioning };
+  const creating = performance.now();
+  network = await Network.create({ weights: '/weights', width, height, onProgress: progress });
+  timings.createMilliseconds = performance.now() - creating;
+  const gpuErrors = [];
+  network.device.addEventListener('uncapturederror', event => gpuErrors.push(`${event.error.constructor.name}: ${event.error.message}`));
+  progress('creating network input features from the actual image');
+  const preparing = performance.now();
+  await network.featuresFromProxy(proxy, manifest);
+  timings.preprocessMilliseconds = performance.now() - preparing;
+  const inference = [];
+  const repeat = Math.max(1, Math.min(5, Number(query.get('repeat') ?? 1)));
+  let firstHead = null;
+  let lastHead = null;
+  const deterministicComparisons = [];
+  for (let index = 0; index < repeat; index++) {
+    progress(`running original 71-block network (${index + 1}/${repeat})`);
+    const started = performance.now();
+    await network.run();
+    inference.push(performance.now() - started);
+    if (repeat > 1) {
+      const copy = await network.readHead();
+      if (!firstHead) firstHead = copy;
+      else {
+        const expected = new Uint32Array(firstHead.buffer, firstHead.byteOffset, firstHead.length);
+        const actual = new Uint32Array(copy.buffer, copy.byteOffset, copy.length);
+        let mismatches = 0;
+        for (let value = 0; value < actual.length; value++) mismatches += Number(actual[value] !== expected[value]);
+        deterministicComparisons.push({ againstRun: 1, run: index + 1, float32Elements: actual.length, bitwiseMismatches: mismatches });
+        if (mismatches) throw new Error(`repeated same-input inference differs at ${mismatches} float32 head elements`);
+      }
+      lastHead = copy;
+    }
+  }
+  timings.networkMilliseconds = inference;
+  progress('reading model output');
+  const reading = performance.now();
+  const head = lastHead ?? await network.readHead();
+  timings.readbackMilliseconds = performance.now() - reading;
+  let nonfinite = 0;
+  let headMin = Infinity;
+  let headMax = -Infinity;
+  for (const value of head) { if (!Number.isFinite(value)) nonfinite++; else { headMin = Math.min(headMin, value); headMax = Math.max(headMax, value); } }
+  if (nonfinite) throw new Error(`model head has ${nonfinite} nonfinite values`);
+  if (gpuErrors.length) throw new Error(`WebGPU errors: ${gpuErrors.join('\n')}`);
+  const composed = composeImage(head, { proxy }, network.geometry);
+  const output = document.querySelector('#output');
+  output.width = width; output.height = height;
+  output.getContext('2d').putImageData(composed, 0, 0);
+  let changed = 0, squared = 0, absolute = 0, maxDelta = 0;
+  for (let index = 0; index < rgba.data.length; index++) {
+    if (index % 4 === 3) continue;
+    const delta = Math.abs(composed.data[index] - rgba.data[index]);
+    changed += Number(delta !== 0); squared += delta * delta; absolute += delta; maxDelta = Math.max(maxDelta, delta);
+  }
+  const channels = width * height * 3;
+  const result = {
+    status: 'completed', prefix, config, adapter: serializeInfo(network.adapterInfo),
+    adapterFeatures: [...network.device.features], geometry: network.geometry,
+    weightsUploadedBytes: network.model.bytesUploaded, learnedBlockCount: network.model.blockCount,
+    graphDispatches: network.recorder.dispatchCount, activationBytes: network.tensors.total,
+    timings, elapsedMilliseconds: performance.now() - pageStarted, gpuErrors,
+    determinism: { repeatedSameFeatures: repeat, comparisons: deterministicComparisons,
+      verified: repeat > 1 && deterministicComparisons.every(value => value.bitwiseMismatches === 0) },
+    head: { shape: [network.geometry.fullHeight, network.geometry.fullWidth, 4], dtype: 'float32', min: headMin, max: headMax, nonfinite },
+    inputOutputDifference: { changedChannelFraction: changed / channels, meanAbsoluteByteDifference: absolute / channels,
+      rootMeanSquareByteDifference: Math.sqrt(squared / channels), maximumByteDifference: maxDelta,
+      note: 'difference from input only; not a quality metric against ground truth' },
+    userAgent: navigator.userAgent,
+    pngBase64: canvasPng(output), inputPngBase64: canvasPng(input),
+    ...(query.get('saveHead') === '1' ? { headBase64: base64(new Uint8Array(head.buffer, head.byteOffset, head.byteLength)) } : {}),
+  };
+  progress('saving image and runtime evidence');
+  await post('/result', result);
+  delete result.pngBase64; delete result.inputPngBase64; delete result.headBase64;
+  statusElement.textContent = JSON.stringify(result, null, 2);
+  window.reproductionResult = result;
+  document.title = 'COMPLETED OpenDLSS-NR';
+} catch (error) {
+  await fail(error);
+} finally {
+  network?.destroy();
+}
+</script>

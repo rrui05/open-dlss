@@ -1,0 +1,40 @@
+{
+  "status": "verified",
+  "dimensions": [
+    500,
+    500
+  ],
+  "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+  "output_sha256": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68",
+  "browser_input_pixels_identical": true,
+  "output_nonblank": true,
+  "output_differs_from_input": true,
+  "gpu_errors": [],
+  "head_nonfinite": 0,
+  "same_input_determinism": {
+    "repeatedSameFeatures": 2,
+    "comparisons": [
+      {
+        "againstRun": 1,
+        "run": 2,
+        "float32Elements": 1310720,
+        "bitwiseMismatches": 0
+      }
+    ],
+    "verified": true
+  },
+  "face_crop_xyxy": [
+    95,
+    35,
+    395,
+    450
+  ],
+  "changed_pixel_fraction": 0.999952,
+  "mean_absolute_rgb_change_0_255": 17.70141466666667,
+  "change_metric_note": "Changes relative to the input only; not quality scores against ground truth.",
+  "ground_truth_available": false,
+  "native_nvidia_output_parity_verified": false,
+  "scope": "Independent still frame; no temporal/video-quality claim.",
+  "model_output_bytes_preserved": true,
+  "display_transforms": "Matched crop and nearest-neighbor display resizing only; no enhancement."
+}

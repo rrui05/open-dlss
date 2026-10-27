@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>OpenDLSS WebGPU probe</title>
+<pre id="result">Requesting WebGPU device...</pre>
+<script type="module">
+import { requestDevice } from '/open-dlss/ports/browser-webgpu/src/gpu.js';
+const resultElement = document.querySelector('#result');
+try {
+  const { adapter, device, info } = await requestDevice();
+  const details = Object.fromEntries(['vendor','architecture','device','description','subgroupMinSize','subgroupMaxSize','isFallbackAdapter'].map(k => [k, info[k] ?? null]));
+  const limits = Object.fromEntries(['maxBufferSize','maxStorageBufferBindingSize','maxComputeWorkgroupStorageSize','maxComputeInvocationsPerWorkgroup','maxStorageBuffersPerShaderStage'].map(k => [k, adapter.limits[k]]));
+  const result = { status: 'completed', prefix: 'probe', adapter: details, limits, features: [...adapter.features], userAgent: navigator.userAgent };
+  resultElement.textContent = JSON.stringify(result, null, 2);
+  await fetch('/result', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(result) });
+  document.title = 'COMPLETED WebGPU probe';
+  device.destroy();
+} catch (error) {
+  const result = { status: 'failed', prefix: 'probe', error: String(error.stack ?? error), userAgent: navigator.userAgent };
+  resultElement.textContent = JSON.stringify(result, null, 2);
+  await fetch('/result', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(result) });
+  document.title = 'FAILED WebGPU probe';
+}
+</script>

@@ -12,6 +12,9 @@ tensor cores and no FP8.
 
 ## Reproduction results
 
+[Seven GTA faces — Tommy, Niko, Roman, Trevor, Michael, Franklin, and Amanda](reproductions/gta-faces-2026-10-27/README.md)
+adds a fixed batch of seven actual single-image runs with matched input/output comparisons and source records.
+
 [GTA: San Andreas / CJ — single-image reproduction](reproductions/gta-cj-2026-10-27/README.md)
 contains the original input, actual model output, full-frame and face comparisons, recorded settings, and
 the runnable image harness. The run uses this repository's WebGPU port and the original 71-block network.

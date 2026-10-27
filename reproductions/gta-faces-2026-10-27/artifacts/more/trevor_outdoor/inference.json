@@ -1,0 +1,128 @@
+{
+  "status": "completed",
+  "prefix": "more-trevor_outdoor",
+  "config": {
+    "image": "/artifacts/more/trevor_outdoor/input.png",
+    "seed": 0,
+    "autoMask": true,
+    "conditioning": {
+      "localTone": 1,
+      "localStructure": 1,
+      "skinStructure": -1,
+      "style": 0
+    },
+    "intensity": 1,
+    "history": "single frame: history feature lanes equal current frame; no temporal blend",
+    "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+    "sourceDimensions": [
+      780,
+      438
+    ],
+    "inferenceDimensions": [
+      780,
+      438
+    ],
+    "resized": false
+  },
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "blackwell",
+    "device": "",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32,
+    "isFallbackAdapter": false
+  },
+  "adapterFeatures": [
+    "core-features-and-limits",
+    "timestamp-query",
+    "shader-f16"
+  ],
+  "geometry": {
+    "validWidth": 780,
+    "validHeight": 438,
+    "fullWidth": 832,
+    "fullHeight": 512,
+    "levels": [
+      {
+        "width": 416,
+        "height": 256,
+        "rows": 106496
+      },
+      {
+        "width": 208,
+        "height": 128,
+        "rows": 26624
+      },
+      {
+        "width": 104,
+        "height": 64,
+        "rows": 6656
+      },
+      {
+        "width": 52,
+        "height": 32,
+        "rows": 1664
+      },
+      {
+        "width": 28,
+        "height": 16,
+        "rows": 448
+      },
+      {
+        "width": 16,
+        "height": 8,
+        "rows": 128
+      }
+    ],
+    "fullRows": 425984,
+    "vitTokens": 128,
+    "paddedVitTokens": 128
+  },
+  "weightsUploadedBytes": 151442856,
+  "learnedBlockCount": 71,
+  "graphDispatches": 451,
+  "activationBytes": 824279040,
+  "timings": {
+    "createMilliseconds": 16498.599999997765,
+    "preprocessMilliseconds": 12.099999997764826,
+    "networkMilliseconds": [
+      216.09999999776483,
+      89
+    ],
+    "readbackMilliseconds": 0
+  },
+  "elapsedMilliseconds": 17013.300000000745,
+  "gpuErrors": [],
+  "determinism": {
+    "repeatedSameFeatures": 2,
+    "comparisons": [
+      {
+        "againstRun": 1,
+        "run": 2,
+        "float32Elements": 1703936,
+        "bitwiseMismatches": 0
+      }
+    ],
+    "verified": true
+  },
+  "head": {
+    "shape": [
+      512,
+      832,
+      4
+    ],
+    "dtype": "float32",
+    "min": -8.8671875,
+    "max": 1.048828125,
+    "nonfinite": 0
+  },
+  "inputOutputDifference": {
+    "changedChannelFraction": 0.8938922062209733,
+    "meanAbsoluteByteDifference": 8.473118877570933,
+    "rootMeanSquareByteDifference": 14.080487027649287,
+    "maximumByteDifference": 95,
+    "note": "difference from input only; not a quality metric against ground truth"
+  },
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0"
+}

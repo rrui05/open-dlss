@@ -1,0 +1,78 @@
+{
+  "status": "completed",
+  "started_at": "2026-10-27T12:12:46.641856+00:00",
+  "cases": [
+    {
+      "id": "tommy_vice_city",
+      "title": "Tommy / Vice City",
+      "status": "verified",
+      "output_sha256": "42e77e6714afcbf80e69a531f11b9a0a248e9fd1f90a742d3cb3d40ccf0c5a53",
+      "network_milliseconds": [
+        239.39999999850988,
+        176.39999999850988
+      ]
+    },
+    {
+      "id": "niko_iv",
+      "title": "Niko / GTA IV",
+      "status": "verified",
+      "output_sha256": "b949151c79142102ca175403531f75d30e2457ddba6540b7a70a6ebe9a39d8c6",
+      "network_milliseconds": [
+        198.10000000149012,
+        79.10000000149012
+      ]
+    },
+    {
+      "id": "roman_iv",
+      "title": "Roman / GTA IV",
+      "status": "verified",
+      "output_sha256": "f324be1002820e416dcb2537ba6193352d0b87d7ec6addfc17b027c3a550d9b3",
+      "network_milliseconds": [
+        274.6000000014901,
+        151
+      ]
+    },
+    {
+      "id": "trevor_outdoor",
+      "title": "Trevor / GTA V",
+      "status": "verified",
+      "output_sha256": "39de20a96f8beb0b40e67456021d97fd1e7874de5dfacc55088439ea9f91352d",
+      "network_milliseconds": [
+        216.09999999776483,
+        89
+      ]
+    },
+    {
+      "id": "michael_daylight",
+      "title": "Michael / GTA V",
+      "status": "verified",
+      "output_sha256": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc",
+      "network_milliseconds": [
+        330.6000000014901,
+        225.69999999925494
+      ]
+    },
+    {
+      "id": "franklin_daylight",
+      "title": "Franklin / GTA V",
+      "status": "verified",
+      "output_sha256": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68",
+      "network_milliseconds": [
+        229.89999999850988,
+        87.89999999850988
+      ]
+    },
+    {
+      "id": "amanda_sunset",
+      "title": "Amanda / GTA V",
+      "status": "verified",
+      "output_sha256": "28e20398ffc3be52be1691a886c23e12e96df9003115cf6cd7ee810d5860530e",
+      "network_milliseconds": [
+        147.09999999776483,
+        69.19999999925494
+      ]
+    }
+  ],
+  "model": "DLSS-NR 310.8.0.0 / original repository 71-block WebGPU network",
+  "finished_at": "2026-10-27T12:15:19.513522+00:00"
+}

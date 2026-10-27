@@ -1,0 +1,44 @@
+{
+  "id": "niko_iv",
+  "title": "Niko / GTA IV",
+  "face_crop_xyxy": [
+    130,
+    25,
+    375,
+    385
+  ],
+  "provenance": {
+    "id": "niko_iv",
+    "title": "Niko / GTA IV",
+    "game": "Grand Theft Auto IV",
+    "character": "Niko Bellic",
+    "source_page": "https://www.grandtheftwiki.com/File:NikoBellic-GTAIV.jpg",
+    "source_image": "https://gtwfilesie.grandtheftwiki.com/NikoBellic-GTAIV.jpg",
+    "source_sha256": "18f645da253c1625337e86d79e29ce93f6bdb3933dd70c49ee4f154f828cacc8",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      130,
+      25,
+      375,
+      385
+    ],
+    "source_verification": "Source file page explicitly labels it an in-game screenshot of Niko Bellic in Grand Theft Auto IV. File history dates the image to 2010. Visually inspected: game-engine face, brown jacket, room background; not a photograph or AI-generated illustration.",
+    "source_limitations": "Capture platform and graphics settings were not supplied by the source.",
+    "source_dimensions": [
+      502,
+      644
+    ],
+    "input_dimensions": [
+      502,
+      644
+    ],
+    "input_sha256": "d935b858bac96237f995caeef816ef49d943e6374314b0f073b7bc086444cd3f",
+    "decoded_input_rgb_sha256": "9728b06ed7fe604f78c388caeb73c27400aa0096203d71f69735b9c6c8ce9956",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}

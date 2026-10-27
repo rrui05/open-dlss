@@ -1,0 +1,456 @@
+{
+  "algorithm": "SHA-256",
+  "scope": "Every committed file under this reproduction directory except this manifest itself.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 155,
+      "sha256": "276ff64adb50547b96f0b11a7aba75e2e62fd5abdd5fc3e2ace306211fac9582"
+    },
+    {
+      "path": "README.md",
+      "bytes": 10399,
+      "sha256": "5440c2c392e3e131531934b1ad93f5d380d3c194634714214fce831469bc0af9"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/case.json",
+      "bytes": 1765,
+      "sha256": "dd2b241170e04192f649d7aaaf609932f46e590fd83c860c4f4a06170855c482"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/checks.json",
+      "bytes": 1169,
+      "sha256": "3305075d9c4fe6e97cfe690310398a83ec94a35dc5939056a9159bdd15edeb8d"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/comparison_face.png",
+      "bytes": 443321,
+      "sha256": "0269675f2038af076a1fc0e005037dd82300a4b183c1891686714e81f46a6a14"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/comparison_full.png",
+      "bytes": 658129,
+      "sha256": "9da70c389a2c5d35b4c78ea78ba5e882b61a9ae0771312690cda454d37d5c826"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/face_input.png",
+      "bytes": 143818,
+      "sha256": "9c4936a6912f879e80192eaca7065a2371472ceda26804644c395f70223dd602"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/face_output.png",
+      "bytes": 189680,
+      "sha256": "10530f4cba664af59806ae37a477fca2b7d56881a5e239a8b77a8a2cc888e0bd"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/inference.json",
+      "bytes": 2919,
+      "sha256": "1084b70715e3ac7ac55ab93bf8ac1b865a0f50b502ff82bb5f74950e2e9bd450"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/input.png",
+      "bytes": 229933,
+      "sha256": "654e934be030948083148e4a0e0fafc168f6c3d50c4d5ce471f82eac821a3a2a"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/output.png",
+      "bytes": 502315,
+      "sha256": "28e20398ffc3be52be1691a886c23e12e96df9003115cf6cd7ee810d5860530e"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/provenance.json",
+      "bytes": 1552,
+      "sha256": "60f31c6db2e184ab88fd9d3c1d855bba59d7c490efc7227910c84b90f09c179b"
+    },
+    {
+      "path": "artifacts/more/amanda_sunset/source.jpg",
+      "bytes": 24342,
+      "sha256": "91df2cd13049075453f4349c0e226293070c9c06312a2db914a65d20cc8383a6"
+    },
+    {
+      "path": "artifacts/more/batch_summary.json",
+      "bytes": 2219,
+      "sha256": "07eadd92ec7078fd108c9a9cea76aa6e3d5f4e348b6c819147be148ffe2d2561"
+    },
+    {
+      "path": "artifacts/more/contact_sheet_faces.png",
+      "bytes": 1136544,
+      "sha256": "498bf6f004ee858422a6c09e8367c840b816d3d3f87550caf302b34762f9bde3"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/case.json",
+      "bytes": 1782,
+      "sha256": "f4fff44c886b2b86e12dc570fefe46f3f34528e44cfb2ee24e6141fb5bb0bf3e"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/checks.json",
+      "bytes": 1183,
+      "sha256": "98ac6bec8a9da0e7b986f4dd281f91a57d1d25f03c78de016c1fc785727beb75"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/comparison_face.png",
+      "bytes": 456173,
+      "sha256": "fafc195f3372205c3d434ccc8dc3fb8cf1e64ab3289b911d2eb927989e014164"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/comparison_full.png",
+      "bytes": 769194,
+      "sha256": "6d7ae8c75656166033da960108a42bc232487b8e9753ea3339456e1b2b94a9a6"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/face_input.png",
+      "bytes": 148546,
+      "sha256": "58c84f95efb492ecdf534bf21e237a2909bea98af49b2335366bb470b1262238"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/face_output.png",
+      "bytes": 202092,
+      "sha256": "756971855b7583eac06aad2c2599e1fc98e9fa7aa18721e0973825b3d59801a3"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/inference.json",
+      "bytes": 2914,
+      "sha256": "5be294a48198a463a0a3405527518c4219195f9b1bf928affc0fe94586a12d48"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/input.png",
+      "bytes": 276403,
+      "sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/output.png",
+      "bytes": 549249,
+      "sha256": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/provenance.json",
+      "bytes": 1562,
+      "sha256": "bd224bfdf5cf1cf28338ff202ca134119eca90ca97b737ee664f7a4022df7357"
+    },
+    {
+      "path": "artifacts/more/franklin_daylight/source.jpg",
+      "bytes": 29804,
+      "sha256": "f63c3d1f95bd61e91943d3adb25381d79be6b12a8ca96df7cf46b8e96280ccca"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/case.json",
+      "bytes": 1936,
+      "sha256": "e17df37429ed8ac646e2e5688fc31b4ced7606ea0888781e41c7c27c1cc8b0db"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/checks.json",
+      "bytes": 1195,
+      "sha256": "120e4773683f00f428240e58828414e826a8f56c07be321a0ba88a6dd7958c23"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/comparison_face.png",
+      "bytes": 805145,
+      "sha256": "760cfe4aebb3967c0107d41a9d69b41eaea5459b400e1a818dcec375b6982be3"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/comparison_full.png",
+      "bytes": 873756,
+      "sha256": "228e2ec53645af2ba7d7b196feb934a86fcf254d20e1a8b80f6815273935b586"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/face_input.png",
+      "bytes": 492715,
+      "sha256": "466576171cfc7c96960c9f9fe0c7b756aa202f32df8159eb6e784d32bdffdf22"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/face_output.png",
+      "bytes": 711266,
+      "sha256": "01a0aa8144a2312c679b279fa9f7170b0b5dbe045baaf391fbd16a9dc9519eb8"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/inference.json",
+      "bytes": 2934,
+      "sha256": "4e592bbcdd59e392b6c14ad856a85e39464290bc68b8d1426ea3ef1c63a243a4"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/input.png",
+      "bytes": 590397,
+      "sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/output.png",
+      "bytes": 1488297,
+      "sha256": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/provenance.json",
+      "bytes": 1705,
+      "sha256": "a83a6f6b8485f9dd1744ab9618710b06f0cc650dcd86f440eec51a2f19120686"
+    },
+    {
+      "path": "artifacts/more/michael_daylight/source.jpg",
+      "bytes": 118764,
+      "sha256": "5b3629c7f508516b62e6add14b9ed536eb838c9d02a4cffea4fc3c58a49e33ad"
+    },
+    {
+      "path": "artifacts/more/niko_iv/case.json",
+      "bytes": 1489,
+      "sha256": "aef2492cd42250e975d89e4e399321a488db1c6c98af3b8334f3b142493e21ec"
+    },
+    {
+      "path": "artifacts/more/niko_iv/checks.json",
+      "bytes": 1194,
+      "sha256": "8e748d5464f82ff8f46457b76bf575dbe13be1af58a394cf490b1ba686f010ad"
+    },
+    {
+      "path": "artifacts/more/niko_iv/comparison_face.png",
+      "bytes": 314738,
+      "sha256": "d8a3474285227b14173daef9debd233af015f98d49cf4b594dd3802a88650995"
+    },
+    {
+      "path": "artifacts/more/niko_iv/comparison_full.png",
+      "bytes": 618484,
+      "sha256": "fda7f101cec38f564d9288e2c666ceff34338706c02d67500525615a3890f9bb"
+    },
+    {
+      "path": "artifacts/more/niko_iv/face_input.png",
+      "bytes": 105008,
+      "sha256": "622516b39fe09445cf47cb23778f8b4a02fcb97932f0059613ca05238e504ef1"
+    },
+    {
+      "path": "artifacts/more/niko_iv/face_output.png",
+      "bytes": 118730,
+      "sha256": "2e8febe2fd39c524df6a009b5a42b7482c07edff3089d9fc1c678b4a1104b22a"
+    },
+    {
+      "path": "artifacts/more/niko_iv/inference.json",
+      "bytes": 2898,
+      "sha256": "bcda64e4173458cd95f7dcfb6664ec3cd8229716c0f17204d60eeaa71ceeeece"
+    },
+    {
+      "path": "artifacts/more/niko_iv/input.png",
+      "bytes": 283207,
+      "sha256": "d935b858bac96237f995caeef816ef49d943e6374314b0f073b7bc086444cd3f"
+    },
+    {
+      "path": "artifacts/more/niko_iv/output.png",
+      "bytes": 554875,
+      "sha256": "b949151c79142102ca175403531f75d30e2457ddba6540b7a70a6ebe9a39d8c6"
+    },
+    {
+      "path": "artifacts/more/niko_iv/provenance.json",
+      "bytes": 1295,
+      "sha256": "880a848136b6b179437bb4cb8df9ae5a1c54bcc9ccca9e3a56692f6ff7f028d5"
+    },
+    {
+      "path": "artifacts/more/niko_iv/source.jpg",
+      "bytes": 67219,
+      "sha256": "18f645da253c1625337e86d79e29ce93f6bdb3933dd70c49ee4f154f828cacc8"
+    },
+    {
+      "path": "artifacts/more/roman_iv/case.json",
+      "bytes": 1677,
+      "sha256": "ae1ac109beedb3a992e0c16f1b2f51c5005707cbf45d4071ffd3ca11045b9646"
+    },
+    {
+      "path": "artifacts/more/roman_iv/checks.json",
+      "bytes": 1193,
+      "sha256": "d950e0c0d63f343f15f608a73ce0e8c29c9680716b3b983649290c1507a9ea43"
+    },
+    {
+      "path": "artifacts/more/roman_iv/comparison_face.png",
+      "bytes": 378922,
+      "sha256": "f39717a677e69d75b2482468da081ceada6087cf30cd7c0b3e1fb6d42a19bd62"
+    },
+    {
+      "path": "artifacts/more/roman_iv/comparison_full.png",
+      "bytes": 1073019,
+      "sha256": "6c0343c006a2d772664897efc290b7fccf1c15b9dcb405e292a073f6cacdcf88"
+    },
+    {
+      "path": "artifacts/more/roman_iv/face_input.png",
+      "bytes": 122286,
+      "sha256": "14e6255a7212a921d63de4393205f598510cc42346ace6e0dd2b61fcb49e7c92"
+    },
+    {
+      "path": "artifacts/more/roman_iv/face_output.png",
+      "bytes": 160743,
+      "sha256": "0db77682357b42d34dd871b7a27d07e7160c67c11c9852ed127ee158c0c06015"
+    },
+    {
+      "path": "artifacts/more/roman_iv/inference.json",
+      "bytes": 2894,
+      "sha256": "9c65643eb194bd5ee2029ee237891053ec42a672ac1c019ce0ff8ee496204b91"
+    },
+    {
+      "path": "artifacts/more/roman_iv/input.png",
+      "bytes": 489732,
+      "sha256": "e19e1fae96b6053b897360d37df8441db9308fe9f58ed7caa9f1abfbb0be4998"
+    },
+    {
+      "path": "artifacts/more/roman_iv/output.png",
+      "bytes": 1104070,
+      "sha256": "f324be1002820e416dcb2537ba6193352d0b87d7ec6addfc17b027c3a550d9b3"
+    },
+    {
+      "path": "artifacts/more/roman_iv/provenance.json",
+      "bytes": 1470,
+      "sha256": "8a5b7bde878ccb6405502e0afaa0164a7a68f5178af534482513d49459a9f7ab"
+    },
+    {
+      "path": "artifacts/more/roman_iv/source.jpg",
+      "bytes": 59907,
+      "sha256": "3fed426d285a909c414ac8f6db2e2d55951e4a3d7e245d81e41e0c07ae42e8a2"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/case.json",
+      "bytes": 1692,
+      "sha256": "bdb93427c879f6827672aae650a8ff2d3cb0a4c71d801446a3083a348a51df50"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/checks.json",
+      "bytes": 1197,
+      "sha256": "454d0a329da05bb2f5deb111468b7e0e2346380e2214f751139c3ba466725fa7"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/comparison_face.png",
+      "bytes": 298869,
+      "sha256": "f380d6f543873d3982ddefd8ee365c4cb48020aa9b628b00aeae76896fbee469"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/comparison_full.png",
+      "bytes": 578183,
+      "sha256": "810ebbce2965d1423980643089dc3946a88443a27ce003873a401b14d4e74d5c"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/face_input.png",
+      "bytes": 99818,
+      "sha256": "7ab6119baf2b8d00f058fad023b73a4dfcf2d2491e744716c529fad4b0d5af0a"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/face_output.png",
+      "bytes": 134072,
+      "sha256": "6718ae9949700d6a28c858f5bd6fb29ba4564fa2348e1c766df78318e937b053"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/inference.json",
+      "bytes": 2939,
+      "sha256": "ff8981945c13d3690214f0d3439b2285591b00f1544a7e4fa4447676c68377a8"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/input.png",
+      "bytes": 329427,
+      "sha256": "62226f57bc02ab055380e4b0f748235d440e58a0736541a7422c9da8b82bd938"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/output.png",
+      "bytes": 960137,
+      "sha256": "42e77e6714afcbf80e69a531f11b9a0a248e9fd1f90a742d3cb3d40ccf0c5a53"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/provenance.json",
+      "bytes": 1473,
+      "sha256": "fa1655df2fdfc4320bc9313538127c29e435b06b9782859d6db17639ed74279f"
+    },
+    {
+      "path": "artifacts/more/tommy_vice_city/source.jpg",
+      "bytes": 39042,
+      "sha256": "fd1786ea6f3420acaa39e824228fb7b599b0df9fddc1d67e14928bec24df1b8d"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/case.json",
+      "bytes": 1808,
+      "sha256": "0b1b4ccb7e7754a48a023beb87bb61de660ba2a1ecd16d7ef1baf00d112318c7"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/checks.json",
+      "bytes": 1193,
+      "sha256": "970d8878ff15fe036c2955e0d4495fab345ae8899f67eddd59bc20877573de84"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/comparison_face.png",
+      "bytes": 601029,
+      "sha256": "f6ee55cf81ae0dc383b258446887f707e42b79df1747179dff4513de2c6b1e7d"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/comparison_full.png",
+      "bytes": 1015111,
+      "sha256": "235d146f4ed0db00d083bb813df54c82f69370895fba9667d4b7ecabdbba5b32"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/face_input.png",
+      "bytes": 227345,
+      "sha256": "8fbf0c687303b9be115f9e89af07ae687432cdd47fdb8805346e98caa3d969ba"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/face_output.png",
+      "bytes": 252310,
+      "sha256": "d52bec50ea604ad78f3908ce397dfe7ecdef4dc2e8d69f5165a5eaeca8b5d388"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/inference.json",
+      "bytes": 2918,
+      "sha256": "abb2d3a8d252924d7d0ad7be68a42cc3595c2b1d0bb2d457214d00f148a90831"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/input.png",
+      "bytes": 394518,
+      "sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/output.png",
+      "bytes": 687156,
+      "sha256": "39de20a96f8beb0b40e67456021d97fd1e7874de5dfacc55088439ea9f91352d"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/provenance.json",
+      "bytes": 1593,
+      "sha256": "4f7c48a0239fc38f4476f8dce6ff7637c6c074d47a5d700da4914b0327be4017"
+    },
+    {
+      "path": "artifacts/more/trevor_outdoor/source.jpg",
+      "bytes": 69778,
+      "sha256": "9a48ea8541d138cf9df6325e9dce3f46e16253fdfbc9697f7be4d4372c588883"
+    },
+    {
+      "path": "batch/cases.json",
+      "bytes": 13286,
+      "sha256": "f1c63d7e31ac1d0a3bbf2c0c2f05d23abf4087b7c7bba6eb3e0122225e174b38"
+    },
+    {
+      "path": "batch/prepare_cases.py",
+      "bytes": 2544,
+      "sha256": "dc470c0957852bea4a2c890d9133b20117e2987dda28bebf18cb33fb44acd598"
+    },
+    {
+      "path": "batch/run_batch.py",
+      "bytes": 11998,
+      "sha256": "9c0b58ee92d07284ad6b2bba9da96806f2c07be5f9c9073b5df0c15ac5722624"
+    },
+    {
+      "path": "batch/sources.json",
+      "bytes": 7530,
+      "sha256": "75f046642ff488882e0761c8a3eb3556a12d526bd33ae745a1006c8d8f71b26b"
+    },
+    {
+      "path": "harness/probe.html",
+      "bytes": 1533,
+      "sha256": "2bde4b59a78f1a5a2271c72482ff5609582675390916a836121b804d18d49a2e"
+    },
+    {
+      "path": "harness/run.mjs",
+      "bytes": 6570,
+      "sha256": "830e6a4c6a6ff088a4c7aae54f9c37318ce4f54bfff66028fb676e8f0f09fd0c"
+    },
+    {
+      "path": "harness/server.mjs",
+      "bytes": 4711,
+      "sha256": "8ea4d485a8351a7fb8afe19bd49eb3f260e2387e82a31b35ca98f6a99f6697f0"
+    },
+    {
+      "path": "harness/single.html",
+      "bytes": 8995,
+      "sha256": "70169a37ae7d5cd84b1a60b543fc3b0520ff684a9a243aa86663325d1b736f30"
+    },
+    {
+      "path": "verification_summary.json",
+      "bytes": 4313,
+      "sha256": "df2c9aa120ee84bcedd81455767a526c43415fcb1b98d1e5421685e414166b91"
+    }
+  ]
+}
