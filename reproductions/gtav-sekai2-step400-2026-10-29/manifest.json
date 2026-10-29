@@ -1,0 +1,269 @@
+{
+  "status": "completed",
+  "step": 400,
+  "source_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+  "checkpoint_sha256": "2f4672ed9a996915f2afb7605541a78609bcd358ae911f8f39e580cd91794747",
+  "source_validation_manifest_sha256": "69def50ec6383c4ddf8b8f7869ec0abab808fcad22ccd630122ad1d39a8ab56a",
+  "architecture": "nr",
+  "generator_parameters": 145755115,
+  "gpu": "NVIDIA H800",
+  "torch": "2.11.0a0+eb65b36914.nv26.02",
+  "precision": "bf16",
+  "resize": false,
+  "tile": 0,
+  "strength": 1.0,
+  "history": false,
+  "seed": 42,
+  "held_out_original_videos": true,
+  "variants": [
+    "current",
+    "ema"
+  ],
+  "completed_at_utc": "2026-10-29T06:42:15.429772+00:00",
+  "samples": [
+    {
+      "index": 0,
+      "sequence_id": "gta:MOTSynth-576",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "source_clip_id": "MOTSynth-576__w014",
+      "frame_index": 1159,
+      "clip_time_seconds": 2.5,
+      "source_time_seconds": 72.4375,
+      "source_jpeg_sha256": "8f73fdd41b0900633dfb5f559e0d8069140056d662143fe50ca289ab54c854e6",
+      "files": {
+        "input": "assets/00/input.png",
+        "current": "assets/00/current.png",
+        "ema": "assets/00/ema.png",
+        "comparison": "assets/00/comparison.png"
+      },
+      "outputs": {
+        "current": {
+          "image_sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974",
+          "mean_absolute_change": 3.464339533820748e-05,
+          "mean_absolute_change_8bit": 0.00883406586945057,
+          "max_absolute_change": 0.0001354217529296875,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 8.635501009994186,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        },
+        "ema": {
+          "image_sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974",
+          "mean_absolute_change": 1.9581630112952553e-05,
+          "mean_absolute_change_8bit": 0.004993315786123276,
+          "max_absolute_change": 6.818771362304688e-05,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.3461923429858871,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        }
+      },
+      "current_png_equals_input": true,
+      "ema_png_equals_input": true
+    },
+    {
+      "index": 1,
+      "sequence_id": "gta:MOTSynth-116",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "source_clip_id": "MOTSynth-116__w000",
+      "frame_index": 16,
+      "clip_time_seconds": 1.0,
+      "source_time_seconds": 1.0,
+      "source_jpeg_sha256": "8f84676bcf581a91f7a736b6f27d0bd66d359f4d6d73ca3ca12f4f274c9c3261",
+      "files": {
+        "input": "assets/01/input.png",
+        "current": "assets/01/current.png",
+        "ema": "assets/01/ema.png",
+        "comparison": "assets/01/comparison.png"
+      },
+      "outputs": {
+        "current": {
+          "image_sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777",
+          "mean_absolute_change": 4.651220660889521e-05,
+          "mean_absolute_change_8bit": 0.011860612779855728,
+          "max_absolute_change": 0.000141143798828125,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.2800317229994107,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        },
+        "ema": {
+          "image_sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777",
+          "mean_absolute_change": 2.3265378331416287e-05,
+          "mean_absolute_change_8bit": 0.0059326714836061,
+          "max_absolute_change": 7.104873657226562e-05,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.2683060950075742,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        }
+      },
+      "current_png_equals_input": true,
+      "ema_png_equals_input": true
+    },
+    {
+      "index": 2,
+      "sequence_id": "gta:MOTSynth-354",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "source_clip_id": "MOTSynth-354__w013",
+      "frame_index": 1072,
+      "clip_time_seconds": 2.0,
+      "source_time_seconds": 67.0,
+      "source_jpeg_sha256": "4a32a469dffe037870f9b99041e89666d421c97d36c48cc0d632b55e6a1517b6",
+      "files": {
+        "input": "assets/02/input.png",
+        "current": "assets/02/current.png",
+        "ema": "assets/02/ema.png",
+        "comparison": "assets/02/comparison.png"
+      },
+      "outputs": {
+        "current": {
+          "image_sha256": "7786645563d73a94b9b2c754664a274b00422a6f66a424c17f62d988c74bb605",
+          "mean_absolute_change": 4.290173092158511e-05,
+          "mean_absolute_change_8bit": 0.010939941741526127,
+          "max_absolute_change": 0.00013256072998046875,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.2914660160022322,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        },
+        "ema": {
+          "image_sha256": "7786645563d73a94b9b2c754664a274b00422a6f66a424c17f62d988c74bb605",
+          "mean_absolute_change": 2.2513102521770634e-05,
+          "mean_absolute_change_8bit": 0.005740840919315815,
+          "max_absolute_change": 6.723403930664062e-05,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.3076705459970981,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        }
+      },
+      "current_png_equals_input": true,
+      "ema_png_equals_input": true
+    },
+    {
+      "index": 3,
+      "sequence_id": "gta:MOTSynth-115",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "source_clip_id": "MOTSynth-115__w008",
+      "frame_index": 664,
+      "clip_time_seconds": 1.5,
+      "source_time_seconds": 41.5,
+      "source_jpeg_sha256": "723718fa8f16f20b7c455f06bf6be97d83788dc8b11e3d5d3cdfcdb392105b79",
+      "files": {
+        "input": "assets/03/input.png",
+        "current": "assets/03/current.png",
+        "ema": "assets/03/ema.png",
+        "comparison": "assets/03/comparison.png"
+      },
+      "outputs": {
+        "current": {
+          "image_sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+          "mean_absolute_change": 3.8996327930362895e-05,
+          "mean_absolute_change_8bit": 0.009944063611328602,
+          "max_absolute_change": 0.00012969970703125,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.28927341700182296,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        },
+        "ema": {
+          "image_sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+          "mean_absolute_change": 2.1248824850772507e-05,
+          "mean_absolute_change_8bit": 0.005418450105935335,
+          "max_absolute_change": 6.771087646484375e-05,
+          "pixels_changed_at_least_one_8bit_level_fraction": 0.0,
+          "elapsed_seconds": 0.29503885499434546,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2394947584
+        }
+      },
+      "current_png_equals_input": true,
+      "ema_png_equals_input": true
+    }
+  ],
+  "quality_verified": false,
+  "interpretation": "Early training samples. Floating-point image change is not a quality score. All exported current/EMA RGB8 PNG files are identical to the input PNG files.",
+  "files": {
+    "assets/00/input.png": {
+      "bytes": 1378565,
+      "sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974"
+    },
+    "assets/00/current.png": {
+      "bytes": 1378565,
+      "sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974"
+    },
+    "assets/00/ema.png": {
+      "bytes": 1378565,
+      "sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974"
+    },
+    "assets/00/comparison.png": {
+      "bytes": 1491398,
+      "sha256": "53efc9be3dcf2851e84a665b814f6249fb4a670b669efbddb91e73dc18944df2"
+    },
+    "assets/01/input.png": {
+      "bytes": 947750,
+      "sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777"
+    },
+    "assets/01/current.png": {
+      "bytes": 947750,
+      "sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777"
+    },
+    "assets/01/ema.png": {
+      "bytes": 947750,
+      "sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777"
+    },
+    "assets/01/comparison.png": {
+      "bytes": 1064530,
+      "sha256": "3477312d1ab60626f49c4a89b844aa8229d8e71f7872fc8eb4f5decb8d4edf77"
+    },
+    "assets/02/input.png": {
+      "bytes": 1028831,
+      "sha256": "7786645563d73a94b9b2c754664a274b00422a6f66a424c17f62d988c74bb605"
+    },
+    "assets/02/current.png": {
+      "bytes": 1028831,
+      "sha256": "7786645563d73a94b9b2c754664a274b00422a6f66a424c17f62d988c74bb605"
+    },
+    "assets/02/ema.png": {
+      "bytes": 1028831,
+      "sha256": "7786645563d73a94b9b2c754664a274b00422a6f66a424c17f62d988c74bb605"
+    },
+    "assets/02/comparison.png": {
+      "bytes": 1138810,
+      "sha256": "df239253a1e746a335ce46ece37d38227fe74ccf695f59cfb634667149740ab9"
+    },
+    "assets/03/input.png": {
+      "bytes": 1047151,
+      "sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16"
+    },
+    "assets/03/current.png": {
+      "bytes": 1047151,
+      "sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16"
+    },
+    "assets/03/ema.png": {
+      "bytes": 1047151,
+      "sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16"
+    },
+    "assets/03/comparison.png": {
+      "bytes": 1165226,
+      "sha256": "6538b43310265fe9b66d731ffcbbd4fe2b1ee101c50cd48e0998c8de5cb82bb4"
+    },
+    "assets/contact-sheet-preview.jpg": {
+      "bytes": 1331232,
+      "sha256": "3960dbb0439b0169e0c1de9dbd544a917c645ae1cf2a2a41babe9eea019eb0cb"
+    }
+  }
+}
