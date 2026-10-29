@@ -1,0 +1,38 @@
+# Wiring/backpropagation test only. Random features cannot establish realism.
+output: runs/smoke
+model:
+  dim: 8
+  depths: [1, 1, 1, 1]
+  heads: [1, 2, 4, 8]
+  window_size: 4
+  mlp_ratio: 2.0
+  checkpoint_blocks: false
+discriminator:
+  width: 16
+  scales: 2
+data:
+  crop_size: 32
+  batch_size: 1
+  workers: 0
+teachers:
+  vgg_weights: none
+  dino_model: null
+  semantic_model: null
+loss:
+  dino: 0.0
+  semantic: 0.0
+  temporal: 0.0
+train:
+  steps: 3
+  accumulation: 1
+  precision: fp32
+  warmup_steps: 0
+  adversarial_ramp_steps: 0
+  r1_gamma: 0.0
+  log_every: 1
+  save_every: 2
+  validate_every: 2
+  allow_random_features: true
+validation:
+  samples: 2
+  save_images: 2

@@ -1,0 +1,64 @@
+# Unpaired GTA5 -> SeSekai2. Set roots/manifests with CLI flags or edit data below.
+# This is a research starting recipe, not a measured best checkpoint.
+output: runs/gta5_sesekai2
+seed: 42
+model:
+  dim: 64
+  depths: [2, 2, 6, 4]
+  heads: [2, 4, 8, 16]
+  window_size: 8
+  mlp_ratio: 3.0
+  max_residual: 0.35
+  checkpoint_blocks: true
+data:
+  source: null
+  target: null
+  val_source: null
+  val_target: null
+  crop_size: 512
+  batch_size: 2 # Per GPU. Effective batch = this * world_size * accumulation.
+  workers: 8
+  match_index: null
+teachers:
+  vgg_weights: imagenet
+  dino_model: facebook/dinov2-base
+  dino_size: 392
+  semantic_model: nvidia/segformer-b2-finetuned-cityscapes-1024-1024
+  semantic_size: 512
+  semantic_confidence: 0.6
+  local_files_only: false
+loss:
+  adversarial: 1.0
+  perceptual: 10.0
+  dino: 10.0
+  patch_nce: 1.0
+  semantic: 2.0
+  edge: 3.0
+  low_frequency: 2.0
+  identity: 2.0
+  temporal: 2.0 # Used only when a valid previous frame and backward flow are supplied.
+  tv: 0.01
+train:
+  steps: 200000
+  accumulation: 2
+  precision: bf16
+  lr_g: 0.0001
+  lr_d: 0.0001
+  warmup_steps: 1000
+  adversarial_ramp_steps: 10000
+  gradient_clip: 1.0
+  ema_decay: 0.999
+  r1_gamma: 0.1 # Lazy R1 in frozen VGG feature space, not RGB-space R1.
+  r1_interval: 16
+  log_every: 50
+  save_every: 2000
+  validate_every: 2000
+  allow_random_features: false
+  require_temporal: false
+validation:
+  samples: 32
+  save_images: 8
+  edge_threshold: 0.15
+  dino_threshold: 0.12
+  semantic_threshold: 0.15
+  min_semantic_coverage: 0.1

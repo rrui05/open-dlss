@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-dlss-game2real"
+version = "0.1.0"
+description = "Content-preserving unpaired game-to-real Transformer U-Net"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.5",
+  "torchvision>=0.20",
+  "transformers>=4.46,<5",
+  "safetensors>=0.4",
+  "numpy>=1.24",
+  "Pillow>=10",
+  "PyYAML>=6",
+  "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+metrics = ["torchmetrics[image]>=1.6", "torch-fidelity>=0.3"]
+matching = ["faiss-cpu>=1.8; platform_system == 'Linux'"]
+
+[project.scripts]
+game2real-train = "gta2real.train:main"
+game2real-infer = "gta2real.infer:main"
+game2real-prepare = "gta2real.prepare_data:main"
+game2real-match = "gta2real.match_data:main"
+
+[tool.setuptools.packages.find]
+include = ["gta2real*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
