@@ -1,0 +1,47 @@
+{
+  "training_job": 728525,
+  "base_training_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+  "model": "NR310.8 continuous PyTorch training graph",
+  "generator_parameters": 145755115,
+  "training_from_scratch": true,
+  "training_precision": "bf16",
+  "validation_precision": "fp32",
+  "weights": "EMA",
+  "step": 2000,
+  "per_gpu_batch_size": 32,
+  "world_size": 4,
+  "accumulation": 1,
+  "effective_batch": 128,
+  "sample_fps": 2,
+  "source_and_target_duration_seconds_each": 7200,
+  "training_validation_split": "original video isolated",
+  "saved_validation_images": 8,
+  "validation_metric_images": 32,
+  "one_side_dimensions": [
+    512,
+    512
+  ],
+  "each_pair_order": [
+    "GTAV input",
+    "EMA output"
+  ],
+  "image_resize": false,
+  "contact_sheet": "only headers and spacing; original image pixels copied without resizing",
+  "pixel_change_definition": "any uint8 RGB channel differs",
+  "quality_verified": false,
+  "published_at_utc": "2026-10-29T10:28:06.413875+00:00",
+  "files_sha256": {
+    "README.md": "1da7732dd5ce44ded9f1931fadd9007f399b9ea192dd7eb0da588959c8ba073e",
+    "assets/0000.png": "545061eafb200bf221fee1c7e886d03dbcbd857afa5020c5cb8cdb06ef61fe04",
+    "assets/0001.png": "e7c7cf932942b4d75ec33a02ec91ee2a71b3c262a09e5b47f2dedc0ff5ba53a6",
+    "assets/0002.png": "7fba730e78400cbe606d297ff2d7c352d5a6e9b868129545adbfceb1f42ddf9f",
+    "assets/0003.png": "4494f173f6b63b30f331245b79965c00ecbe3a0097731f6b79a77eb641d8be6e",
+    "assets/0004.png": "e1d87ad4ac66ce163f6bbfd2f3b86abe3e3109e6fe5eea6a1e323587db2a969b",
+    "assets/0005.png": "20dc8ae4c957278e9f0520a478d542edc20e85b33b12ff8e135ce76aaf988799",
+    "assets/0006.png": "4838fb848873946757f05be233486b5427fdf97ff6be67d69405976e7b1ff78f",
+    "assets/0007.png": "d17b497378c30d8759f90a0503e35599dbf04f19ad2ea454b1c2631036319d08",
+    "assets/contact-sheet.png": "ff88ffdf654f147811ad580d8600071b6793b08bd7d32a2c068e41480d062cd7",
+    "pixel-change-summary.json": "0731a584f56530c7de7b430bfe35141306e1b48b61a863ec17a76c0122d7cdbc",
+    "validation.json": "33b8e98e7fcf10827142d7d2844b001105f8e7a0a064364bb995ba8b61594732"
+  }
+}

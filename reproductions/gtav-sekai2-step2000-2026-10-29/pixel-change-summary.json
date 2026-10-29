@@ -1,0 +1,100 @@
+{
+  "scope": "8 saved EMA validation crops at step2000; rounded uint8 PNG; original left vs output right; pixel changes iff any RGB channel differs",
+  "images": 8,
+  "total_pixels": 2097152,
+  "changed_pixels": 55735,
+  "changed_percent": 2.657651901245117,
+  "mean_abs_rgb_levels": 0.017998536427815754,
+  "change_ge2_pixels": 1077,
+  "change_ge5_pixels": 0,
+  "per_image": [
+    {
+      "image": "0000.png",
+      "pixels": 262144,
+      "changed_pixels": 2037,
+      "changed_fraction": 0.007770538330078125,
+      "mean_abs_rgb_levels": 0.005315144856770833,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 184,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 4180
+    },
+    {
+      "image": "0001.png",
+      "pixels": 262144,
+      "changed_pixels": 3443,
+      "changed_fraction": 0.013134002685546875,
+      "mean_abs_rgb_levels": 0.00954437255859375,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 151,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 7506
+    },
+    {
+      "image": "0002.png",
+      "pixels": 262144,
+      "changed_pixels": 6858,
+      "changed_fraction": 0.02616119384765625,
+      "mean_abs_rgb_levels": 0.018098195393880207,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 120,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 14233
+    },
+    {
+      "image": "0003.png",
+      "pixels": 262144,
+      "changed_pixels": 8369,
+      "changed_fraction": 0.031925201416015625,
+      "mean_abs_rgb_levels": 0.021986643473307293,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 108,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 17291
+    },
+    {
+      "image": "0004.png",
+      "pixels": 262144,
+      "changed_pixels": 5444,
+      "changed_fraction": 0.0207672119140625,
+      "mean_abs_rgb_levels": 0.013666788736979166,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 98,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 10748
+    },
+    {
+      "image": "0005.png",
+      "pixels": 262144,
+      "changed_pixels": 8733,
+      "changed_fraction": 0.033313751220703125,
+      "mean_abs_rgb_levels": 0.023050944010416668,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 143,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 18128
+    },
+    {
+      "image": "0006.png",
+      "pixels": 262144,
+      "changed_pixels": 11263,
+      "changed_fraction": 0.042964935302734375,
+      "mean_abs_rgb_levels": 0.029178619384765625,
+      "max_rgb_level_change": 3,
+      "pixels_change_ge2": 209,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 22947
+    },
+    {
+      "image": "0007.png",
+      "pixels": 262144,
+      "changed_pixels": 9588,
+      "changed_fraction": 0.0365753173828125,
+      "mean_abs_rgb_levels": 0.0231475830078125,
+      "max_rgb_level_change": 2,
+      "pixels_change_ge2": 64,
+      "pixels_change_ge5": 0,
+      "total_abs_channel_change": 18204
+    }
+  ]
+}
