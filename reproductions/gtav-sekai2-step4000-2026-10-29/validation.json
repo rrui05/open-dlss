@@ -1,0 +1,13 @@
+{
+  "edge": 0.0006018948888595332,
+  "low_frequency": 2.7214400120101345e-05,
+  "style_distance": 0.017774758947780356,
+  "mean_absolute_change": 0.009304345352575183,
+  "dino": 0.002658670968230581,
+  "semantic_disagreement": 0.004642242134895183,
+  "semantic_coverage": 0.9248638153076172,
+  "samples": 32,
+  "step": 4000,
+  "content_guard_passed": true,
+  "selection_metric": "fixed VGG mean/std distance under content guards; not FID"
+}

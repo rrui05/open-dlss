@@ -1,0 +1,43 @@
+{
+  "training_job": 728525,
+  "base_training_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+  "generator_parameters": 145755115,
+  "training_from_scratch": true,
+  "training_precision": "bf16",
+  "validation_precision": "fp32",
+  "weights": "EMA",
+  "step": 4000,
+  "per_gpu_batch_size": 32,
+  "world_size": 4,
+  "accumulation": 1,
+  "effective_batch": 128,
+  "saved_validation_images": 8,
+  "validation_metric_images": 32,
+  "one_side_dimensions": [
+    512,
+    512
+  ],
+  "each_pair_order": [
+    "GTAV input",
+    "EMA output"
+  ],
+  "image_resize": false,
+  "contact_sheet": "original pixels copied without resizing; headers and spacing added",
+  "same_input_crops_as_step2000": true,
+  "quality_verified": false,
+  "published_at_utc": "2026-10-29T12:40:04.934083+00:00",
+  "files_sha256": {
+    "README.md": "9bc2e586d7fedae9cb982079b5bcde6e1367b8e0a33ca616f46d83592978f475",
+    "assets/0000.png": "54fe803a376fdf148b074c5067e1508d705199a875ef6281616ddf36ad02e2fa",
+    "assets/0001.png": "f8c4aae2d2e6a6f6de0ba679c2884fcc81014cc7ad36241c1157d94c5b14b8be",
+    "assets/0002.png": "b725e004cc0fe19e372e972ccef1b4bc610a1e0838c9a7914f5b1b6f22428e98",
+    "assets/0003.png": "ad2b49a7969b8a2a8bc773ca5df00bffbcfe17c407cd5fd8429d45bb330c2f15",
+    "assets/0004.png": "becf03e0a6a578d75d069d3de92e77e0e402c1a7381e2fe100fd4230871e7840",
+    "assets/0005.png": "65c79d4d8ea7ef8a2045b61d47b69c3e853af58a73aaff4f33ff8cd0813c1d04",
+    "assets/0006.png": "2c4083d5948de5bfd548df12d33155067d6ded23f9dc24327822aeeb7d65ea22",
+    "assets/0007.png": "5c5cf59ee0a7aab6280200bc8542666a85bfb696eaafff978d509720769ec152",
+    "assets/contact-sheet.png": "7ccf1406c5c1c2c2a641ac5ecac003e776819fc155c90e69af973c6768a68681",
+    "pixel-change-summary.json": "dd5fedf391192458757849a8c17b9251bcff8ea7a92426f62b1545eb1af00d4e",
+    "validation.json": "5310127052fa18f96fa05da1daf8924b966c2849a1c5cfe3b2cad39722ccc539"
+  }
+}
