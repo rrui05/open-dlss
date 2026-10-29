@@ -1,0 +1,160 @@
+{
+  "status": "completed",
+  "native_inference_verified": true,
+  "started_utc": "2026-10-28T04:06:25Z",
+  "runtime": {
+    "file_version": "310,8,0,0",
+    "bytes": 165840496,
+    "signature_status": "Valid",
+    "signer": "CN=NVIDIA Corporation, OU=1005bk6, O=NVIDIA Corporation, L=Santa Clara, S=California, C=US",
+    "sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+    "modified": false
+  },
+  "weights": {
+    "manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+    "block_count": 71,
+    "stage_count": 71,
+    "all_stage_hashes_verified": true,
+    "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+    "matches_native_runtime_sha256": true
+  },
+  "gpu": "NVIDIA GeForce RTX 5070, 621.01, 12227 MiB",
+  "harness": {
+    "source_sha256": "10ca7d25f642f12a5b673c8d8bb0db5cad67025479f6e0d4c5c17a1d9b88ed84",
+    "executable_sha256": "fcd406f3b720395c257ef172776ba82dc43cf0c3918f8c06d617d558120e6aa8",
+    "entry_points": [
+      "NVSDK_NGX_D3D12_Init_Ext",
+      "NVSDK_NGX_D3D12_CreateFeature",
+      "NVSDK_NGX_D3D12_EvaluateFeature"
+    ]
+  },
+  "input": {
+    "source_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+    "dimensions": [
+      1024,
+      900
+    ],
+    "resized": false,
+    "native_upload_format": "RGBA16F",
+    "native_input_sha256": "7fb06a137965b97eff1fb926e3ddbd3f54fbce6cbe645d9cd19a67b05da6a1f4"
+  },
+  "settings": {
+    "intensity": 1,
+    "style": 0,
+    "local_tone": 1,
+    "local_structure": 1,
+    "skin_structure": -1,
+    "auto_mask": true,
+    "scaling_ratio": 1,
+    "native_preset": 0,
+    "native_reset_each_run": true,
+    "depth": "constant reversed-Z 1.0, synthetic still-frame guide",
+    "motion": "zero",
+    "ui_correction": false,
+    "webgpu_seed": 0,
+    "native_seed_equivalence_verified": false
+  },
+  "native": {
+    "process_exit_code": 0,
+    "runs": 3,
+    "repeated_rgba16f_bits_equal": [
+      true,
+      true
+    ],
+    "rgb_finite": true,
+    "rgb_minimum": 0.035980224609375,
+    "rgb_maximum": 0.9833984375,
+    "png_sha256": "0e7e667963048c88dd3617e6a6a59e834f039ad669eda789e3384a7092349e58",
+    "raw_output_sha256": [
+      "2ebcec6fc568dfaef3876f724e8af679f3bf441066a3b033f3ad08ccb8107458",
+      "2ebcec6fc568dfaef3876f724e8af679f3bf441066a3b033f3ad08ccb8107458",
+      "2ebcec6fc568dfaef3876f724e8af679f3bf441066a3b033f3ad08ccb8107458"
+    ],
+    "timing": {
+      "api": "D3D12",
+      "width": 1024,
+      "height": 900,
+      "reset_each_run": true,
+      "gpu_milliseconds": [
+        3.61472,
+        3.54486,
+        3.37664
+      ]
+    },
+    "versus_input": {
+      "rgb_channels": 2764800,
+      "exact_rgb_channels": 114887,
+      "exact_channel_fraction": 0.04155345775462963,
+      "within_one_code_fraction": 0.13738353587962962,
+      "mean_absolute_byte_difference": 7.851689453125,
+      "root_mean_square_byte_difference": 11.414113996987538,
+      "maximum_byte_difference": 77,
+      "psnr_db": 26.98195949478756,
+      "meaning": "output agreement, not perceptual quality against ground truth"
+    }
+  },
+  "webgpu": {
+    "png_sha256": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc",
+    "input_pixels_identical": true,
+    "repeatability": {
+      "repeatedSameFeatures": 2,
+      "comparisons": [
+        {
+          "againstRun": 1,
+          "run": 2,
+          "float32Elements": 4456448,
+          "bitwiseMismatches": 0
+        }
+      ],
+      "verified": true
+    },
+    "timings": {
+      "createMilliseconds": 16227.79999999702,
+      "preprocessMilliseconds": 13.700000002980232,
+      "networkMilliseconds": [
+        241.19999998807907,
+        230.59999999403954
+      ],
+      "readbackMilliseconds": 0
+    }
+  },
+  "native_vs_webgpu": {
+    "rgb_channels": 2764800,
+    "exact_rgb_channels": 1246684,
+    "exact_channel_fraction": 0.4509129050925926,
+    "within_one_code_fraction": 0.8706206597222222,
+    "mean_absolute_byte_difference": 0.7432042100694445,
+    "root_mean_square_byte_difference": 1.1583341139585699,
+    "maximum_byte_difference": 13,
+    "psnr_db": 46.85412667094766,
+    "meaning": "output agreement, not perceptual quality against ground truth"
+  },
+  "bit_exact_rgb8": false,
+  "scope": [
+    "One still image; both outputs are from actual GPU execution",
+    "Original NVIDIA DLL called directly; no runtime binary modifications",
+    "Synthetic flat depth and zero motion; reset before each native evaluation",
+    "Native API does not expose this harness's WebGPU noise seed; seed equivalence unverified",
+    "RGB8 agreement is not head/intermediate parity or a ground-truth image quality score",
+    "Native timestamps measure GPU evaluation; browser timings are host wall time",
+    "No temporal/video or official in-game integration claim"
+  ],
+  "face_crop": [
+    140,
+    40,
+    850,
+    900
+  ],
+  "face_native_vs_webgpu": {
+    "rgb_channels": 1831800,
+    "exact_rgb_channels": 717912,
+    "exact_channel_fraction": 0.39191614805109726,
+    "within_one_code_fraction": 0.8263866142591986,
+    "mean_absolute_byte_difference": 0.8742488262910798,
+    "root_mean_square_byte_difference": 1.3080192663472106,
+    "maximum_byte_difference": 13,
+    "psnr_db": 45.79852078997442,
+    "meaning": "output agreement, not perceptual quality against ground truth"
+  },
+  "finished_utc": "2026-10-28T04:06:56Z"
+}

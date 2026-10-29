@@ -1,0 +1,831 @@
+{
+  "status": "completed",
+  "checkpoint_step": 4000,
+  "checkpoint_sha256": "1ffa46fc9cc453c8fc86029b3fe922cf2f01630eb11663166da73c16d098628a",
+  "trained_inference_job": "729214",
+  "trained_receipt_sha256": "8ba3d1f61a0d0397a44df56f06815210ec8b02a61001f5c45188c9419c63cb9a",
+  "created_at_utc": "2026-10-29T12:56:16.255942+00:00",
+  "column_order": [
+    "Input",
+    "Ours 4000 - current",
+    "Ours 4000 - EMA",
+    "Original OpenDLSS NR310.8.0"
+  ],
+  "original_baseline_implementation": "OpenDLSS WebGPU original NR310.8.0, official extracted pretrained weights",
+  "full_panels": "Native pixels with labels and spacing; no resize, exposure, sharpening, or postprocessing",
+  "face_2x_panels": "Identical ROI coordinates; nearest-neighbor 2x pixel replication",
+  "overview_previews": "NEAREST aspect-preserving fit and padding inside 400px cells; full native panels are separate",
+  "metric_interpretation": "Pixel change versus input only, not a quality score or matched real-world ground truth",
+  "quality_verified": false,
+  "cases": [
+    {
+      "id": "daylight_boardwalk",
+      "kind": "heldout_daylight_scene",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "input_sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974",
+      "decoded_input_rgb_sha256": "2115cb3339dd59c689ba50b904a1013290118057c5818b45f296e7a30fd8c670",
+      "images_sha256": {
+        "input": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974",
+        "current": "dad6819df4d23638648d1fb433df8d402219287e9eb09d56e6accde10e06eae1",
+        "ema": "26ea277dc3519d0edb9fe54e33b91d8eaf696a864d62cf41b203520e8b6c8912",
+        "original_opendlss": "d764bbe925e6b87b3726fc09a5608ad6fcf51ddc7d26729fa132a409591fb869"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "d764bbe925e6b87b3726fc09a5608ad6fcf51ddc7d26729fa132a409591fb869",
+        "baseline_decoded_rgb_sha256": "cc3f9a8b3a3b94e99c557ee5b36b42c74d3aacff5951d5af527d50a91a20b742",
+        "provenance_file": "provenance/daylight_boardwalk-opendlss.json",
+        "provenance_sha256": "99a75f18e8db7ac78e615cbb0d7be87b31f7cb60b5af5410119a600d85fe7ed4",
+        "settings": {
+          "image": "/artifacts/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1344,
+            768
+          ],
+          "inferenceDimensions": [
+            1344,
+            768
+          ],
+          "resized": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 984989,
+          "changed_fraction_any_rgb": 0.9542691669766865,
+          "mean_absolute_rgb_levels": 6.045030381944445,
+          "root_mean_square_rgb_levels": 7.900394460967686,
+          "mean_signed_rgb_levels": [
+            3.2848927331349205,
+            3.2645418681795637,
+            3.725093781001984
+          ],
+          "maximum_channel_delta_levels": 49,
+          "median_changed_pixel_max_channel_delta_levels": 6.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.8042457217261905,
+          "fraction_pixel_max_channel_delta_ge5": 0.5777558826264881,
+          "fraction_pixel_max_channel_delta_ge10": 0.25645713200644843
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 940886,
+          "changed_fraction_any_rgb": 0.9115416511656746,
+          "mean_absolute_rgb_levels": 2.468992203000992,
+          "root_mean_square_rgb_levels": 3.3582657629444914,
+          "mean_signed_rgb_levels": [
+            0.6192752898685516,
+            0.7837553478422619,
+            0.8200712658110119
+          ],
+          "maximum_channel_delta_levels": 29,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.6190166170634921,
+          "fraction_pixel_max_channel_delta_ge5": 0.17207457527281747,
+          "fraction_pixel_max_channel_delta_ge10": 0.017112126426091268
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 1031725,
+          "changed_fraction_any_rgb": 0.9995475647941469,
+          "mean_absolute_rgb_levels": 14.477493528335813,
+          "root_mean_square_rgb_levels": 16.583276421615945,
+          "mean_signed_rgb_levels": [
+            1.0285266694568453,
+            0.9871428958953373,
+            0.9066694955977183
+          ],
+          "maximum_channel_delta_levels": 71,
+          "median_changed_pixel_max_channel_delta_levels": 17.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9929218594990079,
+          "fraction_pixel_max_channel_delta_ge5": 0.9427974640376984,
+          "fraction_pixel_max_channel_delta_ge10": 0.8006146143353174
+        }
+      },
+      "comparison_full": "assets/daylight_boardwalk/comparison-full.png"
+    },
+    {
+      "id": "daylight_plaza",
+      "kind": "heldout_daylight_scene",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "input_sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777",
+      "decoded_input_rgb_sha256": "3af3c1b258a7e1494ac463ceaa4b19045e62ca9205ccd74f56d5302f97ff4799",
+      "images_sha256": {
+        "input": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777",
+        "current": "62f7b34576a50e47c4942e01bacb95e8da77081b0f4dc2a3a6b158cd43b6657b",
+        "ema": "8b6622c22430401be0c39c1d168fd25d525cf0eecc51b666e11288f0c9ab2fb4",
+        "original_opendlss": "ce1ac118ddcb12415fef50d7a2031af3d814ddcfa5d4139afa9809ce312d2a15"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "ce1ac118ddcb12415fef50d7a2031af3d814ddcfa5d4139afa9809ce312d2a15",
+        "baseline_decoded_rgb_sha256": "202989669e4f0c6559889e4b6963f2174b13e6d8e6c98aa540c0c75362d89185",
+        "provenance_file": "provenance/daylight_plaza-opendlss.json",
+        "provenance_sha256": "818aedc8f9812566e38c1de29f08c8add5e0eae147f4afce1692892939a7d42b",
+        "settings": {
+          "image": "/artifacts/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1344,
+            768
+          ],
+          "inferenceDimensions": [
+            1344,
+            768
+          ],
+          "resized": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 1005190,
+          "changed_fraction_any_rgb": 0.9738401382688492,
+          "mean_absolute_rgb_levels": 4.220467380745701,
+          "root_mean_square_rgb_levels": 5.907668430167294,
+          "mean_signed_rgb_levels": [
+            3.0045214456225198,
+            3.3793509347098216,
+            3.4412279885912698
+          ],
+          "maximum_channel_delta_levels": 64,
+          "median_changed_pixel_max_channel_delta_levels": 3.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.8128826807415674,
+          "fraction_pixel_max_channel_delta_ge5": 0.36092413039434523,
+          "fraction_pixel_max_channel_delta_ge10": 0.09657408699156746
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 944096,
+          "changed_fraction_any_rgb": 0.9146515376984127,
+          "mean_absolute_rgb_levels": 1.8808370923239088,
+          "root_mean_square_rgb_levels": 2.612882179042909,
+          "mean_signed_rgb_levels": [
+            0.8146430121527778,
+            1.1120954241071428,
+            1.0625242203000993
+          ],
+          "maximum_channel_delta_levels": 38,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.5990125868055556,
+          "fraction_pixel_max_channel_delta_ge5": 0.0793825179811508,
+          "fraction_pixel_max_channel_delta_ge10": 0.009192088293650794
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 1027544,
+          "changed_fraction_any_rgb": 0.9954969618055556,
+          "mean_absolute_rgb_levels": 9.861959790426587,
+          "root_mean_square_rgb_levels": 13.219671989818602,
+          "mean_signed_rgb_levels": [
+            -0.2224305168030754,
+            0.24446227058531747,
+            2.5039130316840277
+          ],
+          "maximum_channel_delta_levels": 73,
+          "median_changed_pixel_max_channel_delta_levels": 10.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9467289031498016,
+          "fraction_pixel_max_channel_delta_ge5": 0.7674793061755952,
+          "fraction_pixel_max_channel_delta_ge10": 0.49856131417410715
+        }
+      },
+      "comparison_full": "assets/daylight_plaza/comparison-full.png"
+    },
+    {
+      "id": "daylight_city",
+      "kind": "heldout_daylight_scene",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "input_sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+      "decoded_input_rgb_sha256": "32cb0c305eebce850737a42929e3e8a14d6683e0cf07ddf2ef3f0648b898612a",
+      "images_sha256": {
+        "input": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+        "current": "e51515d9e2ca297527975045122bc142c16d50894f101ab8878610e4a1ec4ccf",
+        "ema": "6211716f6cb23875cd8e7b1913ef42b44b284e0d181d4f0ecca024288ecedd1b",
+        "original_opendlss": "0306c0fd59f052311740c74166ba975ed662ffa9c27c020ca4e192b76fcc490b"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "0306c0fd59f052311740c74166ba975ed662ffa9c27c020ca4e192b76fcc490b",
+        "baseline_decoded_rgb_sha256": "90efca57d954a8371931b0c934a364a26158ba5c2afbf6aa65c39276773b5e29",
+        "provenance_file": "provenance/daylight_city-opendlss.json",
+        "provenance_sha256": "8a17c0fc3c97d5306eb430fa1a7ff77f5008288d01507b25e1123c47ca1eec6a",
+        "settings": {
+          "image": "/artifacts/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1344,
+            768
+          ],
+          "inferenceDimensions": [
+            1344,
+            768
+          ],
+          "resized": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 1018657,
+          "changed_fraction_any_rgb": 0.9868871295262897,
+          "mean_absolute_rgb_levels": 8.51614040798611,
+          "root_mean_square_rgb_levels": 9.96419432375838,
+          "mean_signed_rgb_levels": [
+            8.014347136966766,
+            8.05962650359623,
+            8.053556896391369
+          ],
+          "maximum_channel_delta_levels": 50,
+          "median_changed_pixel_max_channel_delta_levels": 9.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9270600818452381,
+          "fraction_pixel_max_channel_delta_ge5": 0.7653411380828373,
+          "fraction_pixel_max_channel_delta_ge10": 0.4495123000372024
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 953970,
+          "changed_fraction_any_rgb": 0.9242175874255952,
+          "mean_absolute_rgb_levels": 2.2810562375992065,
+          "root_mean_square_rgb_levels": 2.9004581918369805,
+          "mean_signed_rgb_levels": [
+            1.3064739893353174,
+            1.5311124286954365,
+            1.4582674541170635
+          ],
+          "maximum_channel_delta_levels": 25,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.6717403351314484,
+          "fraction_pixel_max_channel_delta_ge5": 0.10706341455853174,
+          "fraction_pixel_max_channel_delta_ge10": 0.005953349764384921
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 1032192,
+          "changed_pixels_any_rgb": 1031548,
+          "changed_fraction_any_rgb": 0.9993760850694444,
+          "mean_absolute_rgb_levels": 11.002903529575892,
+          "root_mean_square_rgb_levels": 12.720339088841733,
+          "mean_signed_rgb_levels": [
+            0.4605761331225198,
+            0.12028963603670635,
+            -0.3642830016121032
+          ],
+          "maximum_channel_delta_levels": 62,
+          "median_changed_pixel_max_channel_delta_levels": 12.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9880642361111112,
+          "fraction_pixel_max_channel_delta_ge5": 0.8923901754712301,
+          "fraction_pixel_max_channel_delta_ge10": 0.6862909226190477
+        }
+      },
+      "comparison_full": "assets/daylight_city/comparison-full.png"
+    },
+    {
+      "id": "michael_daylight",
+      "kind": "external_GTA5_face",
+      "dimensions": [
+        1024,
+        900
+      ],
+      "input_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+      "decoded_input_rgb_sha256": "5d55556f9885bcaa51501672134eaa05a7b188f0c314c25bc45fc95d0c43e129",
+      "images_sha256": {
+        "input": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+        "current": "324d2bde7db5d46841857913e2dd1f3802fc2f5e82fe532b5b41c0ae2a8664ed",
+        "ema": "75371e220fcff615137dd84770418b434dc9b659b7d26436b90981a810dbdfd3",
+        "original_opendlss": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "32fff48e774612b606403833c3eb5987d0041e57fdb7cd06309ff960e6f788dc",
+        "baseline_decoded_rgb_sha256": "723b1305e1039b84fc76264445230f46013dc9f3231a5c6517d20d1748ee71a7",
+        "provenance_file": "provenance/michael_daylight-opendlss.json",
+        "provenance_sha256": "53b6a4eb4b23ba13509d5942ff0532a6bc3496e8e0fd9f1650c3fcd0036db99a",
+        "settings": {
+          "intensity": 1,
+          "style": 0,
+          "local_tone": 1,
+          "local_structure": 1,
+          "skin_structure": -1,
+          "auto_mask": true,
+          "scaling_ratio": 1,
+          "native_preset": 0,
+          "native_reset_each_run": true,
+          "depth": "constant reversed-Z 1.0, synthetic still-frame guide",
+          "motion": "zero",
+          "ui_correction": false,
+          "webgpu_seed": 0,
+          "native_seed_equivalence_verified": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 921600,
+          "changed_pixels_any_rgb": 864623,
+          "changed_fraction_any_rgb": 0.9381759982638889,
+          "mean_absolute_rgb_levels": 2.0638035300925925,
+          "root_mean_square_rgb_levels": 2.933099170932987,
+          "mean_signed_rgb_levels": [
+            0.38099609375,
+            0.6182996961805556,
+            0.9236838107638888
+          ],
+          "maximum_channel_delta_levels": 38,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.5386067708333333,
+          "fraction_pixel_max_channel_delta_ge5": 0.11795247395833333,
+          "fraction_pixel_max_channel_delta_ge10": 0.013736979166666666
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 921600,
+          "changed_pixels_any_rgb": 817594,
+          "changed_fraction_any_rgb": 0.8871462673611111,
+          "mean_absolute_rgb_levels": 1.3415089699074074,
+          "root_mean_square_rgb_levels": 1.8156071706589363,
+          "mean_signed_rgb_levels": [
+            -0.09503689236111111,
+            0.11744249131944444,
+            0.12122938368055555
+          ],
+          "maximum_channel_delta_levels": 21,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.3470149739583333,
+          "fraction_pixel_max_channel_delta_ge5": 0.027652994791666666,
+          "fraction_pixel_max_channel_delta_ge10": 0.0012565104166666666
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 921600,
+          "changed_pixels_any_rgb": 920821,
+          "changed_fraction_any_rgb": 0.9991547309027777,
+          "mean_absolute_rgb_levels": 7.955211950231481,
+          "root_mean_square_rgb_levels": 11.56316164273102,
+          "mean_signed_rgb_levels": [
+            -0.2949490017361111,
+            0.6785828993055556,
+            1.4376421440972222
+          ],
+          "maximum_channel_delta_levels": 81,
+          "median_changed_pixel_max_channel_delta_levels": 7.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.985595703125,
+          "fraction_pixel_max_channel_delta_ge5": 0.7537944878472222,
+          "fraction_pixel_max_channel_delta_ge10": 0.40043294270833335
+        }
+      },
+      "comparison_full": "assets/michael_daylight/comparison-full.png",
+      "face_crop_xyxy": [
+        140,
+        40,
+        850,
+        900
+      ],
+      "face_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 610600,
+          "changed_pixels_any_rgb": 578817,
+          "changed_fraction_any_rgb": 0.9479479200786112,
+          "mean_absolute_rgb_levels": 2.6669636423190304,
+          "root_mean_square_rgb_levels": 3.471603961406635,
+          "mean_signed_rgb_levels": [
+            0.39137897150343925,
+            0.5840730429086145,
+            0.8949737962659678
+          ],
+          "maximum_channel_delta_levels": 38,
+          "median_changed_pixel_max_channel_delta_levels": 3.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.7369128725843432,
+          "fraction_pixel_max_channel_delta_ge5": 0.17293809367834917,
+          "fraction_pixel_max_channel_delta_ge10": 0.01969210612512283
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 610600,
+          "changed_pixels_any_rgb": 534102,
+          "changed_fraction_any_rgb": 0.874716672125778,
+          "mean_absolute_rgb_levels": 1.5799716126214651,
+          "root_mean_square_rgb_levels": 2.1018968343938207,
+          "mean_signed_rgb_levels": [
+            -0.41993612839829675,
+            -0.22726826072715361,
+            -0.23077137242056994
+          ],
+          "maximum_channel_delta_levels": 21,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.4958090402882411,
+          "fraction_pixel_max_channel_delta_ge5": 0.04022436947264985,
+          "fraction_pixel_max_channel_delta_ge10": 0.0017834916475597772
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 610600,
+          "changed_pixels_any_rgb": 609833,
+          "changed_fraction_any_rgb": 0.9987438584998363,
+          "mean_absolute_rgb_levels": 9.542922262255704,
+          "root_mean_square_rgb_levels": 13.482494240474432,
+          "mean_signed_rgb_levels": [
+            -1.0191598427775959,
+            2.5901342941369143,
+            4.114398951850639
+          ],
+          "maximum_channel_delta_levels": 81,
+          "median_changed_pixel_max_channel_delta_levels": 10.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9787864395676383,
+          "fraction_pixel_max_channel_delta_ge5": 0.7803422862757943,
+          "fraction_pixel_max_channel_delta_ge10": 0.5214428431051424
+        }
+      }
+    },
+    {
+      "id": "franklin_daylight",
+      "kind": "external_GTA5_face",
+      "dimensions": [
+        500,
+        500
+      ],
+      "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+      "decoded_input_rgb_sha256": "8682902355c19081e7f23f09a3d12bae792e3545982c21680e9b22f47a3fbf65",
+      "images_sha256": {
+        "input": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+        "current": "062988b035d21c29f5bd0cfcd36b536a6c847b5ff997b87841665edfdd64d074",
+        "ema": "d5699f0e74dbebe00b87b03a591425a57dd7a69bdd1098e09f41cc36ad13e79d",
+        "original_opendlss": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "cd5f589c7eaf1ad7ae89d011e45a60e74a02a5ac9d4274d0d3437a45d7d7fd68",
+        "baseline_decoded_rgb_sha256": "02b7c26cc5b5e416635810bd50f64c3056c07e9e2bb5b6d619e3bcc65cc67777",
+        "provenance_file": "provenance/franklin_daylight-opendlss.json",
+        "provenance_sha256": "7e09a144d4dc9e2cd51dae9368d05a1448c7732c79d5b006e22e29edc9d8a63a",
+        "settings": {
+          "intensity": 1,
+          "style": 0,
+          "local_tone": 1,
+          "local_structure": 1,
+          "skin_structure": -1,
+          "auto_mask": true,
+          "scaling_ratio": 1,
+          "native_preset": 0,
+          "native_reset_each_run": true,
+          "depth": "constant reversed-Z 1.0, synthetic still-frame guide",
+          "motion": "zero",
+          "ui_correction": false,
+          "webgpu_seed": 0,
+          "native_seed_equivalence_verified": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 250000,
+          "changed_pixels_any_rgb": 145261,
+          "changed_fraction_any_rgb": 0.581044,
+          "mean_absolute_rgb_levels": 0.47308133333333335,
+          "root_mean_square_rgb_levels": 0.8452352729664485,
+          "mean_signed_rgb_levels": [
+            -0.3096,
+            -0.287096,
+            -0.191148
+          ],
+          "maximum_channel_delta_levels": 21,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.074,
+          "fraction_pixel_max_channel_delta_ge5": 0.00356,
+          "fraction_pixel_max_channel_delta_ge10": 0.000208
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 250000,
+          "changed_pixels_any_rgb": 225678,
+          "changed_fraction_any_rgb": 0.902712,
+          "mean_absolute_rgb_levels": 2.137070666666667,
+          "root_mean_square_rgb_levels": 2.980237798118354,
+          "mean_signed_rgb_levels": [
+            0.227492,
+            0.435992,
+            0.577712
+          ],
+          "maximum_channel_delta_levels": 24,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.622876,
+          "fraction_pixel_max_channel_delta_ge5": 0.11408,
+          "fraction_pixel_max_channel_delta_ge10": 0.015932
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 250000,
+          "changed_pixels_any_rgb": 249988,
+          "changed_fraction_any_rgb": 0.999952,
+          "mean_absolute_rgb_levels": 17.70141466666667,
+          "root_mean_square_rgb_levels": 22.994188338215668,
+          "mean_signed_rgb_levels": [
+            -6.782988,
+            -2.894116,
+            0.449516
+          ],
+          "maximum_channel_delta_levels": 146,
+          "median_changed_pixel_max_channel_delta_levels": 20.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.99544,
+          "fraction_pixel_max_channel_delta_ge5": 0.973324,
+          "fraction_pixel_max_channel_delta_ge10": 0.875892
+        }
+      },
+      "comparison_full": "assets/franklin_daylight/comparison-full.png",
+      "face_crop_xyxy": [
+        95,
+        35,
+        395,
+        450
+      ],
+      "face_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 124500,
+          "changed_pixels_any_rgb": 78117,
+          "changed_fraction_any_rgb": 0.6274457831325301,
+          "mean_absolute_rgb_levels": 0.4953574297188755,
+          "root_mean_square_rgb_levels": 0.85942915583286,
+          "mean_signed_rgb_levels": [
+            -0.3814859437751004,
+            -0.3372610441767068,
+            -0.2506987951807229
+          ],
+          "maximum_channel_delta_levels": 21,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.0657991967871486,
+          "fraction_pixel_max_channel_delta_ge5": 0.0036626506024096386,
+          "fraction_pixel_max_channel_delta_ge10": 0.0002971887550200803
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 124500,
+          "changed_pixels_any_rgb": 113335,
+          "changed_fraction_any_rgb": 0.9103212851405622,
+          "mean_absolute_rgb_levels": 2.1182945113788487,
+          "root_mean_square_rgb_levels": 2.8847152943258143,
+          "mean_signed_rgb_levels": [
+            0.36059437751004014,
+            0.6377269076305221,
+            0.8167068273092369
+          ],
+          "maximum_channel_delta_levels": 24,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.6490040160642571,
+          "fraction_pixel_max_channel_delta_ge5": 0.10920481927710843,
+          "fraction_pixel_max_channel_delta_ge10": 0.012329317269076306
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 124500,
+          "changed_pixels_any_rgb": 124500,
+          "changed_fraction_any_rgb": 1.0,
+          "mean_absolute_rgb_levels": 17.97710843373494,
+          "root_mean_square_rgb_levels": 24.458252057499244,
+          "mean_signed_rgb_levels": [
+            -15.963959839357429,
+            -6.46285140562249,
+            1.7282570281124499
+          ],
+          "maximum_channel_delta_levels": 146,
+          "median_changed_pixel_max_channel_delta_levels": 22.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9999518072289156,
+          "fraction_pixel_max_channel_delta_ge5": 0.9953493975903615,
+          "fraction_pixel_max_channel_delta_ge10": 0.9158393574297189
+        }
+      }
+    },
+    {
+      "id": "trevor_outdoor",
+      "kind": "external_GTA5_face",
+      "dimensions": [
+        780,
+        438
+      ],
+      "input_sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+      "decoded_input_rgb_sha256": "5855ec15551627ff8467bfd3c77c7b13f1b22977e186a08842c879428a26af72",
+      "images_sha256": {
+        "input": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+        "current": "36ee0c5cfade5175a8810a14d19f57b85978d12856fc1a55b0956867bed186b9",
+        "ema": "7339e05e57fe2f15d7def8fedbb07c2e3ba363e1ec2b6201eb1d36ce3341f0aa",
+        "original_opendlss": "39de20a96f8beb0b40e67456021d97fd1e7874de5dfacc55088439ea9f91352d"
+      },
+      "baseline": {
+        "model": "Original OpenDLSS NR310.8.0, extracted official pretrained weights",
+        "implementation": "WebGPU on NVIDIA RTX5070; not the native DLL output image",
+        "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+        "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+        "baseline_sha256": "39de20a96f8beb0b40e67456021d97fd1e7874de5dfacc55088439ea9f91352d",
+        "baseline_decoded_rgb_sha256": "f94ef774fc8d97dd2a489c40812bcd2d11147c7ee0935c4c5b5a5d8569b86c47",
+        "provenance_file": "provenance/trevor_outdoor-opendlss.json",
+        "provenance_sha256": "7b14dc4fc029bff123331b5b1252b19908d4246aefab69ae28fa386d06b2b3c3",
+        "settings": {
+          "intensity": 1,
+          "style": 0,
+          "local_tone": 1,
+          "local_structure": 1,
+          "skin_structure": -1,
+          "auto_mask": true,
+          "scaling_ratio": 1,
+          "native_preset": 0,
+          "native_reset_each_run": true,
+          "depth": "constant reversed-Z 1.0, synthetic still-frame guide",
+          "motion": "zero",
+          "ui_correction": false,
+          "webgpu_seed": 0,
+          "native_seed_equivalence_verified": false
+        },
+        "comparison_scope": "Published model behavior: original Gaussian seed0 versus trained zero-noise convention; not bitwise numeric parity"
+      },
+      "full_image_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 341640,
+          "changed_pixels_any_rgb": 202549,
+          "changed_fraction_any_rgb": 0.5928726144479569,
+          "mean_absolute_rgb_levels": 0.4521016274440932,
+          "root_mean_square_rgb_levels": 1.1950647515392383,
+          "mean_signed_rgb_levels": [
+            -0.30394567380868753,
+            -0.45402470436717013,
+            -0.0993121414354291
+          ],
+          "maximum_channel_delta_levels": 44,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.06126624517035476,
+          "fraction_pixel_max_channel_delta_ge5": 0.012334621238730827,
+          "fraction_pixel_max_channel_delta_ge10": 0.0030031612223393044
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 341640,
+          "changed_pixels_any_rgb": 305029,
+          "changed_fraction_any_rgb": 0.892837489755298,
+          "mean_absolute_rgb_levels": 1.5542237442922375,
+          "root_mean_square_rgb_levels": 2.639362505949075,
+          "mean_signed_rgb_levels": [
+            -0.03540276314248917,
+            0.07131483432853296,
+            0.33971431916637396
+          ],
+          "maximum_channel_delta_levels": 39,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.3765045076688912,
+          "fraction_pixel_max_channel_delta_ge5": 0.0855608242594544,
+          "fraction_pixel_max_channel_delta_ge10": 0.01798384264137689
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 341640,
+          "changed_pixels_any_rgb": 339450,
+          "changed_fraction_any_rgb": 0.9935897435897436,
+          "mean_absolute_rgb_levels": 8.473118877570933,
+          "root_mean_square_rgb_levels": 14.080487027649287,
+          "mean_signed_rgb_levels": [
+            -5.562650743472661,
+            0.6654987706357569,
+            6.255900948366702
+          ],
+          "maximum_channel_delta_levels": 95,
+          "median_changed_pixel_max_channel_delta_levels": 8.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.8870126448893573,
+          "fraction_pixel_max_channel_delta_ge5": 0.6836582367404285,
+          "fraction_pixel_max_channel_delta_ge10": 0.4731588806931273
+        }
+      },
+      "comparison_full": "assets/trevor_outdoor/comparison-full.png",
+      "face_crop_xyxy": [
+        150,
+        0,
+        500,
+        438
+      ],
+      "face_change_vs_input": {
+        "current": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 153300,
+          "changed_pixels_any_rgb": 94742,
+          "changed_fraction_any_rgb": 0.6180169602087411,
+          "mean_absolute_rgb_levels": 0.4931919982604914,
+          "root_mean_square_rgb_levels": 1.151422161558982,
+          "mean_signed_rgb_levels": [
+            -0.2948336594911937,
+            -0.45801696020874105,
+            -0.20463796477495108
+          ],
+          "maximum_channel_delta_levels": 44,
+          "median_changed_pixel_max_channel_delta_levels": 1.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.07540117416829746,
+          "fraction_pixel_max_channel_delta_ge5": 0.009425962165688194,
+          "fraction_pixel_max_channel_delta_ge10": 0.002178734507501631
+        },
+        "ema": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 153300,
+          "changed_pixels_any_rgb": 135027,
+          "changed_fraction_any_rgb": 0.8808023483365949,
+          "mean_absolute_rgb_levels": 2.0880952380952382,
+          "root_mean_square_rgb_levels": 3.2460325860143913,
+          "mean_signed_rgb_levels": [
+            -0.8881865622961513,
+            -0.7716634050880626,
+            -0.5235616438356164
+          ],
+          "maximum_channel_delta_levels": 39,
+          "median_changed_pixel_max_channel_delta_levels": 2.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.4923744292237443,
+          "fraction_pixel_max_channel_delta_ge5": 0.14778212654924983,
+          "fraction_pixel_max_channel_delta_ge10": 0.025864318330071755
+        },
+        "original_opendlss": {
+          "meaning": "uint8 output change versus the input; not image quality or ground-truth accuracy",
+          "pixels": 153300,
+          "changed_pixels_any_rgb": 153298,
+          "changed_fraction_any_rgb": 0.9999869536855838,
+          "mean_absolute_rgb_levels": 13.35018047401609,
+          "root_mean_square_rgb_levels": 19.325552340232232,
+          "mean_signed_rgb_levels": [
+            -14.822504892367906,
+            -2.962283105022831,
+            8.907697325505545
+          ],
+          "maximum_channel_delta_levels": 95,
+          "median_changed_pixel_max_channel_delta_levels": 19.0,
+          "fraction_pixel_max_channel_delta_ge2": 0.9909067188519244,
+          "fraction_pixel_max_channel_delta_ge5": 0.8742335290280496,
+          "fraction_pixel_max_channel_delta_ge10": 0.7432420091324201
+        }
+      }
+    }
+  ],
+  "publication_file_hashes": "manifest.json",
+  "trained_receipt_file": "provenance/trained-raw-receipt.json"
+}

@@ -1,0 +1,317 @@
+{
+  "status": "completed",
+  "job": "729214",
+  "host": "dgx-35",
+  "completed_at_utc": "2026-10-29T12:53:38.190348+00:00",
+  "step": 4000,
+  "checkpoint": "/project/visworld01/open-dlss-jobs/gtav2h_sekai2h_nr146m_b32_scratch_20261029_v4/state/daylight-face-step4000.pt",
+  "checkpoint_sha256": "1ffa46fc9cc453c8fc86029b3fe922cf2f01630eb11663166da73c16d098628a",
+  "cases_manifest": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/cases.json",
+  "cases_manifest_sha256": "6a910fa598928f323b75bbd1ce88bd3c6349db5981491dcb0b0a1ef8a56b00ca",
+  "generator_parameters": 145755115,
+  "gpu": "NVIDIA H800",
+  "gpu_uuid": "128e2c4c-419a-03e3-1391-ab53d5183fdc",
+  "torch": "2.11.0a0+eb65b36914.nv26.02",
+  "precision": "bf16",
+  "image_resize": false,
+  "tile": 0,
+  "strength": 1.0,
+  "history": false,
+  "controls": {
+    "noise_mode": "zero",
+    "noise_std": 1.0,
+    "style": 0.0,
+    "local_tone": 1.0,
+    "local_structure": 1.0,
+    "skin_structure": -1.0,
+    "auto_mask": true
+  },
+  "variants": [
+    "current",
+    "ema"
+  ],
+  "cases": [
+    {
+      "id": "daylight_boardwalk",
+      "kind": "heldout_daylight_scene",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_boardwalk/input.png",
+      "input_sha256": "3a13a6b3a49fcaafe975ce30bd39208c58076caad5a4b7bb323a31a14f422974",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "face_crop_xyxy": null,
+      "source_sequence_id": "gta:MOTSynth-576",
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_boardwalk/current.png",
+          "sha256": "dad6819df4d23638648d1fb433df8d402219287e9eb09d56e6accde10e06eae1",
+          "mean_absolute_change": 0.023717597126960754,
+          "mean_absolute_change_8bit": 6.047987461090088,
+          "max_absolute_change": 0.19140625,
+          "quantized_changed_pixels": 984989,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9542691669766865,
+          "quantized_mean_abs_rgb_levels": 6.045030381944445,
+          "quantized_max_channel_delta": 49,
+          "elapsed_seconds": 7.9225055910646915,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2397044736
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_boardwalk/ema.png",
+          "sha256": "26ea277dc3519d0edb9fe54e33b91d8eaf696a864d62cf41b203520e8b6c8912",
+          "mean_absolute_change": 0.0097110690549016,
+          "mean_absolute_change_8bit": 2.476322650909424,
+          "max_absolute_change": 0.115234375,
+          "quantized_changed_pixels": 940886,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9115416511656746,
+          "quantized_mean_abs_rgb_levels": 2.468992203000992,
+          "quantized_max_channel_delta": 29,
+          "elapsed_seconds": 0.049931108951568604,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    },
+    {
+      "id": "daylight_plaza",
+      "kind": "heldout_daylight_scene",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_plaza/input.png",
+      "input_sha256": "28cc8467b136998b6c663d40ea8ad6a6c747b9f51571c76369a54b80866fe777",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "face_crop_xyxy": null,
+      "source_sequence_id": "gta:MOTSynth-116",
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_plaza/current.png",
+          "sha256": "62f7b34576a50e47c4942e01bacb95e8da77081b0f4dc2a3a6b158cd43b6657b",
+          "mean_absolute_change": 0.01656004600226879,
+          "mean_absolute_change_8bit": 4.222811698913574,
+          "max_absolute_change": 0.2509803771972656,
+          "quantized_changed_pixels": 1005190,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9738401382688492,
+          "quantized_mean_abs_rgb_levels": 4.220467380745701,
+          "quantized_max_channel_delta": 64,
+          "elapsed_seconds": 0.05149260209873319,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2397044736
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_plaza/ema.png",
+          "sha256": "8b6622c22430401be0c39c1d168fd25d525cf0eecc51b666e11288f0c9ab2fb4",
+          "mean_absolute_change": 0.007438730448484421,
+          "mean_absolute_change_8bit": 1.8968762159347534,
+          "max_absolute_change": 0.1494140625,
+          "quantized_changed_pixels": 944096,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9146515376984127,
+          "quantized_mean_abs_rgb_levels": 1.8808370923239088,
+          "quantized_max_channel_delta": 38,
+          "elapsed_seconds": 0.047337451949715614,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    },
+    {
+      "id": "daylight_city",
+      "kind": "heldout_daylight_scene",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_city/input.png",
+      "input_sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+      "dimensions": [
+        1344,
+        768
+      ],
+      "face_crop_xyxy": null,
+      "source_sequence_id": "gta:MOTSynth-115",
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_city/current.png",
+          "sha256": "e51515d9e2ca297527975045122bc142c16d50894f101ab8878610e4a1ec4ccf",
+          "mean_absolute_change": 0.03337106853723526,
+          "mean_absolute_change_8bit": 8.509622573852539,
+          "max_absolute_change": 0.1953125,
+          "quantized_changed_pixels": 1018657,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9868871295262897,
+          "quantized_mean_abs_rgb_levels": 8.51614040798611,
+          "quantized_max_channel_delta": 50,
+          "elapsed_seconds": 0.04996573878452182,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2397044736
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/daylight_city/ema.png",
+          "sha256": "6211716f6cb23875cd8e7b1913ef42b44b284e0d181d4f0ecca024288ecedd1b",
+          "mean_absolute_change": 0.008972544223070145,
+          "mean_absolute_change_8bit": 2.287998676300049,
+          "max_absolute_change": 0.099609375,
+          "quantized_changed_pixels": 953970,
+          "quantized_total_pixels": 1032192,
+          "quantized_changed_fraction": 0.9242175874255952,
+          "quantized_mean_abs_rgb_levels": 2.2810562375992065,
+          "quantized_max_channel_delta": 25,
+          "elapsed_seconds": 0.04943754291161895,
+          "peak_cuda_allocated_bytes": 2184570368,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    },
+    {
+      "id": "michael_daylight",
+      "kind": "external_GTA5_face",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/michael_daylight/input.png",
+      "input_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+      "dimensions": [
+        1024,
+        900
+      ],
+      "face_crop_xyxy": [
+        140,
+        40,
+        850,
+        900
+      ],
+      "source_sequence_id": null,
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/michael_daylight/current.png",
+          "sha256": "324d2bde7db5d46841857913e2dd1f3802fc2f5e82fe532b5b41c0ae2a8664ed",
+          "mean_absolute_change": 0.008112016133964062,
+          "mean_absolute_change_8bit": 2.0685641765594482,
+          "max_absolute_change": 0.150390625,
+          "quantized_changed_pixels": 864623,
+          "quantized_total_pixels": 921600,
+          "quantized_changed_fraction": 0.9381759982638889,
+          "quantized_mean_abs_rgb_levels": 2.0638035300925925,
+          "quantized_max_channel_delta": 38,
+          "elapsed_seconds": 7.251609950326383,
+          "peak_cuda_allocated_bytes": 2306713088,
+          "peak_cuda_reserved_bytes": 2606759936
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/michael_daylight/ema.png",
+          "sha256": "75371e220fcff615137dd84770418b434dc9b659b7d26436b90981a810dbdfd3",
+          "mean_absolute_change": 0.00520713534206152,
+          "mean_absolute_change_8bit": 1.3278194665908813,
+          "max_absolute_change": 0.0810546875,
+          "quantized_changed_pixels": 817594,
+          "quantized_total_pixels": 921600,
+          "quantized_changed_fraction": 0.8871462673611111,
+          "quantized_mean_abs_rgb_levels": 1.3415089699074074,
+          "quantized_max_channel_delta": 21,
+          "elapsed_seconds": 0.05110828299075365,
+          "peak_cuda_allocated_bytes": 2306713088,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    },
+    {
+      "id": "franklin_daylight",
+      "kind": "external_GTA5_face",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/franklin_daylight/input.png",
+      "input_sha256": "0ea32623f4d79db5990eabbb0d20a6b9b2d389d68826faaf5b4998720e8b0d83",
+      "dimensions": [
+        500,
+        500
+      ],
+      "face_crop_xyxy": [
+        95,
+        35,
+        395,
+        450
+      ],
+      "source_sequence_id": null,
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/franklin_daylight/current.png",
+          "sha256": "062988b035d21c29f5bd0cfcd36b536a6c847b5ff997b87841665edfdd64d074",
+          "mean_absolute_change": 0.002137139905244112,
+          "mean_absolute_change_8bit": 0.544970691204071,
+          "max_absolute_change": 0.08056640625,
+          "quantized_changed_pixels": 145261,
+          "quantized_total_pixels": 250000,
+          "quantized_changed_fraction": 0.581044,
+          "quantized_mean_abs_rgb_levels": 0.47308133333333335,
+          "quantized_max_channel_delta": 21,
+          "elapsed_seconds": 7.903668084181845,
+          "peak_cuda_allocated_bytes": 1113435648,
+          "peak_cuda_reserved_bytes": 2608857088
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/franklin_daylight/ema.png",
+          "sha256": "d5699f0e74dbebe00b87b03a591425a57dd7a69bdd1098e09f41cc36ad13e79d",
+          "mean_absolute_change": 0.008434903807938099,
+          "mean_absolute_change_8bit": 2.150900363922119,
+          "max_absolute_change": 0.0927734375,
+          "quantized_changed_pixels": 225678,
+          "quantized_total_pixels": 250000,
+          "quantized_changed_fraction": 0.902712,
+          "quantized_mean_abs_rgb_levels": 2.137070666666667,
+          "quantized_max_channel_delta": 24,
+          "elapsed_seconds": 0.032868517097085714,
+          "peak_cuda_allocated_bytes": 1113435648,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    },
+    {
+      "id": "trevor_outdoor",
+      "kind": "external_GTA5_face",
+      "input": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/trevor_outdoor/input.png",
+      "input_sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+      "dimensions": [
+        780,
+        438
+      ],
+      "face_crop_xyxy": [
+        150,
+        0,
+        500,
+        438
+      ],
+      "source_sequence_id": null,
+      "outputs": {
+        "current": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/trevor_outdoor/current.png",
+          "sha256": "36ee0c5cfade5175a8810a14d19f57b85978d12856fc1a55b0956867bed186b9",
+          "mean_absolute_change": 0.002127908170223236,
+          "mean_absolute_change_8bit": 0.542616605758667,
+          "max_absolute_change": 0.1728515625,
+          "quantized_changed_pixels": 202549,
+          "quantized_total_pixels": 341640,
+          "quantized_changed_fraction": 0.5928726144479569,
+          "quantized_mean_abs_rgb_levels": 0.4521016274440932,
+          "quantized_max_channel_delta": 44,
+          "elapsed_seconds": 7.239547457080334,
+          "peak_cuda_allocated_bytes": 1262712320,
+          "peak_cuda_reserved_bytes": 2610954240
+        },
+        "ema": {
+          "image": "/project/visworld01/open-dlss-jobs/nr4000_daylight_faces_compare_20261029_v1/output/trevor_outdoor/ema.png",
+          "sha256": "7339e05e57fe2f15d7def8fedbb07c2e3ba363e1ec2b6201eb1d36ce3341f0aa",
+          "mean_absolute_change": 0.0062212576158344746,
+          "mean_absolute_change_8bit": 1.5864206552505493,
+          "max_absolute_change": 0.1533203125,
+          "quantized_changed_pixels": 305029,
+          "quantized_total_pixels": 341640,
+          "quantized_changed_fraction": 0.892837489755298,
+          "quantized_mean_abs_rgb_levels": 1.5542237442922375,
+          "quantized_max_channel_delta": 39,
+          "elapsed_seconds": 0.03417360968887806,
+          "peak_cuda_allocated_bytes": 1262712320,
+          "peak_cuda_reserved_bytes": 2610954240
+        }
+      }
+    }
+  ],
+  "face_display": "crop identical coordinates after full-resolution inference; nearest-neighbor 2x; native crops also saved",
+  "quality_verified": false,
+  "elapsed_seconds": 41.45151263009757
+}

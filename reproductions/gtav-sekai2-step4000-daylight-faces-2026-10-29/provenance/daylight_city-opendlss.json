@@ -1,0 +1,72 @@
+{
+  "model": "OpenDLSS WebGPU original NR310.8.0 71-block extracted official pretrained weights",
+  "weights_manifest_sha256": "2c0c920e3a10c3cb3e2c1ea4f94c26c325d9d644cfa57e971440d3a159346262",
+  "all_71_stage_hashes_verified": true,
+  "source_dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+  "upstream_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+  "execution": "Windows Edge WebGPU actual NVIDIA RTX5070, no CPUfallback",
+  "hardware": "NVIDIA GeForce RTX 5070, 621.01, 12227 MiB",
+  "case": {
+    "case": "daylight_city",
+    "input_sha256": "ad1fb4391ddd2a5ffcdd7aacd8a43fa9dd9d6044ddd85578255969ca98587d16",
+    "browser_input_pixels_identical": true,
+    "baseline_sha256": "0306c0fd59f052311740c74166ba975ed662ffa9c27c020ca4e192b76fcc490b",
+    "baseline_file": "/home/shurui/wkspace/open-dlss-daylight-face-4000-20261029/baseline/daylight_city.png",
+    "runtime_file": "/home/shurui/wkspace/open-dlss-daylight-face-4000-20261029/baseline-runs/daylight_city/original-runtime.json",
+    "runtime_sha256": "8b6f366838f53bdbaa7d8874e7d6279e728fe08fdad1a742fc87e929198294a1",
+    "dimensions": [
+      1344,
+      768
+    ],
+    "settings": {
+      "image": "/artifacts/input.png",
+      "seed": 0,
+      "autoMask": true,
+      "conditioning": {
+        "localTone": 1,
+        "localStructure": 1,
+        "skinStructure": -1,
+        "style": 0
+      },
+      "intensity": 1,
+      "history": "single frame: history feature lanes equal current frame; no temporal blend",
+      "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+      "sourceDimensions": [
+        1344,
+        768
+      ],
+      "inferenceDimensions": [
+        1344,
+        768
+      ],
+      "resized": false
+    },
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32,
+      "isFallbackAdapter": false
+    },
+    "determinism": {
+      "repeatedSameFeatures": 2,
+      "comparisons": [
+        {
+          "againstRun": 1,
+          "run": 2,
+          "float32Elements": 4128768,
+          "bitwiseMismatches": 0
+        }
+      ],
+      "verified": true
+    },
+    "completed_at_utc": "2026-10-29T12:50:57.761526+00:00",
+    "input_mean_rgb_levels": 92.2244146437872,
+    "output_minus_input_mean_absolute_rgb_levels": 11.002903529575892,
+    "head_nonfinite": 0
+  },
+  "weights_provenance_matches_source_dll": true,
+  "noise_comparison_note": "Original OpenDLSS uses its Gaussian noise seed0; trained model recipe uses zero noise. This compares publishedmodelbehaviors, not bitwise numeric parity."
+}

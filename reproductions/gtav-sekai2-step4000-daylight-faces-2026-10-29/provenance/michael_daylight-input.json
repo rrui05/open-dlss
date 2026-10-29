@@ -1,0 +1,57 @@
+{
+  "id": "michael_daylight",
+  "title": "Michael / GTA V",
+  "face_crop_xyxy": [
+    140,
+    40,
+    850,
+    900
+  ],
+  "provenance": {
+    "id": "michael_daylight",
+    "title": "Michael / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Michael De Santa",
+    "source_page": "https://www.svg.com/389710/the-most-bizarre-ways-you-can-play-gta-5/",
+    "source_image": "https://www.svg.com/img/gallery/the-most-bizarre-ways-people-have-beaten-gta-5/l-intro-1619097964.jpg",
+    "source_sha256": "5b3629c7f508516b62e6add14b9ed536eb838c9d02a4cffea4fc3c58a49e33ad",
+    "input_crop_xyxy": [
+      200,
+      0,
+      1224,
+      900
+    ],
+    "face_crop_xyxy": [
+      140,
+      40,
+      850,
+      900
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+    "source_dimensions": [
+      1600,
+      900
+    ],
+    "input_dimensions": [
+      1024,
+      900
+    ],
+    "input_sha256": "cb549c08b339d4df4a4161b0f12916cac7c71de2387d9b67c8c70600f061761a",
+    "decoded_input_rgb_sha256": "5d55556f9885bcaa51501672134eaa05a7b188f0c314c25bc45fc95d0c43e129",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Crop at original pixel scale: [200, 0, 1224, 900]",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}

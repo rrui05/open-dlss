@@ -1,0 +1,51 @@
+{
+  "id": "trevor_outdoor",
+  "title": "Trevor / GTA V",
+  "face_crop_xyxy": [
+    150,
+    0,
+    500,
+    438
+  ],
+  "provenance": {
+    "id": "trevor_outdoor",
+    "title": "Trevor / GTA V",
+    "game": "Grand Theft Auto V",
+    "character": "Trevor Philips",
+    "source_page": "https://www.svg.com/326204/this-gta-online-ad-is-causing-a-frenzy/",
+    "source_image": "https://www.svg.com/img/gallery/this-gta-online-ad-is-causing-a-frenzy/intro-1612556521.jpg",
+    "source_sha256": "9a48ea8541d138cf9df6325e9dce3f46e16253fdfbc9697f7be4d4372c588883",
+    "input_crop_xyxy": null,
+    "face_crop_xyxy": [
+      150,
+      0,
+      500,
+      438
+    ],
+    "source_verification": {
+      "image_visually_inspected": true,
+      "source_page_checked": true,
+      "visible_content": "GTA V rendered character close-up, not a real photograph or cover illustration",
+      "original_game_build": "unconfirmed",
+      "unmodified_assets": "unconfirmed; no visible photorealistic mod replacement, source does not identify engine/build/mod settings",
+      "ai_generated_or_enhanced": "no visible evidence; original editing history not supplied by source"
+    },
+    "source_limitations": "The source does not supply exact game build, graphics settings, mod status, or original image editing history.",
+    "source_dimensions": [
+      780,
+      438
+    ],
+    "input_dimensions": [
+      780,
+      438
+    ],
+    "input_sha256": "8c9016e80e1786d7c6004d58e76cbff8bb4adc58df59c980aada11d9157594e6",
+    "decoded_input_rgb_sha256": "5855ec15551627ff8467bfd3c77c7b13f1b22977e186a08842c879428a26af72",
+    "transforms": [
+      "Decode original JPEG to RGB",
+      "Save lossless PNG; no rescaling or synthetic degradation"
+    ],
+    "synthetic_degradation": false,
+    "rescaled_before_inference": false
+  }
+}
