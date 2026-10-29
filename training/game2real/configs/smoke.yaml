@@ -1,6 +1,8 @@
-# Wiring/backpropagation test only. Random features cannot establish realism.
+# Legacy tiny Swin baseline for fast pipeline wiring/backpropagation tests only.
+# This does not test the full NR 310.8.0 topology. Random features cannot establish realism.
 output: runs/smoke
 model:
+  architecture: swin
   dim: 8
   depths: [1, 1, 1, 1]
   heads: [1, 2, 4, 8]

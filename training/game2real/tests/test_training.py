@@ -54,6 +54,9 @@ def test_optimizer_checkpoint_resume_and_image_inference(tmp_path):
     assert all(np.isfinite(entry["g/total"]) for entry in logs)
     assert not any(entry["skipped_nonfinite"] for entry in logs)
     config["train"]["steps"] = 3
+    # Historical checkpoints had the same Swin topology without an explicit tag.
+    first["config"]["model"].pop("architecture", None)
+    torch.save(first, checkpoint)
     train(config, "cpu", str(checkpoint))
     resumed = torch.load(checkpoint, map_location="cpu", weights_only=False)
     assert resumed["step"] == 3

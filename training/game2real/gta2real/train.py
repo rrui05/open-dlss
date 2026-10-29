@@ -35,7 +35,8 @@ from .losses import (
     patch_nce_loss, perceptual_content_loss, semantic_consistency_loss,
     total_variation_loss,
 )
-from .models import GeneratorConfig, MultiScaleDiscriminator, TransformerUNet
+from .models import MultiScaleDiscriminator
+from .generators import architecture, build_generator, forward_source, generator_config
 from .perceptual import DinoStructure, FrozenVGG16, SemanticTeacher
 from .utils import (atomic_save, distributed_setup, finite_gradients, reduced_metrics,
                     restore_rng, rng_state, save_image, seed_everything, unwrap, write_json)
@@ -192,7 +193,9 @@ def validate(ema, teachers, dataset, config: dict, device: torch.device, out: Pa
         item = dataset[index]
         source = item["source"].unsqueeze(0).to(device)
         target = item["target"].unsqueeze(0).to(device)
-        output = ema(source)
+        guides = {key: item[key].unsqueeze(0).to(device)
+                  for key in ("previous", "flow", "mask") if key in item}
+        output = forward_source(ema, source, guides)
         if not torch.isfinite(output).all():
             raise FloatingPointError("validation generator output contains NaN or infinity")
         source_features, generated_features, target_features = teachers.vgg(source), teachers.vgg(output), teachers.vgg(target)
@@ -232,7 +235,13 @@ def validate(ema, teachers, dataset, config: dict, device: torch.device, out: Pa
 
 def generator_losses(generator, discriminator, teachers, batch: dict, config: dict, step: int):
     source, target = batch["source"], batch["target"]
-    output = generator(source)
+    have_temporal = all(name in batch for name in ("previous", "flow"))
+    previous = None
+    if have_temporal and (config["loss"]["temporal"] > 0
+                          or architecture(config["model"]) == "nr"):
+        with torch.no_grad():
+            previous = unwrap(generator)(batch["previous"])
+    output = forward_source(generator, source, batch, previous)
     with torch.no_grad():
         source_features = teachers.vgg(source)
     generated_features = teachers.vgg(output)
@@ -255,10 +264,7 @@ def generator_losses(generator, discriminator, teachers, batch: dict, config: di
             labels=batch.get("source_label"), confidence=float(teachers.options["semantic_confidence"]))
     if weights["identity"] > 0:
         terms["identity"] = F.l1_loss(generator(target), target)
-    have_temporal = all(name in batch for name in ("previous", "flow"))
     if weights["temporal"] > 0 and have_temporal:
-        with torch.no_grad():
-            previous = unwrap(generator)(batch["previous"])
         terms["temporal"] = masked_temporal_loss(output, previous, batch["flow"], batch.get("mask"))
     elif config["train"]["require_temporal"]:
         raise ValueError("this batch lacks previous/flow required by train.require_temporal")
@@ -328,8 +334,7 @@ def train(config: dict, device_name: str = "auto", resume: str | None = None) ->
     data_hash = fingerprint(dataset)
     if options["require_temporal"] and not all(record.previous and record.flow for record in dataset.sources):
         raise ValueError("require_temporal requires valid previous/flow entries on every source record")
-    model_config = GeneratorConfig(**config["model"])
-    generator = TransformerUNet(model_config).to(device)
+    generator = build_generator(config["model"]).to(device)
     discriminator = MultiScaleDiscriminator(**config["discriminator"]).to(device)
     teachers = Teachers(config).to(device).eval()
     ema = deepcopy(generator).eval().requires_grad_(False)
@@ -347,7 +352,12 @@ def train(config: dict, device_name: str = "auto", resume: str | None = None) ->
         if state["data_fingerprint"] != data_hash:
             raise ValueError("dataset records changed since this checkpoint")
         for key in ("model", "discriminator", "teachers", "loss", "seed", "data", "validation"):
-            if state["config"][key] != config[key]:
+            saved, requested = state["config"][key], config[key]
+            if key == "model":
+                # Earlier checkpoints predate the explicit architecture tag.
+                saved = (architecture(saved), asdict(generator_config(saved)))
+                requested = (architecture(requested), asdict(generator_config(requested)))
+            if saved != requested:
                 raise ValueError(f"resume changes {key}; use the checkpoint's configuration")
         replay_keys = ("accumulation", "precision", "lr_g", "lr_d", "betas", "weight_decay",
                        "warmup_steps", "min_lr_ratio", "adversarial_ramp_steps", "ema_decay",
@@ -384,6 +394,7 @@ def train(config: dict, device_name: str = "auto", resume: str | None = None) ->
     discriminator.train()
     if rank == 0:
         print(json.dumps({"event": "ready", "source_images": len(dataset.sources), "real_images": len(dataset.targets),
+                          "generator_architecture": architecture(config["model"]),
                           "generator_parameters": sum(p.numel() for p in generator.parameters()),
                           "validation": validation is not None, "device": str(device),
                           "temporal_guides": sum(bool(r.previous and r.flow) for r in dataset.sources),
@@ -407,7 +418,7 @@ def train(config: dict, device_name: str = "auto", resume: str | None = None) ->
             sync = micro == accumulation - 1
             with (discriminator.no_sync() if world > 1 and not sync else nullcontext()):
                 with torch.no_grad(), autocast():
-                    detached_fake = unwrap(generator)(batch["source"])
+                    detached_fake = forward_source(unwrap(generator), batch["source"], batch)
                     real_features = teachers.vgg(batch["target"])
                     fake_features = teachers.vgg(detached_fake)
                 use_r1 = float(options["r1_gamma"]) > 0 and step % int(options["r1_interval"]) == 0

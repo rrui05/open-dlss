@@ -1,0 +1,36 @@
+# Full 145,755,115-parameter NR; synthetic smoke data cannot establish quality.
+# Native geometry retains a >=320-pixel field even for this 64-pixel crop.
+output: runs/nr_smoke
+model:
+  architecture: nr
+  checkpoint_blocks: true
+  noise_mode: zero
+discriminator:
+  width: 16
+  scales: 2
+data:
+  crop_size: 64
+  batch_size: 1
+  workers: 0
+teachers:
+  vgg_weights: none
+  dino_model: null
+  semantic_model: null
+loss:
+  dino: 0.0
+  semantic: 0.0
+  temporal: 0.0
+train:
+  steps: 2
+  accumulation: 1
+  precision: bf16
+  warmup_steps: 0
+  adversarial_ramp_steps: 0
+  r1_gamma: 0.0
+  log_every: 1
+  save_every: 2
+  validate_every: 2
+  allow_random_features: true
+validation:
+  samples: 2
+  save_images: 2

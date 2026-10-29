@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "scope": "Code correctness and integration, not trained game-to-real image quality",
+  "scope": "NR 310.8.0 architecture replication and trainable pipeline correctness; not trained image quality",
   "environment": {
     "os": "Windows 11",
     "python": "3.11",
@@ -9,32 +9,98 @@
     "transformers": "4.57.6",
     "cuda_gpu": "NVIDIA GeForce RTX 5060 8 GB"
   },
+  "architecture": {
+    "source": "src/nr_graph.cpp and repository deployment shaders, NR 310.8.0",
+    "parameters": 145755115,
+    "numbered_modules": 71,
+    "complete_transformer_blocks": 70,
+    "global_vit_blocks": 8,
+    "input_channels": 16,
+    "raw_head_channels": 4,
+    "initialization": "from scratch; no NVIDIA NR weights loaded",
+    "continuous_training_math": true,
+    "native_fp8_bit_parity_verified": false
+  },
   "checks": {
-    "pytest": {"status": "passed", "tests": 67, "command": "python -m pytest -q"},
-    "cpu_training": "passed actual optimizer, validation, checkpoint, resume, and inference paths",
-    "ddp": "passed two real Gloo CPU processes with FileStore, gradient accumulation, mixed temporal guides, validation, EMA selection, checkpoint and resume",
-    "cuda_bf16": "passed actual backward and optimizer steps with pretrained VGG16, DINOv2 and SegFormer; feature R1 and gradient accumulation enabled",
-    "default_generator_capacity": {
-      "status": "passed forward, backward, optimizer, EMA and validation",
-      "parameters": 22731899,
-      "crop_size": 128,
-      "note": "Full default generator capacity; smaller crops and teacher views than the H800 preset"
+    "pytest": {
+      "status": "passed",
+      "tests": 119,
+      "command": "python -m pytest -q --basetemp D:/newDLSS/outputs/nr-tests-20261029-final"
     },
-    "pretrained_teacher_preparation": "passed real downloads and local safetensors/feature-weight export",
-    "content_candidate_retrieval": "passed actual DINO descriptor extraction, chunked nearest-neighbor search and index write",
-    "inference_and_content_evaluation": "passed CUDA EMA image inference and DINO/semantic report generation with original-size PNG outputs",
-    "packaging": "passed editable installation and installed CLI entry points",
-    "linux_launcher": "passed bash -n syntax check under WSL"
+    "nr_mathematical_oracles": "passed independent tests of zero-border four-phase windows, cosine scales, head-major QKV, full query-key prior, original cubic polynomial and FFN branches, exact pooling/geometry, all 71 execution shapes, logical parameter count, native single-reflection padding and temporal composition",
+    "nr_full_capacity_cuda": {
+      "status": "passed",
+      "architecture": "NR 310.8.0 continuous training graph",
+      "parameters": 145755115,
+      "device": "NVIDIA GeForce RTX 5060",
+      "torch": "2.11.0+cu128",
+      "precision": "bf16 autocast / FP32 parameters and optimizer",
+      "input_shape": [
+        1,
+        3,
+        128,
+        129
+      ],
+      "steps": [
+        {
+          "step": 1,
+          "loss": 0.021199194714426994,
+          "history": false,
+          "all_parameter_gradients_present": true,
+          "finite_gradients": true,
+          "first_global_vit_gradient_l1": 0.0,
+          "seconds": 1.1696578000555746
+        },
+        {
+          "step": 2,
+          "loss": 0.08712780475616455,
+          "history": true,
+          "all_parameter_gradients_present": true,
+          "finite_gradients": true,
+          "first_global_vit_gradient_l1": 0.00046697181473120963,
+          "seconds": 0.6658794000395574
+        }
+      ],
+      "checkpoint_inference_round_trip": "bit-identical within this PyTorch BF16 path",
+      "peak_cuda_allocated_bytes": 2954535936,
+      "elapsed_seconds": 3.7790076000383124,
+      "native_fp8_parity_verified": false,
+      "quality_verified": false
+    },
+    "nr_trainer": {
+      "status": "passed",
+      "parameters": 145755115,
+      "precision": "bf16",
+      "crop_size": 64,
+      "steps_before_resume": 2,
+      "steps_after_resume": 3,
+      "optimizer_states": 640,
+      "history_and_current_to_previous_flow": true,
+      "temporal_head_changed": true,
+      "gan_content_identity_losses": true,
+      "ema_validation_checkpoint_resume": true,
+      "teacher_features": "random VGG features explicitly enabled for synthetic wiring check only",
+      "nonfinite_skipped_steps": 0,
+      "quality_verified": false
+    },
+    "nr_ema_cli_inference": "passed two original-size 96x80 PNG outputs from step-3 full NR trainer checkpoint on CUDA BF16, tile=0",
+    "nr_history_inference": "passed 12 CPU tests of whole-image/tiled history and mask paths, CLI reprojection, invalid arguments and legacy rejection; CUDA NR history forward/backward also passed",
+    "legacy_checkpoint_compatibility": "passed untagged Swin checkpoint inference and actual optimizer resume",
+    "shared_training_ddp": "passed two real Gloo CPU processes on the tiny legacy Swin fixture with gradient accumulation, mixed guides, validation, checkpoint and resume; full NR NCCL execution is not verified",
+    "previous_teacher_stack_validation": "Before NR migration, pretrained VGG16, DINOv2 and SegFormer preparation and CUDA loss backward passed with the Swin model; not a full-NR quality-preset run",
+    "packaging": "passed editable 0.2.0 installation, Python syntax checks and installed training/inference CLI entry points",
+    "linux_launcher": "bash -n checked via WSL"
   },
   "not_verified": [
-    "H800 memory capacity, throughput, and torchrun/NCCL execution",
-    "512x512 full quality configuration on production hardware",
-    "Training or image quality on the user's GTA5 and SeSekai2 datasets",
+    "H800 memory, throughput and full-NR torchrun/NCCL execution",
+    "512x512 NR quality preset with all pretrained teachers on production hardware",
+    "Training or visual quality on the user GTA5 and SeSekai2 datasets",
+    "Native FP8/FP16 bit parity or native image parity; softmax and arithmetic intentionally differ for continuous training",
+    "Import/export of original packed NVIDIA NR weights or replacement of the native runtime",
+    "Training of variable artistic controls or history mixing without sequence/flow supervision",
     "Real-data hyperparameter optimality or state-of-the-art quality",
-    "FID/KID runtime path and downloaded Inception weights",
-    "Video consistency without supplied sequence/flow supervision"
+    "FID/KID runtime path and downloaded Inception weights"
   ],
-  "local_launcher_limitation": "The local Windows wheel's torchrun TCP rendezvous failed because libuv support was absent. DDP training itself was subsequently tested with an independently initialized FileStore/Gloo process group. The server launcher targets Linux NCCL.",
-  "fixtures": "Procedurally generated test patterns only; they are not photorealism training evidence",
+  "fixtures": "Procedurally generated patterns only; no production datasets used",
   "quality_verified": false
 }

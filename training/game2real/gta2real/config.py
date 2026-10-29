@@ -8,13 +8,13 @@ from typing import Any
 
 import yaml
 
+from .generators import architecture, generator_config, model_defaults
+
 
 DEFAULTS: dict[str, Any] = {
     "seed": 42,
     "output": "runs/gta5_sesekai2",
-    "model": {"dim": 64, "depths": [2, 2, 6, 4], "heads": [2, 4, 8, 16],
-              "window_size": 8, "mlp_ratio": 3.0, "max_residual": 0.35,
-              "checkpoint_blocks": True},
+    "model": {"architecture": "nr"},
     "discriminator": {"width": 128, "scales": 3},
     "data": {"source": None, "target": None, "val_source": None, "val_target": None,
              "crop_size": 512, "batch_size": 2, "workers": 8,
@@ -59,6 +59,11 @@ def load_config(path: str | Path | None = None) -> dict:
     if not isinstance(value, dict):
         raise ValueError("configuration must be a YAML mapping")
     result = merge(DEFAULTS, value)
+    # Architecture-specific defaults must not leak into the other model.
+    supplied_model = value.get("model", {})
+    if not isinstance(supplied_model, dict):
+        raise ValueError("model must be a mapping")
+    result["model"] = merge(model_defaults(architecture(supplied_model)), supplied_model)
     validate_config(result)
     return result
 
@@ -71,6 +76,9 @@ def validate_config(config: dict) -> None:
         if isinstance(expected, dict):
             if not isinstance(config[section], dict):
                 raise ValueError(f"{section} must be a mapping")
+            if section == "model":
+                generator_config(config[section])
+                continue
             unknown = set(config[section]) - set(expected)
             if unknown:
                 raise ValueError(f"unknown options in {section}: {sorted(unknown)}")

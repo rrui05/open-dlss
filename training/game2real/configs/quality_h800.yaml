@@ -1,22 +1,25 @@
+# Reinitialize and train the repository's full NR 310.8.0 topology, not NVIDIA weights.
+# Continuous BF16/FP32 training is not bit-exact FP8 deployment. H800 capacity is unmeasured.
 # Unpaired GTA5 -> SeSekai2. Set roots/manifests with CLI flags or edit data below.
-# This is a research starting recipe, not a measured best checkpoint.
 output: runs/gta5_sesekai2
 seed: 42
 model:
-  dim: 64
-  depths: [2, 2, 6, 4]
-  heads: [2, 4, 8, 16]
-  window_size: 8
-  mlp_ratio: 3.0
-  max_residual: 0.35
+  architecture: nr
   checkpoint_blocks: true
+  noise_mode: zero # A new training convention; original deployment injects Gaussian noise.
+  noise_std: 1.0 # Used only if noise_mode is gaussian.
+  local_tone: 1.0
+  local_structure: 1.0
+  skin_structure: -1.0
+  style: 0.0
+  auto_mask: true
 data:
   source: null
   target: null
   val_source: null
   val_target: null
   crop_size: 512
-  batch_size: 2 # Per GPU. Effective batch = this * world_size * accumulation.
+  batch_size: 1 # Per GPU. Effective batch = this * world_size * accumulation.
   workers: 8
   match_index: null
 teachers:
@@ -36,11 +39,11 @@ loss:
   edge: 3.0
   low_frequency: 2.0
   identity: 2.0
-  temporal: 2.0 # Used only when a valid previous frame and backward flow are supplied.
+  temporal: 2.0 # Valid previous+backward flow also activate NR's history/blend branch.
   tv: 0.01
 train:
   steps: 200000
-  accumulation: 2
+  accumulation: 4
   precision: bf16
   lr_g: 0.0001
   lr_d: 0.0001

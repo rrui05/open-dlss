@@ -17,7 +17,7 @@ from PIL import Image
 import torch
 from torch import Tensor, nn
 
-from .models import GeneratorConfig, TransformerUNet
+from .generators import build_generator, reproject_history
 
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}
@@ -41,8 +41,16 @@ def _model_device(model: nn.Module, fallback: torch.device) -> torch.device:
     return fallback if buffer is None else buffer.device
 
 
-def _predict(model: nn.Module, patch: Tensor, device: torch.device) -> Tensor:
-    prediction = model(patch.to(device=device, dtype=torch.float32))
+def _predict(model: nn.Module, patch: Tensor, device: torch.device,
+             previous: Tensor | None = None, history_mask: Tensor | None = None) -> Tensor:
+    inputs = patch.to(device=device, dtype=torch.float32)
+    if previous is None:
+        prediction = model(inputs)
+    else:
+        if not getattr(model, "uses_history", False):
+            raise ValueError("this generator does not accept neural history")
+        prediction = model(inputs, previous=previous.to(device=device, dtype=torch.float32),
+                           history_mask=None if history_mask is None else history_mask.to(device=device, dtype=torch.float32))
     if not isinstance(prediction, Tensor) or prediction.shape != patch.shape:
         raise ValueError("generator must return a tensor with the input Bx3xHxW shape")
     prediction = prediction.to(device=patch.device, dtype=torch.float32)
@@ -52,13 +60,17 @@ def _predict(model: nn.Module, patch: Tensor, device: torch.device) -> Tensor:
 
 
 @torch.inference_mode()
-def infer_tensor(model: nn.Module, x: Tensor, tile: int = 1024, overlap: int = 128) -> Tensor:
+def infer_tensor(model: nn.Module, x: Tensor, tile: int = 1024, overlap: int = 128,
+                 *, previous: Tensor | None = None, history_mask: Tensor | None = None) -> Tensor:
     """Enhance Bx3xHxW RGB without resizing, using optional Hann-blended tiles.
 
     The caller sets model.eval() and owns any CUDA autocast context. Computation
     follows the model's device, while the float32 result and tile accumulator
     remain on x.device. A CPU input therefore needs only tile-sized GPU memory.
-    tile <= 0 disables tiling. All Hann weights are strictly positive.
+    tile <= 0 disables tiling. All Hann weights are strictly positive. Optional
+    previous RGB is already reprojected; history_mask supplies current-pixel
+    validity. Tiles change the NR global-attention context; use tile=0 for the
+    original full-frame graph geometry.
     """
     if x.ndim != 4 or x.shape[1] != 3 or min(x.shape[0], *x.shape[-2:]) < 1:
         raise ValueError("expected nonempty Bx3xHxW RGB input")
@@ -70,11 +82,21 @@ def infer_tensor(model: nn.Module, x: Tensor, tile: int = 1024, overlap: int = 1
         raise ValueError("overlap must be nonnegative and smaller than a positive tile size")
     if not torch.isfinite(x).all():
         raise ValueError("input RGB contains nonfinite values")
+    if history_mask is not None and previous is None:
+        raise ValueError("history_mask requires a previous image")
+    if previous is not None:
+        if previous.shape != x.shape or not torch.isfinite(previous).all():
+            raise ValueError("previous must be finite RGB with the input shape")
+        if history_mask is not None:
+            if history_mask.ndim == 3:
+                history_mask = history_mask[:, None]
+            if history_mask.shape != (x.shape[0], 1, *x.shape[-2:]) or not torch.isfinite(history_mask).all():
+                raise ValueError("history_mask must be finite B1HW or BHW")
 
     device = _model_device(model, x.device)
     height, width = x.shape[-2:]
     if tile <= 0 or max(height, width) <= tile:
-        return _predict(model, x, device).clamp(0, 1)
+        return _predict(model, x, device, previous, history_mask).clamp(0, 1)
 
     source = x.float()
     residual_sum = torch.zeros_like(source)
@@ -83,7 +105,9 @@ def infer_tensor(model: nn.Module, x: Tensor, tile: int = 1024, overlap: int = 1
     for row in _tile_starts(height, tile, overlap):
         for column in _tile_starts(width, tile, overlap):
             patch = source[:, :, row:row + tile, column:column + tile]
-            prediction = _predict(model, patch, device)
+            previous_patch = None if previous is None else previous[:, :, row:row + tile, column:column + tile]
+            mask_patch = None if history_mask is None else history_mask[:, :, row:row + tile, column:column + tile]
+            prediction = _predict(model, patch, device, previous_patch, mask_patch)
             patch_height, patch_width = patch.shape[-2:]
             key = (patch_height, patch_width)
             if key not in windows:
@@ -113,7 +137,7 @@ def resolve_device(value: str) -> torch.device:
 
 
 def load_generator(checkpoint: Path | str, device: torch.device | str,
-                   use_ema: bool = True) -> tuple[TransformerUNet, dict]:
+                   use_ema: bool = True) -> tuple[nn.Module, dict]:
     """Strictly load the trainer's configuration and chosen generator state."""
     checkpoint = Path(checkpoint)
     if not checkpoint.is_file():
@@ -126,10 +150,7 @@ def load_generator(checkpoint: Path | str, device: torch.device | str,
     if not isinstance(configuration, Mapping) or not isinstance(configuration.get("model"), Mapping):
         raise ValueError("checkpoint is missing config.model (GeneratorConfig settings)")
     settings = dict(configuration["model"])
-    for name in ("depths", "heads"):
-        if name in settings:
-            settings[name] = tuple(settings[name])
-    model = TransformerUNet(GeneratorConfig(**settings))
+    model = build_generator(settings)
     state_name = "ema" if use_ema else "generator"
     state = payload.get(state_name)
     if not isinstance(state, Mapping) or not state:
@@ -200,6 +221,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--strength", type=float, default=1.0, help="original/output blend in [0,1]")
     parser.add_argument("--precision", choices=("bf16", "fp16", "fp32"), default="bf16")
     parser.add_argument("--no-ema", action="store_true", help="explicitly select generator instead of EMA weights")
+    parser.add_argument("--previous", type=Path, help="previous enhanced output RGB; single input image only")
+    parser.add_argument("--flow", type=Path, help=".npy current-to-previous pixel flow, HxWx2 or 2xHxW")
+    parser.add_argument("--mask", type=Path, help="optional history visibility image: white valid, black excluded")
     args = parser.parse_args(argv)
     try:
         if not math.isfinite(args.strength) or not 0 <= args.strength <= 1:
@@ -207,6 +231,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.overlap < 0 or (args.tile > 0 and args.overlap >= args.tile):
             raise ValueError("overlap must be nonnegative and smaller than a positive tile size")
         pairs = _input_outputs(args.input.resolve(), args.output.resolve())
+        if (args.previous is None) != (args.flow is None):
+            raise ValueError("--previous and --flow must be supplied together")
+        if args.mask is not None and args.previous is None:
+            raise ValueError("--mask requires --previous and --flow")
+        if args.previous is not None and not args.input.is_file():
+            raise ValueError("neural history requires one input image; reset history at scene boundaries")
         device = resolve_device(args.device)
         precision = args.precision if device.type == "cuda" else "fp32"
         if precision == "bf16" and not torch.cuda.is_bf16_supported():
@@ -216,11 +246,24 @@ def main(argv: list[str] | None = None) -> int:
               f"device={device} precision={precision} images={len(pairs)}", flush=True)
         for position, (source, destination) in enumerate(pairs, 1):
             original = _read_rgb(source)
+            previous, history_mask = None, None
+            if args.previous is not None:
+                previous_rgb = _read_rgb(args.previous)
+                array = np.load(args.flow, allow_pickle=False)
+                if array.shape == (*original.shape[-2:], 2):
+                    array = array.transpose(2, 0, 1)
+                flow = torch.from_numpy(np.asarray(array, dtype=np.float32).copy()).unsqueeze(0)
+                visibility = None
+                if args.mask is not None:
+                    with Image.open(args.mask) as mask_image:
+                        visibility = torch.from_numpy(np.array(mask_image.convert("L"), dtype=np.float32) / 255)[None, None]
+                previous, history_mask = reproject_history(previous_rgb, original, flow, visibility)
             print(f"[{position}/{len(pairs)}] {source} ({original.shape[-1]}x{original.shape[-2]})", flush=True)
             context = (torch.autocast("cuda", dtype=torch.bfloat16 if precision == "bf16" else torch.float16)
                        if device.type == "cuda" and precision != "fp32" else nullcontext())
             with context:
-                enhanced = infer_tensor(model, original, args.tile, args.overlap)
+                enhanced = infer_tensor(model, original, args.tile, args.overlap,
+                                        previous=previous, history_mask=history_mask)
             blended = original + args.strength * (enhanced - original)
             _save_rgb(blended, destination)
             print(f"saved {destination}", flush=True)

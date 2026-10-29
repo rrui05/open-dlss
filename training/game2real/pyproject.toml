@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-dlss-game2real"
-version = "0.1.0"
-description = "Content-preserving unpaired game-to-real Transformer U-Net"
+version = "0.2.0"
+description = "Unpaired game-to-real training with the replicated 310.8 NR graph"
 requires-python = ">=3.10"
 dependencies = [
   "torch>=2.5",
