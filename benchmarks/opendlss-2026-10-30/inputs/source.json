@@ -1,0 +1,14 @@
+{
+  "source_url": "https://github.com/NVIDIA/harmonizer/blob/32f3eca8c0a144d9067430f9be07de7723ef172b/examples/0.png",
+  "prepared_path": "inputs/street_896x512.png",
+  "source": "D:\\newDLSS\\harmonizer\\examples\\0.png",
+  "source_sha256": "22bfa279e063a89c186261eff6418e406af367248917705eb2393f6ba11bb358",
+  "path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+  "sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+  "dimensions": [
+    896,
+    512
+  ],
+  "transformation": "PIL RGB, bilinear resize to exact shared dimensions; no model padding required by either runtime.",
+  "purpose": "Same input bytes, same local GPU, separate sequential runtime benchmarks; no concurrent GPU tests."
+}

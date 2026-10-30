@@ -1,0 +1,18 @@
+diff --git a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -542,7 +542,13 @@ int runParity(int argc, char** argv) {
+     printf("\n");
+   }
+   if (plan.checkOutput) {
+-    const Tally t = compareOutput(plan, head, inputBytes, readFile(plan.outputFile));
++    // RGBA8 composition reads centered color from the 16-lane features, while
++    // float composition reads the original four-lane proxy.
++    std::vector<uint8_t> outputFeatures;
++    if (plan.outputBytes && !plan.proxyFile.empty())
++      outputFeatures = context.download(features.buffer, features.validBytes());
++    const auto& compositionInput = outputFeatures.empty() ? inputBytes : outputFeatures;
++    const Tally t = compareOutput(plan, head, compositionInput, readFile(plan.outputFile));
+     count(t);
+     printf("composed RGB vs native output: %s", describe(t).c_str());
+     if (t.differing) printf(" first@ x%zu y%zu c%zu", (t.first / 3) % plan.validWidth, (t.first / 3) / plan.validWidth, t.first % 3);

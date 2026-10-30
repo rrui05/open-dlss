@@ -1,0 +1,16 @@
+# Regenerated runtime artifacts and user-supplied model data.
+/runs/
+/native_dump/
+/native_fixture/
+/native_fixture_features/
+/native_model_compat/
+*.f32
+*.rgba8
+*.npy
+*.safetensors
+*.pt
+*.pth
+*.dll
+*.exe
+*.dmp
+__pycache__/

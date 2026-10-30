@@ -12,6 +12,9 @@ tensor cores and no FP8.
 
 ## Reproduction results
 
+[RTX 5060 inference benchmarks — WebGPU, PyTorch CUDA, and native Vulkan + CUDA/PTX](benchmarks/opendlss-2026-10-30/README.md)
+adds runnable timing harnesses, archived 896x512 measurements, generated images, and the failed native/WebGPU numerical comparison.
+
 [Seven GTA faces — Tommy, Niko, Roman, Trevor, Michael, Franklin, and Amanda](reproductions/gta-faces-2026-10-27/README.md)
 adds a fixed batch of seven actual single-image runs with matched input/output comparisons and source records.
 

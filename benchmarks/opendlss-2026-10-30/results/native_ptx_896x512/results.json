@@ -1,0 +1,297 @@
+{
+  "status": "completed",
+  "stage": "complete",
+  "collected_at_utc": "2026-10-30T09:00:45.504028+00:00",
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "full_width": 896,
+    "full_height": 512,
+    "batch_size": 1,
+    "warmups": 5,
+    "iterations": 20,
+    "seed": 0,
+    "precision": "Original FP8 E4M3 and FP16 publications, tensor-core PTX"
+  },
+  "environment": {
+    "gpu_name": "NVIDIA GeForce RTX 5060",
+    "gpu_driver_query": "NVIDIA GeForce RTX 5060, 610.88"
+  },
+  "method": {
+    "backend": "Original Vulkan host with CUDA/PTX tensor-core kernels and SPIR-V utility kernels",
+    "pure_cuda_host": false,
+    "training": false,
+    "timing": "Main synchronized wall includes graph.record, submission, and GPU wait; GPU query spans graph only. Excludes model loading, real input feature preparation/upload, readback, composition, and PNG save.",
+    "source_changes": "Tracked network source unchanged. Untracked main copy adds file-based resident features, 5 warmups, 20 samples, synchronized wall timers and unbuffered diagnostics.",
+    "weight_compatibility": "All 71 original stage hashes verified. Separate manifest only uppercases SHA256 hex text to match the original native hash formatter. Stage bytes unchanged via hardlinks.",
+    "cross_backend_parity": "Output comparison to the original WebGPU path exceeds its one-code tolerance. Timing and finite/repeatable execution are verified; bit-exact WebGPU output parity is not established."
+  },
+  "input": {
+    "rgb_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+    "rgb_file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "features_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\native_dump\\features.f32",
+    "features_file_sha256": "318e19dd7a57c5a707f61576ea60a33fe49f5cee33d79cac337dd0b30c49e1eb",
+    "features_shape_hwc": [
+      512,
+      896,
+      16
+    ],
+    "features_all_finite": true,
+    "feature_source": "Original native preprocessing of the identical prepared RGB file, seed 0."
+  },
+  "model": {
+    "name": "DLSS-NR 310.8.0.0",
+    "learned_blocks": 71,
+    "tensors": 153,
+    "graph_dispatches": 241,
+    "fused_blocks": true,
+    "counter_chaining": true,
+    "ptx_target": "sm_89, PTX 8.7, driver JIT on local RTX 5060",
+    "original_manifest_sha256": "f44ea18e406bbed7a9a4ce37880c6b503a21bee2353e0594e33b1dd04e2522be",
+    "executable": "D:\\newDLSS\\open-dlss\\build\\dlss5vk_timed.exe",
+    "executable_sha256": "84ece3dec2af8f9b76ec8a6864a84bb02fc3556d6a6e91991e2d4fa25bd72197"
+  },
+  "benchmark": {
+    "synchronized_wall": {
+      "count": 20,
+      "mean_ms": 5.995735000000001,
+      "median_ms": 5.79245,
+      "p95_ms": 7.1549000000000005,
+      "std_ms": 0.4460413246269902,
+      "min_ms": 5.5825,
+      "max_ms": 7.21,
+      "fps_from_mean": 166.7852231627982,
+      "samples_ms": [
+        5.5825,
+        5.7189,
+        5.7029,
+        5.7425,
+        6.0797,
+        5.6666,
+        6.1195,
+        5.6595,
+        5.7317,
+        7.152,
+        5.9092,
+        7.21,
+        6.1946,
+        6.3863,
+        5.9818,
+        5.676,
+        5.7822,
+        5.7397,
+        5.8027,
+        6.0764
+      ]
+    },
+    "gpu_timestamp": {
+      "count": 20,
+      "mean_ms": 4.0870849609,
+      "median_ms": 4.046264648499999,
+      "p95_ms": 4.31295166015,
+      "std_ms": 0.10061393566277756,
+      "min_ms": 4.030517578,
+      "max_ms": 4.358642578,
+      "fps_from_mean": 244.67316181746173,
+      "samples_ms": [
+        4.040771484,
+        4.04296875,
+        4.055908203,
+        4.062255859,
+        4.033447266,
+        4.041503906,
+        4.045654297,
+        4.059814453,
+        4.036621094,
+        4.039306641,
+        4.047119141,
+        4.310546875,
+        4.0546875,
+        4.358642578,
+        4.043457031,
+        4.049560547,
+        4.030517578,
+        4.036865234,
+        4.046875,
+        4.305175781
+      ]
+    },
+    "samples": [
+      {
+        "index": 0,
+        "cuda_ptx_gpu_ms": 4.040771484,
+        "synchronized_wall_ms": 5.5825,
+        "dispatches": 241
+      },
+      {
+        "index": 1,
+        "cuda_ptx_gpu_ms": 4.04296875,
+        "synchronized_wall_ms": 5.7189,
+        "dispatches": 241
+      },
+      {
+        "index": 2,
+        "cuda_ptx_gpu_ms": 4.055908203,
+        "synchronized_wall_ms": 5.7029,
+        "dispatches": 241
+      },
+      {
+        "index": 3,
+        "cuda_ptx_gpu_ms": 4.062255859,
+        "synchronized_wall_ms": 5.7425,
+        "dispatches": 241
+      },
+      {
+        "index": 4,
+        "cuda_ptx_gpu_ms": 4.033447266,
+        "synchronized_wall_ms": 6.0797,
+        "dispatches": 241
+      },
+      {
+        "index": 5,
+        "cuda_ptx_gpu_ms": 4.041503906,
+        "synchronized_wall_ms": 5.6666,
+        "dispatches": 241
+      },
+      {
+        "index": 6,
+        "cuda_ptx_gpu_ms": 4.045654297,
+        "synchronized_wall_ms": 6.1195,
+        "dispatches": 241
+      },
+      {
+        "index": 7,
+        "cuda_ptx_gpu_ms": 4.059814453,
+        "synchronized_wall_ms": 5.6595,
+        "dispatches": 241
+      },
+      {
+        "index": 8,
+        "cuda_ptx_gpu_ms": 4.036621094,
+        "synchronized_wall_ms": 5.7317,
+        "dispatches": 241
+      },
+      {
+        "index": 9,
+        "cuda_ptx_gpu_ms": 4.039306641,
+        "synchronized_wall_ms": 7.152,
+        "dispatches": 241
+      },
+      {
+        "index": 10,
+        "cuda_ptx_gpu_ms": 4.047119141,
+        "synchronized_wall_ms": 5.9092,
+        "dispatches": 241
+      },
+      {
+        "index": 11,
+        "cuda_ptx_gpu_ms": 4.310546875,
+        "synchronized_wall_ms": 7.21,
+        "dispatches": 241
+      },
+      {
+        "index": 12,
+        "cuda_ptx_gpu_ms": 4.0546875,
+        "synchronized_wall_ms": 6.1946,
+        "dispatches": 241
+      },
+      {
+        "index": 13,
+        "cuda_ptx_gpu_ms": 4.358642578,
+        "synchronized_wall_ms": 6.3863,
+        "dispatches": 241
+      },
+      {
+        "index": 14,
+        "cuda_ptx_gpu_ms": 4.043457031,
+        "synchronized_wall_ms": 5.9818,
+        "dispatches": 241
+      },
+      {
+        "index": 15,
+        "cuda_ptx_gpu_ms": 4.049560547,
+        "synchronized_wall_ms": 5.676,
+        "dispatches": 241
+      },
+      {
+        "index": 16,
+        "cuda_ptx_gpu_ms": 4.030517578,
+        "synchronized_wall_ms": 5.7822,
+        "dispatches": 241
+      },
+      {
+        "index": 17,
+        "cuda_ptx_gpu_ms": 4.036865234,
+        "synchronized_wall_ms": 5.7397,
+        "dispatches": 241
+      },
+      {
+        "index": 18,
+        "cuda_ptx_gpu_ms": 4.046875,
+        "synchronized_wall_ms": 5.8027,
+        "dispatches": 241
+      },
+      {
+        "index": 19,
+        "cuda_ptx_gpu_ms": 4.305175781,
+        "synchronized_wall_ms": 6.0764,
+        "dispatches": 241
+      }
+    ]
+  },
+  "validation": {
+    "head_all_finite": true,
+    "head_shape_hwc": [
+      512,
+      896,
+      4
+    ],
+    "head_min": -7.76953125,
+    "head_max": 1.0107421875,
+    "three_identical_production_heads": true,
+    "chaining_equals_barriers": true,
+    "webgpu_output_tolerance_passed": false,
+    "parity_cli_exit_code": 1,
+    "parity_reference_is_nvidia_capture": false,
+    "parity_log": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_inspect\\native_parity_features.log",
+    "identical_features_webgpu_cross_check": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\results.json",
+    "preprocessing_bitwise_equal": true,
+    "same_features_head_bitwise_equal": false,
+    "same_features_head_comparison": {
+      "elements": 1835008,
+      "bitwise_mismatches": 1828799,
+      "mae": 0.0568633077560727,
+      "max_abs": 1.908203125,
+      "all_finite": true
+    },
+    "same_features_png_comparison": {
+      "reference_native_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+      "webgpu_same_features_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png",
+      "mae_uint8": 0.48143078031994047,
+      "rmse_uint8": 0.773258983126041,
+      "max_abs_uint8": 8.0,
+      "psnr_db": 50.36430412862686,
+      "channels_exceeding_one_code": 58168,
+      "fraction_exceeding_one_code": 0.04226539248511905,
+      "bitwise_equal": false
+    }
+  },
+  "image_comparison_to_original_webgpu": {
+    "reference": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\output.png",
+    "channels": 1376256,
+    "mean_abs_uint8": 0.48243931361607145,
+    "max_abs_uint8": 8.0,
+    "rmse_uint8": 0.7743923353948589,
+    "psnr_db": 50.35158269147896,
+    "changed_channel_count": 595627,
+    "channels_exceeding_one_code": 58532,
+    "fraction_exceeding_one_code": 0.042529878162202384,
+    "within_one_code": false,
+    "scope": "Same prepared RGB PNG and seed; original independent preprocess paths. This is a comparison to our WebGPU output, not an NVIDIA native capture."
+  },
+  "output_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+  "output_png_sha256": "4f2994bb504eda6dbc0ece337f1fcc870b4b2433aeccd51e701191cac4655f79",
+  "head_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\native_dump\\head.f32",
+  "head_file_sha256": "cbca9f4d0bcb21cdee6f6bac7e7fc6b563b2b9c3f9dffe596cbc679c2a2a9a02",
+  "timing_log": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_inspect\\native_timed.log"
+}

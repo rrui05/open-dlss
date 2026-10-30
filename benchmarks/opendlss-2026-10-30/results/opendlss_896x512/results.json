@@ -1,0 +1,233 @@
+{
+  "status": "completed",
+  "started_at_utc": "2026-10-30T08:07:18.955Z",
+  "method": {
+    "training": false,
+    "temporal": false,
+    "backend": "Original OpenDLSS browser WebGPU",
+    "scope": "Same resident prepared image. Main metric is synchronized wall time of original Network.run(). Excludes model loading, feature preparation, readback, composition, and PNG encoding.",
+    "history": "Single-frame features, history lanes equal current frame; seed 0; no temporal blend."
+  },
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "batch_size": 1,
+    "warmups": 5,
+    "iterations": 20,
+    "precision": "Original FP8/FP16 publication emulation in WGSL",
+    "seed": 0
+  },
+  "input": {
+    "url": "/inputs/street_896x512.png",
+    "file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "decoded_rgba_sha256": "53160792eeaf8fefacbbc89e97b0785a04f62804bc2b9afd71287ec2a15fa6eb",
+    "dimensions_wh": [
+      896,
+      512
+    ],
+    "resized_in_harness": false
+  },
+  "model": {
+    "name": "DLSS-NR 310.8.0.0",
+    "learned_blocks": 71,
+    "weights_uploaded_bytes": 151442856,
+    "graph_dispatches": 451,
+    "activation_allocated_bytes": 886882304,
+    "load_and_create_wall_ms": 15074.199999988079,
+    "source_modules_unmodified": true
+  },
+  "geometry": {
+    "validWidth": 896,
+    "validHeight": 512,
+    "fullWidth": 896,
+    "fullHeight": 512,
+    "levels": [
+      {
+        "width": 448,
+        "height": 256,
+        "rows": 114688
+      },
+      {
+        "width": 224,
+        "height": 128,
+        "rows": 28672
+      },
+      {
+        "width": 112,
+        "height": 64,
+        "rows": 7168
+      },
+      {
+        "width": 56,
+        "height": 32,
+        "rows": 1792
+      },
+      {
+        "width": 28,
+        "height": 16,
+        "rows": 448
+      },
+      {
+        "width": 16,
+        "height": 8,
+        "rows": 128
+      }
+    ],
+    "fullRows": 458752,
+    "vitTokens": 128,
+    "paddedVitTokens": 128
+  },
+  "environment": {
+    "adapter_info": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32,
+      "isFallbackAdapter": false
+    },
+    "adapter_features": [
+      "core-features-and-limits",
+      "timestamp-query",
+      "shader-f16"
+    ],
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+    "hardware_concurrency": 20,
+    "host": {
+      "node": "v24.12.0",
+      "platform": "win32",
+      "gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 1914 MiB, 5982 MiB",
+      "opendlss_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+      "input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+      "manifest_sha256": "f44ea18e406bbed7a9a4ce37880c6b503a21bee2353e0594e33b1dd04e2522be"
+    },
+    "host_gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 1914 MiB, 5982 MiB",
+    "gpu_name": "NVIDIA GeForce RTX 5060"
+  },
+  "feature_preparation_wall_ms": 8.600000023841858,
+  "first_forward_wall_ms": 177.39999997615814,
+  "warmup_samples_ms": [
+    161.80000001192093,
+    157.89999997615814,
+    156.69999998807907,
+    156.5999999642372,
+    156.30000001192093
+  ],
+  "benchmark": {
+    "synchronized_wall": {
+      "count": 20,
+      "mean_ms": 158.85000000298024,
+      "median_ms": 158.64999997615814,
+      "p95_ms": 161.85000001192094,
+      "std_ms": 1.801527135076748,
+      "min_ms": 155.80000001192093,
+      "max_ms": 162.80000001192093,
+      "fps_from_mean": 6.295247088330115,
+      "samples_ms": [
+        160.5,
+        162.80000001192093,
+        157.80000001192093,
+        156.39999997615814,
+        159.5999999642372,
+        158.69999998807907,
+        161.80000001192093,
+        159,
+        160,
+        155.80000001192093,
+        157.69999998807907,
+        158.5999999642372,
+        160.80000001192093,
+        158.9000000357628,
+        160.9000000357628,
+        156.5999999642372,
+        158.10000002384186,
+        157.60000002384186,
+        158.10000002384186,
+        157.30000001192093
+      ]
+    },
+    "primary_metric": "Synchronized wall duration of the original Network.run(); 5 warmups and 20 recorded calls by default.",
+    "excluded": [
+      "model creation/loading",
+      "input decoding",
+      "feature preparation",
+      "head readback",
+      "composeImage",
+      "PNG encoding"
+    ],
+    "gpu_timestamp": {
+      "status": "completed",
+      "count": 20,
+      "mean_ms": 155.01361920000005,
+      "median_ms": 154.526384,
+      "p95_ms": 157.0637792,
+      "std_ms": 1.4360028087379768,
+      "min_ms": 152.969024,
+      "max_ms": 157.314944,
+      "fps_from_mean": 6.451046076859805,
+      "samples_ms": [
+        153.602912,
+        154.356864,
+        152.969024,
+        154.6416,
+        156.832768,
+        156.697632,
+        153.87024,
+        154.411168,
+        153.74592,
+        153.564864,
+        156.988896,
+        157.05056,
+        155.227072,
+        153.751808,
+        155.279648,
+        153.730976,
+        155.719296,
+        156.940704,
+        157.314944,
+        153.575488
+      ],
+      "compute_pass_count": 1,
+      "scope": "Separate samples using existing first/last compute-pass timestamps; includes intervening graph copies, excludes feature preparation/readback/composition. Not the primary synchronized-wall result."
+    }
+  },
+  "head_validation": {
+    "shape": [
+      512,
+      896,
+      4
+    ],
+    "dtype": "float32",
+    "all_finite": true,
+    "nonfinite": 0,
+    "min": -7.6953125,
+    "max": 0.96728515625
+  },
+  "determinism": {
+    "repeated_identical_features": true,
+    "head_elements": 1835008,
+    "bitwise_mismatches": 0
+  },
+  "compose_wall_ms": 43.30000001192093,
+  "output_validation": {
+    "dimensions_wh": [
+      896,
+      512
+    ],
+    "changed_channel_fraction": 0.939666748046875,
+    "mean_absolute_byte_change": 6.30115472702753,
+    "note": "Change from input only; not a quality metric against ground truth."
+  },
+  "gpu_errors": [],
+  "stage": "complete",
+  "finished_at_utc": "2026-10-30T08:07:41.843Z",
+  "input_file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+  "harness": {
+    "source_root": "D:\\newDLSS\\open-dlss",
+    "weights_directory": "D:\\newDLSS\\open-dlss\\models\\nr",
+    "input_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+    "output_directory": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512",
+    "server_host": "127.0.0.1"
+  }
+}

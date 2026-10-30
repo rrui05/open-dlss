@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDLSS inference benchmarks — 2026-10-30</title>
+<style>body{font:16px system-ui;max-width:1200px;margin:32px auto;padding:0 20px;color:#18212f;background:#f7f9fc}
+table{border-collapse:collapse;width:100%;background:white}td,th{padding:12px;border:1px solid #c9d2df;text-align:left}
+.images{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px}figure{margin:0}img{width:100%}
+.notice{padding:16px;background:#fff0d0;border-left:5px solid #c47b00}code{overflow-wrap:anywhere}</style>
+<h1>OpenDLSS inference benchmarks</h1>
+<p>Archived run: 2026-10-30. RTX 5060, driver 610.88. Input: 896 × 512, batch 1, seed 0.
+Five warmups and twenty measured submissions per backend. No training.</p>
+<p>The primary metric is CPU wall time including graph submission and the GPU wait.
+Model loading, compilation, input feature preparation/upload, readback, RGB composition and image saving are excluded.
+GPU-only timers are listed separately. The WebGPU timestamp series was collected in a separate set of twenty calls.</p>
+<table><thead><tr><th>Backend</th><th>Mean wall ms</th><th>P95 wall ms</th><th>Wall FPS</th><th>Mean GPU ms</th><th>Evidence</th></tr></thead><tbody><tr><td>WebGPU / WGSL</td><td>158.850</td><td>161.850</td><td>6.30</td><td>155.014</td><td><a href="results/opendlss_896x512/results.json">Raw JSON</a></td></tr><tr><td>PyTorch CUDA reference</td><td>203.081</td><td>211.377</td><td>4.92</td><td>201.200</td><td><a href="cuda_pytorch_896x512/results.json">Raw JSON</a></td></tr><tr><td>Native Vulkan + CUDA/PTX</td><td>5.996</td><td>7.155</td><td>166.79</td><td>4.087</td><td><a href="results/native_ptx_896x512/results.json">Raw JSON</a></td></tr></tbody></table>
+<p>The native implementation already existed in OpenDLSS. This experiment added a timing entry and input adapters;
+it did not introduce a new network or new PTX optimizations. Vulkan submits CUDA/PTX kernels and SPIR-V utilities.
+The PyTorch route is an independent reference with FP32 tensors emulating FP8 publications; it is not a native FP8 tensor-core implementation.</p>
+<p class="notice"><strong>Cross-backend numerical tolerance: FAIL.</strong>
+Native timing is valid as a runtime measurement, but the native output did not pass the WebGPU ±1-code comparison.
+The independently prepared 16-lane input features were bit-identical. With identical features, the raw heads still differ.
+RGB PSNR: 50.3643 dB; mean absolute error: 0.4814/255;
+maximum error: 8/255. The responsible graph operator has not been isolated.
+Each backend's repeated outputs were finite and repeatable in the recorded checks.</p>
+<p><a href="results/webgpu_same_native_features/results.json">Same-feature cross-check</a> ·
+<a href="cuda_inspect/native_parity_features.log">Native parity log</a> ·
+<a href="cuda_inspect/native_timed.log">Native timing log</a> · <a href="summary.json">Summary JSON</a> ·
+<a href="README.md">Reproduction instructions</a></p>
+<div class="images"><figure><img src="inputs/street_896x512.png"><figcaption>Shared input</figcaption></figure><figure><a href="results/opendlss_896x512/output.png"><img src="results/opendlss_896x512/output.png"></a><figcaption>WebGPU / WGSL</figcaption></figure><figure><a href="cuda_pytorch_896x512/output.png"><img src="cuda_pytorch_896x512/output.png"></a><figcaption>PyTorch CUDA reference</figcaption></figure><figure><a href="results/native_ptx_896x512/output.png"><img src="results/native_ptx_896x512/output.png"></a><figcaption>Native Vulkan + CUDA/PTX</figcaption></figure></div>
+<p>Input SHA-256: <code>7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7</code>. <a href="inputs/source.json">Input provenance</a>.</p>
+<p>Raw historical JSON files retain the original machine paths as evidence. Those paths are not portable invocation defaults.
+Large intermediate tensors, executables, DLLs and model weights are not included.</p></html>

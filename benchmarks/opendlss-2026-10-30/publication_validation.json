@@ -1,0 +1,110 @@
+{
+  "status": "passed",
+  "scope": "Publication packaging and separate single-frame startup checks; historical 20-sample benchmark data unchanged",
+  "checked_at_utc": "2026-10-30T11:30:58.687908+00:00",
+  "checks": [
+    {
+      "check": "python_syntax",
+      "status": "passed",
+      "detail": {
+        "files": 9,
+        "method": "ast.parse"
+      }
+    },
+    {
+      "check": "javascript_syntax",
+      "status": "passed",
+      "detail": "Two .mjs files and two HTML module scripts, Node --check"
+    },
+    {
+      "check": "cli_help",
+      "status": "passed",
+      "detail": "Nine Python CLIs and the Node launcher exit successfully"
+    },
+    {
+      "check": "historical_report",
+      "status": "passed",
+      "detail": "Input hash, geometry, 20 samples per backend, means, preprocessing equality checked by report builder"
+    },
+    {
+      "check": "links_README.md",
+      "status": "passed",
+      "detail": {
+        "local_links": 4
+      }
+    },
+    {
+      "check": "links_report.html",
+      "status": "passed",
+      "detail": {
+        "local_links": 16
+      }
+    },
+    {
+      "check": "shared_input_hash",
+      "status": "passed",
+      "detail": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7"
+    },
+    {
+      "check": "historical_png_difference",
+      "status": "passed",
+      "detail": {
+        "mae_uint8": 0.48143078031994047,
+        "max_abs_uint8": 8,
+        "numerical_tolerance_passed": false
+      }
+    },
+    {
+      "check": "native_compiled_gpu_smoke",
+      "status": "passed",
+      "detail": {
+        "width": 896,
+        "height": 512,
+        "warmups": 0,
+        "iterations": 1,
+        "head_finite": true,
+        "png_equals_archived_native": true,
+        "used_for_steady_state_comparison": false
+      }
+    },
+    {
+      "check": "webgpu_gpu_smoke",
+      "status": "passed",
+      "detail": {
+        "width": 896,
+        "height": 512,
+        "warmups": 0,
+        "iterations": 1,
+        "browser_closed_via_cdp": true,
+        "png_equals_archived_webgpu": true,
+        "used_for_steady_state_comparison": false
+      }
+    },
+    {
+      "check": "publication_scope",
+      "status": "passed",
+      "detail": {
+        "root": "benchmarks/opendlss-2026-10-30",
+        "files_before_validation_record": 43,
+        "excluded": [
+          "TAE code and results",
+          "model weights",
+          "large tensors",
+          "D:/newDLSS/note",
+          "unrelated staged work"
+        ]
+      }
+    },
+    {
+      "check": "production_graph_unchanged",
+      "status": "passed",
+      "detail": "No diff in src/, shaders/ or scripts/ptx/"
+    }
+  ],
+  "not_rerun": [
+    "PyTorch CUDA GPU benchmark",
+    "full 20-sample performance benchmark",
+    "NVIDIA capture parity"
+  ],
+  "known_failure": "Native/WebGPU numerical tolerance remains failed; see archived JSON and parity log."
+}

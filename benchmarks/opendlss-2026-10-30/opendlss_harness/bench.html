@@ -1,0 +1,196 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>OpenDLSS shared-size benchmark</title>
+<style>body{background:#101419;color:#e9f0f4;font:14px system-ui,sans-serif;margin:22px}pre{white-space:pre-wrap}canvas{max-width:48vw;height:auto}figure{display:inline-block;margin:10px 12px 10px 0}</style>
+<h1>OpenDLSS-NR: shared-size benchmark</h1>
+<pre id="status">Loading original repository modules...</pre>
+<figure><figcaption>Identical prepared input</figcaption><canvas id="input"></canvas></figure>
+<figure><figcaption>Original OpenDLSS composeImage output</figcaption><canvas id="output"></canvas></figure>
+<script type="module">
+import { Network } from '/open-dlss/ports/browser-webgpu/src/network.js';
+import { composeImage } from '/open-dlss/ports/browser-webgpu/src/parity.js';
+
+const statusNode = document.querySelector('#status');
+const startedAt = new Date().toISOString();
+const gpuErrors = [];
+let deviceLoss = null;
+let stage = 'configuration', network, objectUrl;
+const evidence = { status: 'running', started_at_utc: startedAt,
+  method: { training: false, temporal: false, backend: 'Original OpenDLSS browser WebGPU',
+    scope: 'Same resident prepared image. Main metric is synchronized wall time of original Network.run(). Excludes model loading, feature preparation, readback, composition, and PNG encoding.',
+    history: 'Single-frame features, history lanes equal current frame; seed 0; no temporal blend.' } };
+async function post(path, value) {
+  const response = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value) });
+  if (!response.ok) throw new Error(`${path}: ${response.status} ${await response.text()}`);
+  return response.json();
+}
+async function progress(value) {
+  stage = value;
+  statusNode.textContent = value;
+  await post('/progress', { status: 'running', stage: value });
+}
+function stats(values) {
+  const sorted = [...values].sort((a,b) => a-b), count = values.length;
+  const mean = values.reduce((a,b) => a+b, 0) / count;
+  const percentile = p => { const x=(count-1)*p, lower=Math.floor(x), upper=Math.ceil(x); return sorted[lower]+(sorted[upper]-sorted[lower])*(x-lower); };
+  return { count, mean_ms: mean, median_ms: percentile(.5), p95_ms: percentile(.95),
+    std_ms: Math.sqrt(values.reduce((sum,x) => sum+(x-mean)**2,0)/count),
+    min_ms: sorted[0], max_ms: sorted.at(-1), fps_from_mean: 1000/mean, samples_ms: values };
+}
+async function digest(bytes) {
+  const hash = new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+  return [...hash].map(value => value.toString(16).padStart(2,'0')).join('');
+}
+function adapterInfo(info) {
+  return Object.fromEntries(['vendor','architecture','device','description','subgroupMinSize','subgroupMaxSize','isFallbackAdapter'].map(key => [key,info?.[key] ?? null]));
+}
+
+// GPU query samples are deliberately separate from the primary unmodified run().
+// Only the first and last existing compute passes receive timestamps. Copy
+// commands and all original dispatch ordering remain unchanged.
+async function gpuQuerySamples(network, count) {
+  const device=network.device;
+  if (!device.features.has('timestamp-query')) return { status:'skipped',reason:'timestamp-query is unavailable' };
+  let computePassCount=0, open=false;
+  for (const item of network.recorder.passes) {
+    if (item.kind==='copy') open=false;
+    else if (!open) { computePassCount++; open=true; }
+  }
+  if (!computePassCount) throw new Error('The graph has no compute passes');
+  const queries=device.createQuerySet({type:'timestamp',count:2});
+  const resolved=device.createBuffer({size:16,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC});
+  const read=device.createBuffer({size:16,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+  const samples=[];
+  try {
+    for (let iteration=0;iteration<count;iteration++) {
+      device.pushErrorScope('validation');
+      const encoder=device.createCommandEncoder({label:'nr separate GPU timestamp sample'});
+      let ordinal=0;
+      const wrapper={
+        copyBufferToBuffer(...args){encoder.copyBufferToBuffer(...args);},
+        beginComputePass(descriptor){
+          const current=ordinal++;
+          if(current===0 || current===computePassCount-1){
+            const timestampWrites={querySet:queries};
+            if(current===0) timestampWrites.beginningOfPassWriteIndex=0;
+            if(current===computePassCount-1) timestampWrites.endOfPassWriteIndex=1;
+            return encoder.beginComputePass({...descriptor,timestampWrites});
+          }
+          return encoder.beginComputePass(descriptor);
+        },
+      };
+      network.recorder.encode(wrapper);
+      if(ordinal!==computePassCount)throw new Error(`Compute-pass count changed: ${ordinal} != ${computePassCount}`);
+      encoder.resolveQuerySet(queries,0,2,resolved,0);
+      encoder.copyBufferToBuffer(resolved,0,read,0,16);
+      device.queue.submit([encoder.finish()]);
+      const validation=await device.popErrorScope();
+      if(validation)throw new Error(validation.message);
+      await device.queue.onSubmittedWorkDone();
+      await read.mapAsync(GPUMapMode.READ);
+      const stamps=new BigUint64Array(read.getMappedRange().slice(0));
+      read.unmap();
+      const milliseconds=Number(stamps[1]-stamps[0])/1e6;
+      if(!Number.isFinite(milliseconds)||milliseconds<=0)throw new Error(`Invalid GPU timestamp duration ${milliseconds}`);
+      samples.push(milliseconds);
+    }
+    return {status:'completed',...stats(samples),compute_pass_count:computePassCount,
+      scope:'Separate samples using existing first/last compute-pass timestamps; includes intervening graph copies, excludes feature preparation/readback/composition. Not the primary synchronized-wall result.'};
+  } finally { queries.destroy(); resolved.destroy(); read.destroy(); }
+}
+
+try {
+  const config=await (await fetch('/config')).json();
+  for(const key of ['width','height','warmups','iterations'])if(!Number.isInteger(config[key]))throw new Error(`Noninteger ${key}`);
+  if(config.width<33||config.height<33||config.warmups<0||config.iterations<=0)throw new Error('Invalid benchmark configuration');
+  evidence.configuration={width:config.width,height:config.height,batch_size:1,warmups:config.warmups,iterations:config.iterations,
+    precision:'Original FP8/FP16 publication emulation in WGSL',seed:0};
+  await progress('loading identical input PNG');
+  const inputBytes=new Uint8Array(await (await fetch(config.image)).arrayBuffer());
+  const pngHash=await digest(inputBytes);
+  objectUrl=URL.createObjectURL(new Blob([inputBytes],{type:'image/png'}));
+  const source=new Image();source.src=objectUrl;await source.decode();
+  if(source.naturalWidth!==config.width||source.naturalHeight!==config.height)throw new Error(`Prepared input dimensions ${source.naturalWidth}x${source.naturalHeight} differ from requested ${config.width}x${config.height}; resizing is intentionally rejected`);
+  const inputCanvas=document.querySelector('#input');inputCanvas.width=config.width;inputCanvas.height=config.height;
+  const inputContext=inputCanvas.getContext('2d',{willReadFrequently:true});inputContext.drawImage(source,0,0);
+  const rgba=inputContext.getImageData(0,0,config.width,config.height);
+  const proxy=Float32Array.from(rgba.data,value=>value/255);
+  evidence.input={url:config.image,file_sha256:pngHash,decoded_rgba_sha256:await digest(rgba.data),
+    dimensions_wh:[config.width,config.height],resized_in_harness:false};
+  await progress('creating original 71-block WebGPU network');
+  const createStarted=performance.now();
+  network=await Network.create({weights:config.weights??'/weights',width:config.width,height:config.height});
+  evidence.model={name:'DLSS-NR 310.8.0.0',learned_blocks:network.model.blockCount,
+    weights_uploaded_bytes:network.model.bytesUploaded,graph_dispatches:network.recorder.dispatchCount,
+    activation_allocated_bytes:network.tensors.total,load_and_create_wall_ms:performance.now()-createStarted,
+    source_modules_unmodified:true};
+  if(network.model.blockCount!==71)throw new Error(`Expected 71 blocks, received ${network.model.blockCount}`);
+  evidence.geometry=network.geometry;
+  if(network.geometry.validWidth!==config.width||network.geometry.validHeight!==config.height)throw new Error('Network geometry does not match input');
+  evidence.environment={adapter_info:adapterInfo(network.adapterInfo),adapter_features:[...network.device.features],
+    user_agent:navigator.userAgent,hardware_concurrency:navigator.hardwareConcurrency};
+  if(network.adapterInfo?.isFallbackAdapter===true)throw new Error('Software fallback adapter is not a valid GPU benchmark');
+  network.device.addEventListener('uncapturederror',event=>gpuErrors.push(`${event.error.constructor.name}: ${event.error.message}`));
+  network.device.lost.then(info=>{deviceLoss={reason:info.reason,message:info.message};});
+  await progress('preparing resident single-frame features');
+  const featureStarted=performance.now();
+  await network.featuresFromProxy(proxy,{proxy:{width:config.width,height:config.height},seed:0,autoMask:true,
+    conditioning:{localTone:1,localStructure:1,skinStructure:-1,style:0}});
+  evidence.feature_preparation_wall_ms=performance.now()-featureStarted;
+  const coldStarted=performance.now();await network.run();
+  evidence.first_forward_wall_ms=performance.now()-coldStarted;
+  const warmupSamples=[];
+  for(let iteration=0;iteration<config.warmups;iteration++){
+    await progress(`warmup ${iteration+1}/${config.warmups}`);
+    await network.device.queue.onSubmittedWorkDone();
+    const started=performance.now();await network.run();warmupSamples.push(performance.now()-started);
+  }
+  const wallSamples=[];
+  for(let iteration=0;iteration<config.iterations;iteration++){
+    await progress(`timed model forward ${iteration+1}/${config.iterations}`);
+    await network.device.queue.onSubmittedWorkDone();
+    const started=performance.now();await network.run();wallSamples.push(performance.now()-started);
+  }
+  evidence.warmup_samples_ms=warmupSamples;
+  evidence.benchmark={synchronized_wall:stats(wallSamples),
+    primary_metric:'Synchronized wall duration of the original Network.run(); 5 warmups and 20 recorded calls by default.',
+    excluded:['model creation/loading','input decoding','feature preparation','head readback','composeImage','PNG encoding']};
+  await progress('reading and checking original graph head');
+  const firstHead=await network.readHead();
+  let nonfinite=0,minimum=Infinity,maximum=-Infinity;
+  for(const value of firstHead){if(!Number.isFinite(value))nonfinite++;else{minimum=Math.min(minimum,value);maximum=Math.max(maximum,value);}}
+  evidence.head_validation={shape:[network.geometry.fullHeight,network.geometry.fullWidth,4],
+    dtype:'float32',all_finite:nonfinite===0,nonfinite,min:minimum,max:maximum};
+  if(nonfinite)throw new Error(`Head has ${nonfinite} nonfinite values`);
+  await network.run();const repeatedHead=await network.readHead();
+  const firstBits=new Uint32Array(firstHead.buffer,firstHead.byteOffset,firstHead.length);
+  const repeatedBits=new Uint32Array(repeatedHead.buffer,repeatedHead.byteOffset,repeatedHead.length);
+  let mismatches=0;for(let index=0;index<firstBits.length;index++)if(firstBits[index]!==repeatedBits[index])mismatches++;
+  evidence.determinism={repeated_identical_features:true,head_elements:firstBits.length,bitwise_mismatches:mismatches};
+  if(mismatches)throw new Error(`Repeated same-input graph differs at ${mismatches} head elements`);
+  await progress('separate optional GPU timestamp samples');
+  try{evidence.benchmark.gpu_timestamp=await gpuQuerySamples(network,config.iterations);}
+  catch(error){evidence.benchmark.gpu_timestamp={status:'failed',error:String(error.stack??error)};}
+  await progress('original output composition');
+  const composeStarted=performance.now();
+  const composed=composeImage(firstHead,{proxy},network.geometry);
+  evidence.compose_wall_ms=performance.now()-composeStarted;
+  const outputCanvas=document.querySelector('#output');outputCanvas.width=config.width;outputCanvas.height=config.height;
+  outputCanvas.getContext('2d').putImageData(composed,0,0);
+  let absolute=0,changed=0;for(let index=0;index<rgba.data.length;index++){if((index&3)===3)continue;const delta=Math.abs(composed.data[index]-rgba.data[index]);absolute+=delta;changed+=Number(delta!==0);}
+  evidence.output_validation={dimensions_wh:[composed.width,composed.height],
+    changed_channel_fraction:changed/(config.width*config.height*3),mean_absolute_byte_change:absolute/(config.width*config.height*3),
+    note:'Change from input only; not a quality metric against ground truth.'};
+  if(gpuErrors.length)throw new Error(`Uncaptured WebGPU errors: ${gpuErrors.join('; ')}`);
+  if(deviceLoss)throw new Error(`WebGPU device lost: ${deviceLoss.reason}: ${deviceLoss.message}`);
+  evidence.gpu_errors=gpuErrors;evidence.status='completed';evidence.stage='complete';evidence.finished_at_utc=new Date().toISOString();
+  await post('/result',{...evidence,pngBase64:outputCanvas.toDataURL('image/png').split(',')[1],inputPngBase64:inputCanvas.toDataURL('image/png').split(',')[1]});
+  statusNode.textContent=JSON.stringify(evidence,null,2);document.title='COMPLETED OpenDLSS benchmark';
+}catch(error){
+  evidence.status='failed';evidence.stage=stage;evidence.gpu_errors=gpuErrors;
+  evidence.error={type:error?.constructor?.name??'Error',message:String(error.message??error),traceback:String(error.stack??error)};
+  evidence.finished_at_utc=new Date().toISOString();
+  statusNode.textContent=JSON.stringify(evidence,null,2);
+  try{await post('/result',evidence);}catch(postError){console.error(postError);}
+}finally{network?.destroy();if(objectUrl)URL.revokeObjectURL(objectUrl);}
+</script>

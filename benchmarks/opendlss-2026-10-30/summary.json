@@ -1,0 +1,144 @@
+{
+  "scope": "OpenDLSS-only archived single-image inference measurements; report generation does not run a GPU",
+  "date": "2026-10-30",
+  "gpu": "NVIDIA GeForce RTX 5060",
+  "driver": "610.88",
+  "input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+  "dimensions_wh": [
+    896,
+    512
+  ],
+  "warmups": 5,
+  "iterations": 20,
+  "primary_metric": "synchronized_wall",
+  "results": [
+    {
+      "backend": "WebGPU / WGSL",
+      "directory": "results/opendlss_896x512",
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 158.85000000298024,
+        "median_ms": 158.64999997615814,
+        "p95_ms": 161.85000001192094,
+        "std_ms": 1.801527135076748,
+        "min_ms": 155.80000001192093,
+        "max_ms": 162.80000001192093,
+        "fps_from_mean": 6.295247088330115,
+        "samples_ms": [
+          160.5,
+          162.80000001192093,
+          157.80000001192093,
+          156.39999997615814,
+          159.5999999642372,
+          158.69999998807907,
+          161.80000001192093,
+          159,
+          160,
+          155.80000001192093,
+          157.69999998807907,
+          158.5999999642372,
+          160.80000001192093,
+          158.9000000357628,
+          160.9000000357628,
+          156.5999999642372,
+          158.10000002384186,
+          157.60000002384186,
+          158.10000002384186,
+          157.30000001192093
+        ]
+      },
+      "gpu_mean_ms": 155.01361920000005
+    },
+    {
+      "backend": "PyTorch CUDA reference",
+      "directory": "cuda_pytorch_896x512",
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 203.08120179688558,
+        "median_ms": 201.89524450688623,
+        "p95_ms": 211.37686561560258,
+        "min_ms": 193.34839098155499,
+        "max_ms": 217.02848497079685,
+        "std_ms": 5.794673644823788,
+        "fps_from_mean": 4.924138675327338,
+        "samples_ms": [
+          205.2162770414725,
+          199.63010103674605,
+          196.82295399252325,
+          211.00811596261337,
+          206.22361003188416,
+          217.02848497079685,
+          201.19111699750647,
+          199.79836902348325,
+          202.7722229831852,
+          202.599372016266,
+          198.23175604688004,
+          197.42321397643536,
+          205.0433709518984,
+          211.0794119653292,
+          200.91400697128847,
+          198.24183697346598,
+          197.87442701635882,
+          193.34839098155499,
+          208.43078603502363,
+          208.7462109629996
+        ]
+      },
+      "gpu_mean_ms": 201.19971618652343
+    },
+    {
+      "backend": "Native Vulkan + CUDA/PTX",
+      "directory": "results/native_ptx_896x512",
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 5.995735000000001,
+        "median_ms": 5.79245,
+        "p95_ms": 7.1549000000000005,
+        "std_ms": 0.4460413246269902,
+        "min_ms": 5.5825,
+        "max_ms": 7.21,
+        "fps_from_mean": 166.7852231627982,
+        "samples_ms": [
+          5.5825,
+          5.7189,
+          5.7029,
+          5.7425,
+          6.0797,
+          5.6666,
+          6.1195,
+          5.6595,
+          5.7317,
+          7.152,
+          5.9092,
+          7.21,
+          6.1946,
+          6.3863,
+          5.9818,
+          5.676,
+          5.7822,
+          5.7397,
+          5.8027,
+          6.0764
+        ]
+      },
+      "gpu_mean_ms": 4.0870849609
+    }
+  ],
+  "native_speedup_vs_webgpu_wall": 26.493832699907554,
+  "cross_backend_validation": {
+    "preprocessing_bitwise_equal": true,
+    "head_bitwise_equal": false,
+    "webgpu_output_tolerance_passed": false,
+    "same_features_png_comparison": {
+      "reference_native_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+      "webgpu_same_features_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png",
+      "mae_uint8": 0.48143078031994047,
+      "rmse_uint8": 0.773258983126041,
+      "max_abs_uint8": 8.0,
+      "psnr_db": 50.36430412862686,
+      "channels_exceeding_one_code": 58168,
+      "fraction_exceeding_one_code": 0.04226539248511905,
+      "bitwise_equal": false
+    }
+  }
+}

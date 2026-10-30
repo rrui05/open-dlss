@@ -1,0 +1,50 @@
+{
+  "status": "verified_offline",
+  "scope": "Windows Event Log, minidump register decoding, existing executable disassembly, and source inspection only. No GPU rerun.",
+  "application": "D:/newDLSS/open-dlss/build/dlss5vk.exe",
+  "exception": {
+    "code": "0xc0000005",
+    "operation": "read",
+    "module": "dlss5vk.exe",
+    "module_offset": "0x21afb",
+    "instruction": "movss xmm1,dword ptr [rax+rcx*4+10h]",
+    "fault_address": "0x20975eef030",
+    "rax": "0x209757ee060",
+    "rcx": "0x1c03f0",
+    "calculated_effective_address": "0x20975eef030"
+  },
+  "source": {
+    "function": "compareOutput",
+    "line_read": "D:/newDLSS/open-dlss/src/main.cpp:317",
+    "input_selection": "D:/newDLSS/open-dlss/src/main.cpp:449",
+    "call_site": "D:/newDLSS/open-dlss/src/main.cpp:546",
+    "read_expression": "values[((size_t)y * plan.fullWidth + x) * 16 + 4 + c]",
+    "reason": "When plan.outputBytes is true the CPU comparison interprets inputBytes as 16-lane features, but the proxy fixture path loads a 4-lane RGBA float proxy into inputBytes."
+  },
+  "sizes": {
+    "width": 896,
+    "height": 512,
+    "proxy_bytes": 7340032,
+    "features_bytes": 29360128,
+    "fault_offset_from_input_base": 7344080,
+    "bytes_past_proxy": 4048
+  },
+  "interpretation": {
+    "null_function_pointer": false,
+    "driver_fault_not_supported_by_this_crash": true,
+    "gpu_graph_completed_before_this_cpu_output_comparison": "Implied by the call order: production runGraph and head checks precede compareOutput."
+  },
+  "workaround_without_source_changes": {
+    "remove_manifest_key": "proxy",
+    "add_manifest_key": "inputFeatures",
+    "input_features_example": {
+      "file": "../native_dump/features.f32"
+    },
+    "note": "Use the already captured 29,360,128-byte GPU-generated features as fixture input. Keep the RGBA8 output check. The f32-output fixture requires a proxy and is a different branch."
+  },
+  "evidence": [
+    "native_crash_events.json",
+    "native_crash_minidump.json",
+    "native_fault_disassembly.txt"
+  ]
+}
