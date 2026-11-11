@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="820" viewBox="0 0 1480 820" role="img" aria-labelledby="title desc">
+<title id="title">DLSS 各功能的职责与接入关系</title>
+<desc id="desc">超分辨率或光线重建之后可以加入神经渲染。帧生成另需运动、深度、界面与显示同步。此图说明功能职责，具体执行顺序由引擎与插件契约决定。</desc>
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#326e9b"/></marker></defs>
+<rect width="1480" height="820" fill="white"/>
+<style>text{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif} .line{fill:none;stroke:#326e9b;stroke-width:2;marker-end:url(#a)}</style>
+<text x="60" y="58" font-size="31" fill="#17324d" font-weight="bold">DLSS 是一组职责不同的渲染技术</text>
+<text x="60" y="91" font-size="17" fill="#52677b">先区分各功能做什么，再按目标引擎的接口安排执行顺序</text>
+<rect x="60" y="145" width="300" height="148" rx="12" fill="#edf5fc" stroke="#a6c3de" stroke-width="1.5"/>
+<text x="80" y="177" font-size="21" font-weight="bold" fill="#17324d">游戏引擎渲染</text>
+<text x="80" y="205" font-size="17" fill="#435f78">光栅化、光追或路径追踪</text>
+<text x="80" y="230" font-size="17" fill="#435f78">输出颜色、运动与深度</text>
+<text x="80" y="255" font-size="17" fill="#435f78">按功能提供材质引导</text>
+<rect x="450" y="132" width="365" height="126" rx="12" fill="#edf5fc" stroke="#a6c3de" stroke-width="1.5"/>
+<text x="470" y="164" font-size="21" font-weight="bold" fill="#17324d">超分辨率或抗锯齿</text>
+<text x="470" y="192" font-size="17" fill="#435f78">SR：低分辨率重建为高分辨率</text>
+<text x="470" y="217" font-size="17" fill="#435f78">DLAA：原生分辨率抗锯齿</text>
+<rect x="450" y="302" width="365" height="142" rx="12" fill="#edf5fc" stroke="#a6c3de" stroke-width="1.5"/>
+<text x="470" y="334" font-size="21" font-weight="bold" fill="#17324d">光线重建 RR</text>
+<text x="470" y="362" font-size="17" fill="#435f78">读取噪声光追颜色与材质引导</text>
+<text x="470" y="387" font-size="17" fill="#435f78">替代降噪并承担相关升采样</text>
+<text x="470" y="412" font-size="17" fill="#435f78">此路径替代 SR，不能盲目重复叠加</text>
+<rect x="915" y="212" width="490" height="154" rx="12" fill="#f3effb" stroke="#c7b4df" stroke-width="1.5"/>
+<text x="935" y="244" font-size="21" font-weight="bold" fill="#17324d">按需加入神经渲染 NR</text>
+<text x="935" y="272" font-size="17" fill="#435f78">保持图像尺寸，增强材质与光照外观</text>
+<text x="935" y="297" font-size="17" fill="#435f78">读取当前颜色、历史状态与艺术控制</text>
+<text x="935" y="322" font-size="17" fill="#435f78">输出图像，不修改底层场景几何</text>
+<rect x="450" y="542" width="365" height="130" rx="12" fill="#edf8f4" stroke="#a2cebf" stroke-width="1.5"/>
+<text x="470" y="574" font-size="21" font-weight="bold" fill="#17324d">按需加入帧生成 FG / MFG</text>
+<text x="470" y="602" font-size="17" fill="#435f78">推断额外的显示帧</text>
+<text x="470" y="627" font-size="17" fill="#435f78">使用后备缓冲、运动与深度</text>
+<text x="470" y="652" font-size="17" fill="#435f78">按需提供无界面颜色与界面缓冲</text>
+<rect x="915" y="542" width="490" height="130" rx="12" fill="#edf8f4" stroke="#a2cebf" stroke-width="1.5"/>
+<text x="935" y="574" font-size="21" font-weight="bold" fill="#17324d">组合界面并送往显示</text>
+<text x="935" y="602" font-size="17" fill="#435f78">按功能接口组合界面</text>
+<text x="935" y="627" font-size="17" fill="#435f78">管理交换链、显示节奏与 Reflex</text>
+<text x="935" y="652" font-size="17" fill="#435f78">显示帧率与游戏模拟频率分开衡量</text>
+<path class="line" d="M360 192 H450"/>
+<path class="line" d="M360 235 H400 V365 H450"/>
+<path class="line" d="M815 195 H865 V260 H915"/>
+<path class="line" d="M815 365 H865 V315 H915"/>
+<path class="line" d="M1160 366 V480 H630 V542"/>
+<path class="line" d="M815 607 H915"/>
+<path class="line" d="M360 265 H390 V607 H450" stroke-dasharray="7 5"/>
+<text x="75" y="523" font-size="16" fill="#52677b">辅助输入：</text>
+<text x="75" y="548" font-size="16" fill="#52677b">运动、深度、界面</text>
+<text x="75" y="573" font-size="16" fill="#52677b">与逐帧相机常量</text>
+<rect x="60" y="720" width="1345" height="58" rx="10" fill="#fff6e8"/>
+<text x="80" y="754" font-size="18" fill="#805719">本仓库实现的是 NR 310.8.0。超分辨率、抗锯齿、光线重建与帧生成分别属于其他产品功能。</text>
+</svg>

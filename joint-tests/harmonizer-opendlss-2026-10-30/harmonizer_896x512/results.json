@@ -1,0 +1,415 @@
+{
+  "status": "completed",
+  "stage": "complete",
+  "started_at_utc": "2026-10-30T08:04:09.177106+00:00",
+  "command": [
+    "/mnt/d/newDLSS/harmonizer/local_tests/bench_tae.py",
+    "--width",
+    "896",
+    "--height",
+    "512",
+    "--warmups",
+    "5",
+    "--iterations",
+    "20",
+    "--max-frames",
+    "1",
+    "--input-dir",
+    "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs",
+    "--output",
+    "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/harmonizer_896x512"
+  ],
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "batch_size": 1,
+    "precision": "bf16",
+    "warmups": 5,
+    "iterations": 20,
+    "seed": 123,
+    "timestep": 250,
+    "max_frames": 1
+  },
+  "method": {
+    "temporal": false,
+    "training": false,
+    "preprocessing": "RGB; PIL bilinear resize; pixels/255*2-1 in float32; BF16 B,C,V,H,W.",
+    "postprocessing": "Save output view 0; float32 /2+0.5; clamp [0,1]; uint8 truncation; PNG.",
+    "output_dimensions": "Images and metrics remain at inference resolution.",
+    "history": "For a real sequence: first four frames V=1; then current plus saved outputs [-1,-2,-3,-4]. Reload history from PNG, as in the official inference loop.",
+    "input_sequence": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs",
+    "compatibility": "Original live Harmonizer DiT strictly loaded; original Cosmos VAE absent. Pretrained TAEW2.1 encoder and decoder replace it without retraining. This approximate replacement can change output quality.",
+    "benchmark_note": "Model-only controlled repeated-input microbenchmark; per-frame sequence timings are recorded separately. This script never trains.",
+    "autoencoder": "TAEW2.1",
+    "latent_compatibility": "Cosmos and Wan2.1 use identical 16-channel mean/std. TAEW2.1 directly emits/accepts normalized diffusion latents, so no additional mean/std normalization is applied.",
+    "temporal_alignment": "Local causal bridge prepends the current frame three times before TAE encoding: V1->T4 and V5->T8. This preserves a current-only first latent; it is not an author-provided training convention. TAE full temporal decoding retains its normal prefix trim, returning 1 or 5 frames.",
+    "reference_frames": "All four references and the entire DiT remain unchanged; full 5-frame decoder output is computed in temporal mode."
+  },
+  "environment": {
+    "python": "3.11.16 (main, Sep  2 2026, 23:39:52) [GCC 15.3.0]",
+    "executable": "/home/bauhinia/.local/share/harmonizer-env/bin/python",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "torch": "2.11.0+cu128",
+    "torch_cuda": "12.8",
+    "cudnn": 91900,
+    "numpy": "1.26.4",
+    "pillow": "12.3.0",
+    "gpu_name": "NVIDIA GeForce RTX 5060",
+    "gpu_compute_capability": [
+      12,
+      0
+    ],
+    "gpu_total_mib": 8150.5625,
+    "gpu_free_before_load_mib": 7019.0,
+    "gpu_driver_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 2088 MiB, 5808 MiB",
+    "torch_cuda_arch_list": [
+      "sm_75",
+      "sm_80",
+      "sm_86",
+      "sm_90",
+      "sm_100",
+      "sm_120"
+    ],
+    "cudnn_benchmark": false,
+    "cudnn_allow_tf32": true,
+    "matmul_allow_tf32": false,
+    "allocator_backend": "native",
+    "allocator_environment": {
+      "PYTORCH_ALLOC_CONF": null,
+      "PYTORCH_CUDA_ALLOC_CONF": null
+    },
+    "git_commit": "32f3eca8c0a144d9067430f9be07de7723ef172b",
+    "git_status": "M .github/ISSUE_TEMPLATE/bug_report_template.md\n M .github/ISSUE_TEMPLATE/config.yml\n M .github/ISSUE_TEMPLATE/documentation_request_template.md\n M .github/ISSUE_TEMPLATE/feature_request_template.md\n M .github/workflows/request-nvskills-ci.yml\n M CONTRIBUTING.md\n M Dockerfile.cosmos\n M LICENSE\n M README.md\n M SECURITY.md\n M THIRD_PARTY_LICENSE.txt\n M doc/dataset_preparation_tutorial.md\n M doc/test_dataset_preparation_tutorial.md\n M download_checkpoints.sh\n M media/method_teaser.svg\n M requirements.txt\n M ruff.toml\n M skills/harmonizer/LICENSE-Apache-2.0.txt\n M skills/harmonizer/LICENSE-CC-BY-4.0\n M skills/harmonizer/NOTICE\n M skills/harmonizer/README.md\n M skills/harmonizer/SKILL.md\n M skills/harmonizer/evals/evals.json\n M skills/harmonizer/references/evaluation.md\n M skills/harmonizer/references/inference.md\n M skills/harmonizer/references/teardown.md\n M skills/harmonizer/references/training.md\n M skills/harmonizer/references/troubleshooting.md\n M skills/harmonizer/references/wrapper-image.md\n M skills/harmonizer/scripts/.env.example\n M skills/harmonizer/scripts/validate_setup.py\n M skills/harmonizer/skill-card.md\n M src/evaluate_test_dataset.py\n M src/inference_exported_model.py\n M src/inference_pix2pix_turbo_harmonizer.py\n M src/inference_pretrained_model.py\n M src/model/__init__.py\n M src/model/denoiser_scaling.py\n M src/model/pipeline.py\n M src/model/text2image_dit.py\n M src/onnx_export/README.md\n M src/onnx_export/__init__.py\n M src/onnx_export/convert_trt.py\n M src/onnx_export/export_and_benchmark.sh\n M src/onnx_export/export_onnx.py\n M src/onnx_export/exportable_modules.py\n M src/onnx_export/inference_trt.py\n M src/onnx_export/run_export.sh\n M src/opticalflow_loss.py\n M src/pix2pix_turbo_harmonizer.py\n M src/pix2pix_turbo_nocond_cosmos_base_faster_tokenizer.py\n M src/train_pix2pix_turbo_harmonizer.py\n M src/train_pix2pix_turbo_nocond_cosmos_base_faster_tokenizer.py\n M src/utils/__init__.py\n M src/utils/dino_struct.py\n M src/utils/profiling.py\n M src/utils/style_loss.py\n M src/utils/training_utils.py\n M text2image_dit.patch\n M tokenizer.patch\n?? local_env_probe.json\n?? local_env_probe.py\n?? local_tests/\n?? models/"
+  },
+  "model": {
+    "path": "/mnt/d/newDLSS/harmonizer/models/diffusion_harmonizer.pkl",
+    "size_bytes": 5042242222,
+    "sha256": "6e65e9ec33019a49f7f0d15f81f5e089c2527e131bd5339d6a14f9b3531db524",
+    "source": "https://huggingface.co/nvidia/Harmonizer/blob/main/diffusion_harmonizer.pkl",
+    "mode": "Harmonizer + TAEW2.1 encoder/decoder replacement",
+    "custom_op_registration_module": "public_temporal_adapter (torch RMSNorm/RoPE compatibility)",
+    "architecture_source": "Official cosmos-predict2==1.0.9 classes; torch attention backend",
+    "base_checkpoint_accessed": false,
+    "autoencoder": "TAEW2.1",
+    "autoencoder_checkpoint": "/mnt/d/newDLSS/TAE/taew2_1.pth",
+    "autoencoder_checkpoint_sha256": "d26151e76cdc2c9424bef988de874b33d9a53f30ef3060cd556c429c469c797e",
+    "autoencoder_source": "/mnt/d/newDLSS/TAE/taehv.py",
+    "autoencoder_source_sha256": "99545f093b36c16297ad182ce18a5dce2ebc98bb611f5e8dfa2dce431ba39ce2",
+    "autoencoder_provenance": {
+      "repository": "https://github.com/madebyollin/taehv",
+      "commit": "011dfc2112197741c540e0bdd5b7b67bcc930771",
+      "checkpoint": "taew2_1.pth",
+      "files": [
+        {
+          "file": "taehv.py",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/taehv.py",
+          "bytes": 26475,
+          "sha256": "99545f093b36c16297ad182ce18a5dce2ebc98bb611f5e8dfa2dce431ba39ce2"
+        },
+        {
+          "file": "taew2_1.pth",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/taew2_1.pth",
+          "bytes": 22678901,
+          "sha256": "d26151e76cdc2c9424bef988de874b33d9a53f30ef3060cd556c429c469c797e"
+        },
+        {
+          "file": "README.md",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/README.md",
+          "bytes": 10016,
+          "sha256": "a1c7afefb557bd09bfd4795e18da2ee3d3ff1c9fb6f3d87e42f6988b9c7718f3"
+        },
+        {
+          "file": "LICENSE",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/LICENSE",
+          "bytes": 1073,
+          "sha256": "532f9e394518ffddecd294a517d5b41d79d3d3866c3fb95a6cb0e8bcc02370bf"
+        },
+        {
+          "file": "examples/TAEW2.1_T2I_Demo.ipynb",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/examples/TAEW2.1_T2I_Demo.ipynb",
+          "bytes": 7713,
+          "sha256": "e7116465ddefe5aa19d0cb82f540c58a4de937c281591c470f4e23e76a5408b1"
+        },
+        {
+          "file": "wan21_vae_reference.py",
+          "url": "https://raw.githubusercontent.com/Wan-Video/Wan2.1/main/wan/modules/vae.py",
+          "bytes": 23163,
+          "sha256": "4912ffd7a9fbb17ceef9a17d4a9c4b8aee36ec37c32594f54e57693b29909498"
+        },
+        {
+          "file": "examples/TAEW2.1_T2I_Demo.ipynb",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/examples/TAEW2.1_T2I_Demo.ipynb",
+          "bytes": 7713,
+          "sha256": "e7116465ddefe5aa19d0cb82f540c58a4de937c281591c470f4e23e76a5408b1"
+        },
+        {
+          "file": "examples/TAEW2.1_Diffusers_Encoding_and_Decoding_Demo.ipynb",
+          "url": "https://raw.githubusercontent.com/madebyollin/taehv/011dfc2112197741c540e0bdd5b7b67bcc930771/examples/TAEW2.1_Diffusers_Encoding_and_Decoding_Demo.ipynb",
+          "bytes": 5103373,
+          "sha256": "ead12cd2f911f25399cb4befbb2239c701bf8cbbd0bccb08ee3aabc90c9000b0"
+        },
+        {
+          "file": "wan21_vae_reference.py",
+          "url": "https://raw.githubusercontent.com/Wan-Video/Wan2.1/main/wan/modules/vae.py",
+          "bytes": 23163,
+          "sha256": "4912ffd7a9fbb17ceef9a17d4a9c4b8aee36ec37c32594f54e57693b29909498"
+        }
+      ]
+    },
+    "original_vae_loaded": false,
+    "integrity": {
+      "dit": {
+        "expected": 414,
+        "loaded": 414,
+        "missing": [],
+        "unexpected": [],
+        "shape_mismatches": {},
+        "parameters": 597536000
+      },
+      "tae": {
+        "expected": 128,
+        "loaded": 128,
+        "missing": [],
+        "unexpected": [],
+        "shape_mismatches": {},
+        "parameters": 11315539
+      },
+      "original_vae_loaded": false,
+      "approximate_replacement_without_training": true
+    },
+    "strict_loading": true,
+    "load_and_device_conversion_wall_seconds": 19.24717118300032,
+    "allocated_after_load_mib": 1176.0927734375,
+    "reserved_after_load_mib": 1248.0,
+    "input_dtype": "torch.bfloat16",
+    "input_shape": [
+      1,
+      3,
+      1,
+      512,
+      896
+    ]
+  },
+  "benchmark_input": {
+    "source": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs/street_896x512.png",
+    "views": 1,
+    "synthetic_repeated_views": false,
+    "note": "Temporal model microbenchmark uses current plus four identical reference images; it does not assess temporal consistency."
+  },
+  "first_forward": {
+    "cuda_event_ms": 1300.10546875,
+    "synchronized_wall_ms": 1329.5505339629017,
+    "peak_allocated_mib": 2155.23095703125,
+    "peak_reserved_mib": 2282.0,
+    "output_validation": {
+      "shape": [
+        1,
+        3,
+        1,
+        512,
+        896
+      ],
+      "dtype": "torch.bfloat16",
+      "all_finite": true,
+      "raw_min": -1.0,
+      "raw_max": 1.0,
+      "clipped_fraction": 0.0,
+      "full_output_shape": [
+        1,
+        3,
+        1,
+        512,
+        896
+      ],
+      "saved_frame_index": 0
+    }
+  },
+  "benchmark": {
+    "cuda_event": {
+      "count": 20,
+      "mean_ms": 163.9628707885742,
+      "median_ms": 163.87464141845703,
+      "p95_ms": 167.85143585205077,
+      "std_ms": 2.3722808061293117,
+      "min_ms": 159.54441833496094,
+      "max_ms": 168.51119995117188,
+      "fps_from_mean": 6.098941761574019,
+      "samples_ms": [
+        164.89759826660156,
+        165.4272003173828,
+        168.51119995117188,
+        167.81671142578125,
+        164.7283477783203,
+        163.83091735839844,
+        161.88572692871094,
+        163.91836547851562,
+        165.05596923828125,
+        166.41513061523438,
+        165.02146911621094,
+        159.54441833496094,
+        159.97882080078125,
+        162.82794189453125,
+        163.39878845214844,
+        167.15557861328125,
+        162.76112365722656,
+        162.78807067871094,
+        161.61305236816406,
+        161.6809844970703
+      ]
+    },
+    "synchronized_wall": {
+      "count": 20,
+      "mean_ms": 167.78175015351735,
+      "median_ms": 167.77809051563963,
+      "p95_ms": 171.70865269144997,
+      "std_ms": 2.5048280430425054,
+      "min_ms": 163.2643280318007,
+      "max_ms": 172.40372399101034,
+      "fps_from_mean": 5.960123786317746,
+      "samples_ms": [
+        168.72266901191324,
+        169.26171001978219,
+        172.40372399101034,
+        171.6720699914731,
+        168.5066350037232,
+        167.58853697683662,
+        165.69412202807143,
+        167.85472602350637,
+        169.28437200840563,
+        170.33157200785354,
+        168.96606900263578,
+        163.2643280318007,
+        163.7332930113189,
+        166.63666698150337,
+        167.7014550077729,
+        171.23272799653932,
+        166.49817599682137,
+        166.5233009844087,
+        165.47933500260115,
+        164.27951399236917
+      ]
+    },
+    "peak_allocated_mib": 2155.23095703125,
+    "peak_reserved_mib": 2284.0,
+    "scope": "Batch 1; model-only with resident normalized input; excludes loading and CPU image I/O. Temporal mode processes five input views and saves view 0.",
+    "repeated_input": true,
+    "views": 1
+  },
+  "images": [
+    {
+      "frame_index": 0,
+      "name": "street_896x512",
+      "input": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs/street_896x512.png",
+      "source_size_wh": [
+        896,
+        512
+      ],
+      "output_size_wh": [
+        896,
+        512
+      ],
+      "output": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/harmonizer_896x512/generated/0000_street_896x512.png",
+      "frame_mode": "non-temporal",
+      "input_views": 1,
+      "reference_output_paths": [],
+      "model_cuda_ms": 167.62355041503906,
+      "model_wall_ms": 169.08405197318643,
+      "end_to_end_wall_ms": 400.3440960077569,
+      "peak_allocated_mib_so_far": 2155.23095703125,
+      "peak_reserved_mib_so_far": 2284.0,
+      "output_validation": {
+        "shape": [
+          1,
+          3,
+          1,
+          512,
+          896
+        ],
+        "dtype": "torch.bfloat16",
+        "all_finite": true,
+        "raw_min": -1.0,
+        "raw_max": 1.0,
+        "clipped_fraction": 0.0,
+        "full_output_shape": [
+          1,
+          3,
+          1,
+          512,
+          896
+        ],
+        "saved_frame_index": 0
+      },
+      "input_output_difference": {
+        "psnr_db": 32.427519392448765,
+        "perfect_match": false,
+        "mse_0_to_1": 0.0005718051476488269,
+        "mae_0_to_1": 0.015265710369434233
+      },
+      "comparison": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/harmonizer_896x512/comparisons/0000_street_896x512.png"
+    }
+  ],
+  "contact_sheet": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/harmonizer_896x512/contact_sheet.jpg",
+  "end_to_end_images": {
+    "count": 1,
+    "mean_ms": 400.3440960077569,
+    "median_ms": 400.3440960077569,
+    "p95_ms": 400.3440960077569,
+    "std_ms": 0.0,
+    "min_ms": 400.3440960077569,
+    "max_ms": 400.3440960077569,
+    "fps_from_mean": 2.497851248393643,
+    "samples_ms": [
+      400.3440960077569
+    ]
+  },
+  "sequence_statistics": {
+    "non-temporal": {
+      "frames": 1,
+      "cuda_event": {
+        "count": 1,
+        "mean_ms": 167.62355041503906,
+        "median_ms": 167.62355041503906,
+        "p95_ms": 167.62355041503906,
+        "std_ms": 0.0,
+        "min_ms": 167.62355041503906,
+        "max_ms": 167.62355041503906,
+        "fps_from_mean": 5.965748831378295,
+        "samples_ms": [
+          167.62355041503906
+        ]
+      },
+      "synchronized_wall": {
+        "count": 1,
+        "mean_ms": 169.08405197318643,
+        "median_ms": 169.08405197318643,
+        "p95_ms": 169.08405197318643,
+        "std_ms": 0.0,
+        "min_ms": 169.08405197318643,
+        "max_ms": 169.08405197318643,
+        "fps_from_mean": 5.914218333013342,
+        "samples_ms": [
+          169.08405197318643
+        ]
+      },
+      "end_to_end": {
+        "count": 1,
+        "mean_ms": 400.3440960077569,
+        "median_ms": 400.3440960077569,
+        "p95_ms": 400.3440960077569,
+        "std_ms": 0.0,
+        "min_ms": 400.3440960077569,
+        "max_ms": 400.3440960077569,
+        "fps_from_mean": 2.497851248393643,
+        "samples_ms": [
+          400.3440960077569
+        ]
+      }
+    }
+  },
+  "sequence_peak_memory": {
+    "allocated_mib": 2155.23095703125,
+    "reserved_mib": 2284.0
+  },
+  "temporal_sequence_verified": false,
+  "finished_at_utc": "2026-10-30T08:04:55.201766+00:00"
+}

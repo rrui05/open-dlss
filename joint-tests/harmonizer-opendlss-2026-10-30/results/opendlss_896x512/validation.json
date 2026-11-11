@@ -1,0 +1,18 @@
+{
+  "source_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+  "browser_input_pixels_identical": true,
+  "input_dimensions_wh": [
+    896,
+    512
+  ],
+  "output_dimensions_wh": [
+    896,
+    512
+  ],
+  "output_std_rgb": 44.82507333371435,
+  "head_finite": true,
+  "gpu_errors": [],
+  "blocks": 71,
+  "warmups": 5,
+  "timed_count": 20
+}

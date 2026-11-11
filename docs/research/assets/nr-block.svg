@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="1100" viewBox="0 0 1520 1100" role="img" aria-labelledby="title desc">
+<title id="title">神经渲染模型：一个 Transformer 单元如何计算</title><desc id="desc">先计算前馈网络，再融合逐通道学习缩放的残差。随后投影QKV，归一化Q和K，执行余弦注意力，再次融合缩放残差。橙色量化标记表示FP16和E4M3的舍入发布。下方列出各通道宽度的前馈变体及四种窗口相位。</desc>
+<defs>
+<marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L9 4.5 L0 9 Z" fill="#2d6eac"/></marker>
+<marker id="skip-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L9 4.5 L0 9 Z" fill="#18847c"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:'Microsoft YaHei','微软雅黑',Arial,sans-serif}.mono{font-family:Consolas,'Microsoft YaHei','微软雅黑',monospace}</style>
+<text x="60" y="48" font-size="32" font-weight="bold" fill="#17324d" text-anchor="start">一个 Transformer 单元如何计算</text>
+<text x="60" y="79" font-size="18" font-weight="normal" fill="#52677b" text-anchor="start">① 前馈网络 → ② 缩放残差相加 → ③ QKV 投影与余弦注意力 → ④ 输出投影与残差相加</text>
+<rect x="60" y="207" width="125" height="78" rx="12" fill="#f5f1fc" stroke="#c8b5e0" stroke-width="1.5"/>
+<text x="122.5" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">输入 x</text>
+<text x="122.5" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">E4M3</text>
+<rect x="245" y="207" width="150" height="78" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">前馈网络 FFN</text>
+<text x="320.0" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">具体变体见下方</text>
+<rect x="555" y="207" width="150" height="78" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="630.0" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">QKV 投影</text>
+<text x="630.0" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">通道 C → 3C</text>
+<rect x="765" y="207" width="210" height="78" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="870.0" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">余弦注意力</text>
+<text x="870.0" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">每头维度 = 32</text>
+<rect x="1035" y="207" width="145" height="78" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="1107.5" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">输出投影</text>
+<text x="1107.5" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">通道 C → C</text>
+<rect x="1340" y="207" width="125" height="78" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1402.5" y="237" font-size="19" font-weight="bold" fill="#17324d" text-anchor="middle">输出</text>
+<text x="1402.5" y="262" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">E4M3</text>
+<circle cx="475" cy="246" r="21" fill="#ffffff" stroke="#2d6eac" stroke-width="2"/>
+<text x="475" y="253" font-size="26" font-weight="bold" fill="#17324d" text-anchor="middle">+</text>
+<circle cx="1260" cy="246" r="21" fill="#ffffff" stroke="#2d6eac" stroke-width="2"/>
+<text x="1260" y="253" font-size="26" font-weight="bold" fill="#17324d" text-anchor="middle">+</text>
+<path d="M185 246 H245" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M395 246 H454" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M496 246 H555" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M705 246 H765" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M975 246 H1035" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1180 246 H1239" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1281 246 H1340" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M210 246 V146 H475 V225" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336" y="132" font-size="17" font-weight="bold" fill="#17324d" text-anchor="middle">x * s_ffn</text>
+<text x="336" y="166" font-size="13" font-weight="normal" fill="#52677b" text-anchor="middle">逐通道学习缩放</text>
+<path d="M510 246 V342 H1260 V267" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="875" y="329" font-size="16" font-weight="normal" fill="#52677b" text-anchor="middle">y × s_attn：C32 使用原始 FP16；更宽单元使用 E4M3</text>
+<text x="475" y="302" font-size="17" font-weight="bold" fill="#17324d" text-anchor="middle">y</text>
+<rect x="504" y="233" width="42" height="26" rx="8" fill="#fff2d9" stroke="#c87916" stroke-width="1.5"/>
+<text x="525" y="251" font-size="12" font-weight="bold" fill="#c87916" text-anchor="middle">量化</text>
+<rect x="984" y="233" width="42" height="26" rx="8" fill="#fff2d9" stroke="#c87916" stroke-width="1.5"/>
+<text x="1005" y="251" font-size="12" font-weight="bold" fill="#c87916" text-anchor="middle">量化</text>
+<text x="60" y="380" font-size="16" font-weight="normal" fill="#52677b" text-anchor="start">量化：先舍入至 FP16，再舍入至 E4M3；两步均用最近偶数舍入。FFN 各层之间也发布量化结果。</text>
+<rect x="60" y="410" width="900" height="245" rx="12" fill="#f3f7fb" stroke="#c0d2e3" stroke-width="1.5"/>
+<text x="82" y="442" font-size="22" font-weight="bold" fill="#17324d" text-anchor="start">余弦注意力：先比较方向，再聚合内容</text>
+<text x="82" y="475" font-size="18" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">q_hat = tau_h * q / ||q||;   k_hat = k / ||k||</text>
+<text x="82" y="505" font-size="17" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">S = q_hat k_hat^T + B_h;   P = 近似Softmax(S);   A = P V</text>
+<text x="82" y="538" font-size="15" font-weight="normal" fill="#17324d" text-anchor="start">局部单元：窗口含 8×8 个位置；学习偏置 B_h[64,64]；窗口外零值仍影响归一化分母。</text>
+<text x="82" y="566" font-size="15" font-weight="normal" fill="#17324d" text-anchor="start">全局单元：底部所有位置交互；没有 B_h；Q 额外乘 √32；聚合 V 后再除以分母。</text>
+<text x="82" y="594" font-size="15" font-weight="normal" fill="#17324d" text-anchor="start">实现不减去最大分数。源码使用截断与位运算近似指数函数。</text>
+<text x="82" y="622" font-size="15" font-weight="normal" fill="#52677b" text-anchor="start">公式说明计算结构。精确输出还取决于 FP16 与 E4M3 的舍入顺序。</text>
+<rect x="985" y="410" width="480" height="245" rx="12" fill="#f0f8f5" stroke="#b7d6cb" stroke-width="1.5"/>
+<text x="1007" y="442" font-size="22" font-weight="bold" fill="#17324d" text-anchor="start">四种窗口相位：逐块循环</text>
+<rect x="1007" y="466" width="98" height="78" rx="8" fill="#ffffff" stroke="#b3d3c5" stroke-width="1.5"/>
+<text x="1056" y="491" font-size="14" font-weight="bold" fill="#17324d" text-anchor="middle">相位 0</text>
+<text x="1056" y="522" font-size="15" font-weight="normal" fill="#17324d" text-anchor="middle" class="mono">(0, 0)</text>
+<rect x="1118" y="466" width="98" height="78" rx="8" fill="#ffffff" stroke="#b3d3c5" stroke-width="1.5"/>
+<text x="1167" y="491" font-size="14" font-weight="bold" fill="#17324d" text-anchor="middle">相位 1</text>
+<text x="1167" y="522" font-size="15" font-weight="normal" fill="#17324d" text-anchor="middle" class="mono">(-4,-4)</text>
+<rect x="1229" y="466" width="98" height="78" rx="8" fill="#ffffff" stroke="#b3d3c5" stroke-width="1.5"/>
+<text x="1278" y="491" font-size="14" font-weight="bold" fill="#17324d" text-anchor="middle">相位 2</text>
+<text x="1278" y="522" font-size="15" font-weight="normal" fill="#17324d" text-anchor="middle" class="mono">(-4, 0)</text>
+<rect x="1340" y="466" width="98" height="78" rx="8" fill="#ffffff" stroke="#b3d3c5" stroke-width="1.5"/>
+<text x="1389" y="491" font-size="14" font-weight="bold" fill="#17324d" text-anchor="middle">相位 3</text>
+<text x="1389" y="522" font-size="15" font-weight="normal" fill="#17324d" text-anchor="middle" class="mono">(0,-4)</text>
+<text x="1007" y="577" font-size="16" font-weight="normal" fill="#17324d" text-anchor="start">括号内数值表示窗口原点偏移。</text>
+<text x="1007" y="604" font-size="16" font-weight="normal" fill="#17324d" text-anchor="start">解码侧延续编码侧的相位计数。</text>
+<text x="1007" y="632" font-size="15" font-weight="normal" fill="#52677b" text-anchor="start">每个分辨率层级单独计数。</text>
+<rect x="60" y="684" width="1405" height="277" rx="12" fill="#fafbfd" stroke="#ced9e4" stroke-width="1.5"/>
+<text x="82" y="719" font-size="22" font-weight="bold" fill="#17324d" text-anchor="start">FFN 随通道宽度改变结构：每条路径计算每个位置，没有稀疏专家路由</text>
+<rect x="82" y="741" width="323" height="191" rx="10" fill="#ffffff" stroke="#c9d7e4" stroke-width="1.5"/>
+<text x="98" y="771" font-size="18" font-weight="bold" fill="#17324d" text-anchor="start">C32：稠密前馈</text>
+<text x="98" y="805" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">32 → 128 → 32</text>
+<text x="98" y="836" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">扩展至 128 通道后计算 SiLU</text>
+<text x="98" y="867" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">2 个学习矩阵</text>
+<text x="98" y="898" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">全网共 10 个此类单元</text>
+<rect x="426" y="741" width="323" height="191" rx="10" fill="#ffffff" stroke="#c9d7e4" stroke-width="1.5"/>
+<text x="442" y="771" font-size="18" font-weight="bold" fill="#17324d" text-anchor="start">C64 / C128 / C256</text>
+<text x="442" y="805" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">并行路径数 E = C / 32</text>
+<text x="442" y="836" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">每条：C → 128 → 32</text>
+<text x="442" y="867" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">拼接后再投影：C → C</text>
+<text x="442" y="898" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">每条路径在 128 通道处计算 SiLU</text>
+<rect x="770" y="741" width="323" height="191" rx="10" fill="#ffffff" stroke="#c9d7e4" stroke-width="1.5"/>
+<text x="786" y="771" font-size="18" font-weight="bold" fill="#17324d" text-anchor="start">C512：八条分支</text>
+<text x="786" y="805" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">先投影 512 → 512，再拆成 8×64</text>
+<text x="786" y="836" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">每条：64 → 256 → 64</text>
+<text x="786" y="867" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">拼接后再投影：512 → 512</text>
+<text x="786" y="898" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">仅在 64 → 256 后计算 SiLU</text>
+<rect x="1114" y="741" width="323" height="191" rx="10" fill="#ffffff" stroke="#c9d7e4" stroke-width="1.5"/>
+<text x="1130" y="771" font-size="18" font-weight="bold" fill="#17324d" text-anchor="start">C1024：全局 ViT</text>
+<text x="1130" y="805" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start" class="mono">1024 → 4096 → 1024</text>
+<text x="1130" y="836" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">扩展至 4096 通道后计算 SiLU</text>
+<text x="1130" y="867" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">稠密 FFN；32 个注意力头</text>
+<text x="1130" y="898" font-size="14" font-weight="normal" fill="#17324d" text-anchor="start">底部共 8 个全局单元</text>
+<text x="60" y="1000" font-size="20" font-weight="bold" fill="#17324d" text-anchor="start">计算精度属于模型定义</text>
+<text x="60" y="1028" font-size="16" font-weight="normal" fill="#52677b" text-anchor="start">缩放残差先写入矩阵乘法累加器。若改成矩阵乘法结束后再相加，舍入结果会改变。</text>
+<text x="60" y="1054" font-size="16" font-weight="normal" fill="#52677b" text-anchor="start">实现近似计算 SiLU 和指数函数。记录的前向图没有常规特征层归一化；Q、K 在注意力内部归一化。</text>
+<text x="60" y="1081" font-size="13" font-weight="normal" fill="#52677b" text-anchor="start">源码证据：docs/network.md:86–174；docs/numerics.md；src/nr_graph.cpp:295–668；src/reference.cpp:84–116、215–290。</text>
+</svg>

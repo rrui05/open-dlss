@@ -1,0 +1,111 @@
+{
+  "scope": "Offline minidump parsing; stack values are address candidates, not an unwound call stack.",
+  "dump": "C:\\Users\\Win11\\AppData\\Local\\CrashDumps\\dlss5vk.exe.56188.dmp",
+  "dump_bytes": 8060949,
+  "stream_types": [
+    0,
+    3,
+    4,
+    5,
+    6,
+    7,
+    13,
+    14,
+    15,
+    21,
+    22
+  ],
+  "thread_id": 60164,
+  "exception_code": "0xc0000005",
+  "exception_address": "0x7ff702791afb",
+  "exception_information": [
+    "0x0",
+    "0x20975eef030"
+  ],
+  "access_type": "read",
+  "access_address": "0x20975eef030",
+  "fault_module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+  "fault_module_base": "0x7ff702770000",
+  "fault_module_offset": "0x21afb",
+  "registers": {
+    "rax": "0x209757ee060",
+    "rcx": "0x1c03f0",
+    "rdx": "0x80",
+    "rbx": "0x2098e8d2060",
+    "rsp": "0x72ec6fefc0",
+    "rbp": "0x72ec6ff0c0",
+    "rsi": "0x1c03f",
+    "rdi": "0x72ec6ff200",
+    "r8": "0x6b",
+    "r9": "0x2",
+    "r10": "0x0",
+    "r11": "0x19",
+    "r12": "0x72ec6ff580",
+    "r13": "0x3f",
+    "r14": "0x0",
+    "r15": "0x0",
+    "rip": "0x7ff702791afb"
+  },
+  "stack_address_candidates": [
+    {
+      "stack_offset_from_rsp": 16,
+      "address": "0x7ff7027f0a90",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x80a90"
+    },
+    {
+      "stack_offset_from_rsp": 288,
+      "address": "0x7ff7028151a8",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0xa51a8"
+    },
+    {
+      "stack_offset_from_rsp": 360,
+      "address": "0x7ff7027991bf",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x291bf"
+    },
+    {
+      "stack_offset_from_rsp": 440,
+      "address": "0x7ffb54aac497",
+      "module": "C:\\Windows\\System32\\ntdll.dll",
+      "module_offset": "0x12c497"
+    },
+    {
+      "stack_offset_from_rsp": 752,
+      "address": "0x7ff7027f1e70",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x81e70"
+    },
+    {
+      "stack_offset_from_rsp": 1104,
+      "address": "0x7ff7027f2498",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x82498"
+    },
+    {
+      "stack_offset_from_rsp": 1112,
+      "address": "0x7ff7027f0988",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x80988"
+    },
+    {
+      "stack_offset_from_rsp": 1272,
+      "address": "0x7ff7027f0680",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x80680"
+    },
+    {
+      "stack_offset_from_rsp": 1416,
+      "address": "0x7ff7027f2728",
+      "module": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+      "module_offset": "0x82728"
+    },
+    {
+      "stack_offset_from_rsp": 1944,
+      "address": "0x7ffb54aa5f68",
+      "module": "C:\\Windows\\System32\\ntdll.dll",
+      "module_offset": "0x125f68"
+    }
+  ]
+}

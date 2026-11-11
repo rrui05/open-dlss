@@ -1,0 +1,11 @@
+{
+  "build_exit_code": 0,
+  "executable": "D:\\newDLSS\\open-dlss\\build\\dlss5vk.exe",
+  "executable_bytes": 699392,
+  "executable_sha256": "5471f0458673ae6ed39592d17fcdee92ab8786436cca082687a28db979919150",
+  "ptx_variants": 78,
+  "spirv_shaders": 13,
+  "source_files_checked": 54,
+  "modified_source_files": [],
+  "native_backend": "Vulkan command submission plus original CUDA/PTX kernels; includes SPIR-V utility kernels; not pure CUDA Driver host"
+}

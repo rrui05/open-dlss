@@ -1,0 +1,64 @@
+{
+  "status": "completed",
+  "stage": "complete",
+  "started_at_utc": "2026-10-30T09:03:13.463Z",
+  "command": [
+    "D:\\node\\node.exe",
+    "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\opendlss_harness\\run.mjs",
+    "--page",
+    "cross.html",
+    "--out",
+    "D:/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/results/webgpu_same_native_features"
+  ],
+  "host_environment": {
+    "node": "v24.12.0",
+    "platform": "win32",
+    "gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 3313 MiB, 4583 MiB",
+    "opendlss_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+    "input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "manifest_sha256": "f44ea18e406bbed7a9a4ce37880c6b503a21bee2353e0594e33b1dd04e2522be"
+  },
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "warmups": 5,
+    "iterations": 20,
+    "input": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+    "output": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features",
+    "upstream": "D:\\newDLSS\\open-dlss",
+    "weights": "D:\\newDLSS\\open-dlss\\models\\nr",
+    "port": 8146,
+    "debugPort": 9246
+  },
+  "browser_executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "isolated_browser_profile": "C:\\Users\\Win11\\AppData\\Local\\Temp\\opendlss-joint-1793350993463-05f46a19-c1d9-41dc-b237-d0b1e970ee15",
+  "process_cleanup_scope": "Only the browser launched with this unique profile and debug port is closed; no global browser termination.",
+  "browser_arguments": [
+    "--headless=new",
+    "--enable-unsafe-webgpu",
+    "--user-data-dir=C:\\Users\\Win11\\AppData\\Local\\Temp\\opendlss-joint-1793350993463-05f46a19-c1d9-41dc-b237-d0b1e970ee15",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--disable-backgrounding-occluded-windows",
+    "--remote-debugging-port=9246",
+    "--remote-debugging-address=127.0.0.1",
+    "http://127.0.0.1:8146/cross.html"
+  ],
+  "browser_launcher_pid": 57496,
+  "browser_version": {
+    "Browser": "Edg/156.0.4314.42",
+    "File-Path-Style": "windows",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+    "V8-Version": "15.6.12.6",
+    "WebKit-Version": "537.36 (@57559ad176e613cfedd7dff5fe6856590a39eb3b)",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9246/devtools/browser/ab7798c7-c272-4df8-87b1-4a93c80b2739"
+  },
+  "browser_pid": 57496,
+  "result_status": "completed",
+  "browser_closed_via_cdp": true,
+  "finished_at_utc": "2026-10-30T09:03:36.753Z"
+}

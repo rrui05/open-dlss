@@ -1,0 +1,1819 @@
+{
+  "totals": {
+    "blockCount": 71,
+    "tensorCount": 153
+  },
+  "stages": [
+    {
+      "id": "block00",
+      "file": "stages/block00.bin",
+      "packedByteLength": 21696,
+      "sha256": "5FE2AB86289F7B21253D00368CE7A95F005EC3C8476ABD7DB22550B918962A5C"
+    },
+    {
+      "id": "block01",
+      "file": "stages/block01.bin",
+      "packedByteLength": 20672,
+      "sha256": "0270FB8F406D3D0A916953DDAF6EC5D29328FE95B9D6CB408CA0C25C91108E3A"
+    },
+    {
+      "id": "block10",
+      "file": "stages/block10.bin",
+      "packedByteLength": 197184,
+      "sha256": "77EACAE2F2290C898C53B151B36BC7539BBC7B147628EF3F3B1ECC22B1F910D4"
+    },
+    {
+      "id": "block11",
+      "file": "stages/block11.bin",
+      "packedByteLength": 197184,
+      "sha256": "DD5440DCCD5FA2BE9B63421D2A67715B8C41ABF783464601A78BF138F479A40F"
+    },
+    {
+      "id": "block12",
+      "file": "stages/block12.bin",
+      "packedByteLength": 197184,
+      "sha256": "6E74D269D3B545CBEF475810DC6143D2ED4252D1B905893ED726DCEB756F3962"
+    },
+    {
+      "id": "block13",
+      "file": "stages/block13.bin",
+      "packedByteLength": 197184,
+      "sha256": "535B8B432B76BD8FE857594A58B76985EC70775390FBA55D14EDFE2DF6D5BDAA"
+    },
+    {
+      "id": "block14",
+      "file": "stages/block14.bin",
+      "packedByteLength": 229936,
+      "sha256": "6C7A05C82B823E09B0B843F5DD399AF7A006410F3587191F62A43205A872724D"
+    },
+    {
+      "id": "block15",
+      "file": "stages/block15.bin",
+      "packedByteLength": 689232,
+      "sha256": "A3081EAEE51296319ADE0839ADD190CFDBE2ADBF0F0A5E990DF1F2A577AE9507"
+    },
+    {
+      "id": "block16",
+      "file": "stages/block16.bin",
+      "packedByteLength": 689232,
+      "sha256": "37C5928B15AA456CAC02DE082E96CD2B7C3E512915F17914000CDED6858A86D8"
+    },
+    {
+      "id": "block17",
+      "file": "stages/block17.bin",
+      "packedByteLength": 689232,
+      "sha256": "478A4CCEA0614D2EECCF1BE093D9E72367B2AFBA49DD7E8C50547EDBEA67BD61"
+    },
+    {
+      "id": "block18",
+      "file": "stages/block18.bin",
+      "packedByteLength": 689232,
+      "sha256": "6C03840D01A50976357ED180EEEDA50A2614B8B0ED7FC526AEF6B089A906FD4C"
+    },
+    {
+      "id": "block19",
+      "file": "stages/block19.bin",
+      "packedByteLength": 689232,
+      "sha256": "F269C6404C6BD73611598AE265F951C73DA96E8211A060324E38A703F58D32B4"
+    },
+    {
+      "id": "block02",
+      "file": "stages/block02.bin",
+      "packedByteLength": 20672,
+      "sha256": "379DA9FB2027273F2DFFA52A970A3950E97CA2D720FDF089FE4A1AF409BF81C8"
+    },
+    {
+      "id": "block20",
+      "file": "stages/block20.bin",
+      "packedByteLength": 689232,
+      "sha256": "227945C0E2D727736867E0C2BB232F5BF6F29E42A6E7A5C92546FDA9819BC9AC"
+    },
+    {
+      "id": "block21",
+      "file": "stages/block21.bin",
+      "packedByteLength": 689232,
+      "sha256": "5A61AAD0A642E2398306329A865528777013480D97C384A8E626FE1D394828E8"
+    },
+    {
+      "id": "block22",
+      "file": "stages/block22.bin",
+      "packedByteLength": 820288,
+      "sha256": "CFB0343287054E38933DBF35C7DBB124FEF50CFAF4234F7161575F00896CC02D"
+    },
+    {
+      "id": "block23",
+      "file": "stages/block23.bin",
+      "packedByteLength": 1968192,
+      "sha256": "97E503AEC4F222B358B1A58A6BDBA968C40752FBEF439FD4526A2FCECC1918DA"
+    },
+    {
+      "id": "block24",
+      "file": "stages/block24.bin",
+      "packedByteLength": 1968192,
+      "sha256": "E027B08ACA1190E008288D86558A4DD5647057CE0FAA28CB755A2140ED4EEF03"
+    },
+    {
+      "id": "block25",
+      "file": "stages/block25.bin",
+      "packedByteLength": 1968192,
+      "sha256": "A7B44FE37441D226599553474F4ED04770911C149F3A51E1425277228BE234D7"
+    },
+    {
+      "id": "block26",
+      "file": "stages/block26.bin",
+      "packedByteLength": 1968192,
+      "sha256": "183896E561C34B93FADF246298B856E10B036881AB8E64F3B0B418B998DBCEE1"
+    },
+    {
+      "id": "block27",
+      "file": "stages/block27.bin",
+      "packedByteLength": 1968192,
+      "sha256": "B1E2BD771AE68509B6775C0391B6770DFAA012A5C469292947C78D0CD42B6657"
+    },
+    {
+      "id": "block28",
+      "file": "stages/block28.bin",
+      "packedByteLength": 1968192,
+      "sha256": "234F1B42830FB6AC56032CF4C595ACFB475A0DBC06CF011A7497D4FAF34010B0"
+    },
+    {
+      "id": "block29",
+      "file": "stages/block29.bin",
+      "packedByteLength": 1968192,
+      "sha256": "1C6680226049A0E18E9FF92144B767CE0ABB8D76538914EE797F5D5BA8F4BD91"
+    },
+    {
+      "id": "block03",
+      "file": "stages/block03.bin",
+      "packedByteLength": 20672,
+      "sha256": "8F26BE9B75D09960141BBF561A70E9628C269CC901934EFDCE362426EBBE1589"
+    },
+    {
+      "id": "block30",
+      "file": "stages/block30.bin",
+      "packedByteLength": 2492496,
+      "sha256": "8CDCD61A8E5A8B9597ACF74B8F2096FCA6F487C6955BEB8815E2EB991A0D365E"
+    },
+    {
+      "id": "block31",
+      "file": "stages/block31.bin",
+      "packedByteLength": 12587168,
+      "sha256": "D13DEAA00658A853C344AAEE3A31ACE7F4F15E21D60E20A4618406B66CE21110"
+    },
+    {
+      "id": "block32",
+      "file": "stages/block32.bin",
+      "packedByteLength": 12587168,
+      "sha256": "AB5296056661B9F1794EA79569804E33A3F55F5CB8F546A318934A35C05A1E64"
+    },
+    {
+      "id": "block33",
+      "file": "stages/block33.bin",
+      "packedByteLength": 12587168,
+      "sha256": "0A9E94BC7581F964AD4A85550B7FAA1022DEAB059BE9FA950599CC7D9DE9B529"
+    },
+    {
+      "id": "block34",
+      "file": "stages/block34.bin",
+      "packedByteLength": 12587168,
+      "sha256": "AD401EEA9490501DB5D5B96DCDC8E4024067A422A859A659358B5FFEC28D17B0"
+    },
+    {
+      "id": "block35",
+      "file": "stages/block35.bin",
+      "packedByteLength": 12587168,
+      "sha256": "A977F6DE17471A04921143FA31E4119644AC63D85A6F1E4D230824193B73D01C"
+    },
+    {
+      "id": "block36",
+      "file": "stages/block36.bin",
+      "packedByteLength": 12587168,
+      "sha256": "2E2533DC567A0EEC408F44FC3B3D8B82F076BAE3B4DE4E879A22CC636C67D39A"
+    },
+    {
+      "id": "block37",
+      "file": "stages/block37.bin",
+      "packedByteLength": 12587168,
+      "sha256": "111296BFC10A4CBBF7EECEC9C69DDE8C71D12E498399283C02AE7CB33F6FE56C"
+    },
+    {
+      "id": "block38",
+      "file": "stages/block38.bin",
+      "packedByteLength": 12587168,
+      "sha256": "27EDF329C5BA12826B3A78E199184F55DEE119C9C82717282A621C90A869EF74"
+    },
+    {
+      "id": "block39",
+      "file": "stages/block39.bin",
+      "packedByteLength": 525312,
+      "sha256": "E7FA32BD2A8FE680EB90CFDDBAE7492FFEDBB87FD7284CC229A2A122DC8C4FB8"
+    },
+    {
+      "id": "block04",
+      "file": "stages/block04.bin",
+      "packedByteLength": 22720,
+      "sha256": "F0D05533694577FA313F2655B00ADA84F231F87EBC66EBBB7E8F0F7EA1AC88D2"
+    },
+    {
+      "id": "block40",
+      "file": "stages/block40.bin",
+      "packedByteLength": 1968192,
+      "sha256": "B9E2E8AB6ACCADD515B95A235B3353EDF0E119F196912AEB6187FBF920D9077B"
+    },
+    {
+      "id": "block41",
+      "file": "stages/block41.bin",
+      "packedByteLength": 1968192,
+      "sha256": "2682EE72904113347A7BD2F708D20F4894FD825B1DB09AAA9464146F6AF40018"
+    },
+    {
+      "id": "block42",
+      "file": "stages/block42.bin",
+      "packedByteLength": 1968192,
+      "sha256": "10BEAB5D241EF950F04295A9D775DF1A1E472E8B3C38876CD47F2D079E49D20D"
+    },
+    {
+      "id": "block43",
+      "file": "stages/block43.bin",
+      "packedByteLength": 1968192,
+      "sha256": "EEFA772D36CE8EF4D0774B09B98A88037160BF7666BFC6424A5F6C071D03E074"
+    },
+    {
+      "id": "block44",
+      "file": "stages/block44.bin",
+      "packedByteLength": 1968192,
+      "sha256": "81A6ED221495A8D58E99516E3A6A70C107083648F36F9E0D76EE44A0BB71E462"
+    },
+    {
+      "id": "block45",
+      "file": "stages/block45.bin",
+      "packedByteLength": 1968192,
+      "sha256": "389D5B0C946C16CA03AEE7253C941DC2EE335CEE3428F5D9601C6609A4E5CDB7"
+    },
+    {
+      "id": "block46",
+      "file": "stages/block46.bin",
+      "packedByteLength": 1968192,
+      "sha256": "97F6E8BE83BA9D4CA51E2A90772509218926C8850E287DBD4990BC658F743A5D"
+    },
+    {
+      "id": "block47",
+      "file": "stages/block47.bin",
+      "packedByteLength": 1968192,
+      "sha256": "4355770CED060D513A969C50B1D5E5C85EC366FA58F1C0EFD6A2407148296EF0"
+    },
+    {
+      "id": "block48",
+      "file": "stages/block48.bin",
+      "packedByteLength": 820784,
+      "sha256": "7E832B24266B5565B4660A32A4789CE3B15D5835E01DF4872E0CEE52F82DFCB7"
+    },
+    {
+      "id": "block49",
+      "file": "stages/block49.bin",
+      "packedByteLength": 689232,
+      "sha256": "E55E43E0C806C5119AF85DFF8E1E83835C0B6DDF4C3C16C2ABE416D884F96120"
+    },
+    {
+      "id": "block05",
+      "file": "stages/block05.bin",
+      "packedByteLength": 61760,
+      "sha256": "1B905577285978107B21B5730AAC2B0105D45F757B5E78334291D9B4AB5646BB"
+    },
+    {
+      "id": "block50",
+      "file": "stages/block50.bin",
+      "packedByteLength": 689232,
+      "sha256": "42C81F7F3F46CED8A5476809EAFEDC3A07B28CBCAE976C206BFB4B8EECB172B1"
+    },
+    {
+      "id": "block51",
+      "file": "stages/block51.bin",
+      "packedByteLength": 689232,
+      "sha256": "D015EAF9F38DD4005796609D50BA6471D9CF6F8FAFF0387CDBEACB77AB7DD98F"
+    },
+    {
+      "id": "block52",
+      "file": "stages/block52.bin",
+      "packedByteLength": 689232,
+      "sha256": "C761C2DA9D49BB5F29AA6B0527E98539BEF1ACAA8566EEF8FB43360907156291"
+    },
+    {
+      "id": "block53",
+      "file": "stages/block53.bin",
+      "packedByteLength": 689232,
+      "sha256": "03334ACF61B73E8BE01D265CA814D56AE547A9EEA2A364E1F00A9C9B3365C2B1"
+    },
+    {
+      "id": "block54",
+      "file": "stages/block54.bin",
+      "packedByteLength": 689232,
+      "sha256": "80B27189D0734A1E3B1C09ABC75E805C4495E9BCAC58CD8098F80A2EE49FDC6A"
+    },
+    {
+      "id": "block55",
+      "file": "stages/block55.bin",
+      "packedByteLength": 689232,
+      "sha256": "C4E79845C2C12855841A8D2B1C5B59426F7AC638C473F788FB04004C90148377"
+    },
+    {
+      "id": "block56",
+      "file": "stages/block56.bin",
+      "packedByteLength": 230176,
+      "sha256": "F73035BD13F1CE40EC2768B49EEE02564E1EF5F7A4860375E7B1901C8E41AE83"
+    },
+    {
+      "id": "block57",
+      "file": "stages/block57.bin",
+      "packedByteLength": 197184,
+      "sha256": "FEB55D01F8C59B3C99A1FEAB32168FC419630430EAB55B25AF803F48789C2E44"
+    },
+    {
+      "id": "block58",
+      "file": "stages/block58.bin",
+      "packedByteLength": 197184,
+      "sha256": "695A541A04E420D05687258CD757367632421E8DC119CDA7C42BC7033D81AB4D"
+    },
+    {
+      "id": "block59",
+      "file": "stages/block59.bin",
+      "packedByteLength": 197184,
+      "sha256": "79551D9D63B8C38DB739249845C4963BB92E1A88E77EF9CD114F23A9CD08DC64"
+    },
+    {
+      "id": "block06",
+      "file": "stages/block06.bin",
+      "packedByteLength": 61760,
+      "sha256": "380E368298920277D3BF9BF715730F2B5FDFFE763FD1A3ED67AB9C3B0BE1D682"
+    },
+    {
+      "id": "block60",
+      "file": "stages/block60.bin",
+      "packedByteLength": 197184,
+      "sha256": "307C47A8E411D21517CA63B37F371B7C3FAA10219F03D947C3ECD49D96AE4CA0"
+    },
+    {
+      "id": "block61",
+      "file": "stages/block61.bin",
+      "packedByteLength": 197184,
+      "sha256": "845C4B4F0C1B2DF91815D65930A53640B431CC7B9B93B47D567DD6BF07C13D6A"
+    },
+    {
+      "id": "block62",
+      "file": "stages/block62.bin",
+      "packedByteLength": 70048,
+      "sha256": "EAAA79BA63A53CBD0C23521593379284AF29AB50A718DDF37E06B93B339CCADD"
+    },
+    {
+      "id": "block63",
+      "file": "stages/block63.bin",
+      "packedByteLength": 61760,
+      "sha256": "20B7F76BC07DC19E91B78FF3D27A465AB26AE5C86F634382827D27C067B9E4D0"
+    },
+    {
+      "id": "block64",
+      "file": "stages/block64.bin",
+      "packedByteLength": 61760,
+      "sha256": "F49359A7472893B847912C5F81A08C36F82D5A37AA3A77FCF792349DC6F1F321"
+    },
+    {
+      "id": "block65",
+      "file": "stages/block65.bin",
+      "packedByteLength": 61760,
+      "sha256": "6F842CD03F9CE89DA64E4B424BB9A2173488C28214FC542246586145FCB2E613"
+    },
+    {
+      "id": "block66",
+      "file": "stages/block66.bin",
+      "packedByteLength": 22784,
+      "sha256": "C4083D8E31BB2820EB1392F6D8B6B7148909FFA129CAC7C61780AD1F9C03B916"
+    },
+    {
+      "id": "block67",
+      "file": "stages/block67.bin",
+      "packedByteLength": 20672,
+      "sha256": "48E91279AD6DE711D3C277C35B3CF48225310BF6C713E8298C4F5FFB0F0F0F37"
+    },
+    {
+      "id": "block68",
+      "file": "stages/block68.bin",
+      "packedByteLength": 20672,
+      "sha256": "11EC13BC10546DAE5E6BE7960C4C5E903DEAB7D9035773F018C1819CE66D1E51"
+    },
+    {
+      "id": "block69",
+      "file": "stages/block69.bin",
+      "packedByteLength": 20672,
+      "sha256": "315D9C45EB6AFF39D14922EE37CFAE2CEBA0FC477C0C6639A0838E4136E421A7"
+    },
+    {
+      "id": "block07",
+      "file": "stages/block07.bin",
+      "packedByteLength": 61760,
+      "sha256": "CD990FDE2971A8550E3BF0010842BC02FA3A07F4497F5B5B71DD7D264A3E3384"
+    },
+    {
+      "id": "block70",
+      "file": "stages/block70.bin",
+      "packedByteLength": 21824,
+      "sha256": "D3BCF2D971D0A3B831ABA6A5C5E187B58BAE2EC3A340351138FC41D77D2F348F"
+    },
+    {
+      "id": "block08",
+      "file": "stages/block08.bin",
+      "packedByteLength": 69936,
+      "sha256": "687D906BC5D6748B57EE3E519C114F9382D93DB560B7F779461C1AB90F5237AE"
+    },
+    {
+      "id": "block09",
+      "file": "stages/block09.bin",
+      "packedByteLength": 197184,
+      "sha256": "934CEBC771CFA1ED086F47F018426090E14CA4326DCB22843CBC17DFF9851C32"
+    }
+  ],
+  "tensors": [
+    {
+      "name": "block0.layer0.layer",
+      "block": 0,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block00",
+      "stageOffset": 0,
+      "byteLength": 21696
+    },
+    {
+      "name": "block1.layer0.layer",
+      "block": 1,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block01",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block10.layer0.layer",
+      "block": 10,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block10",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block11.layer0.layer",
+      "block": 11,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block11",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block12.layer0.layer",
+      "block": 12,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block12",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block13.layer0.layer",
+      "block": 13,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block13",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block14.layer0.layer",
+      "block": 14,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block14",
+      "stageOffset": 0,
+      "byteLength": 229936
+    },
+    {
+      "name": "block15.layer0.layer",
+      "block": 15,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block15",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block16.layer0.layer",
+      "block": 16,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block16",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block17.layer0.layer",
+      "block": 17,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block17",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block18.layer0.layer",
+      "block": 18,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block18",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block19.layer0.layer",
+      "block": 19,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block19",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block2.layer0.layer",
+      "block": 2,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block02",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block20.layer0.layer",
+      "block": 20,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block20",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block21.layer0.layer",
+      "block": 21,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block21",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block22.layer0.layer",
+      "block": 22,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block22",
+      "stageOffset": 0,
+      "byteLength": 820288
+    },
+    {
+      "name": "block23.layer0.layer",
+      "block": 23,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block23",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block23.layer1.layer",
+      "block": 23,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block23",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block23.layer2.layer",
+      "block": 23,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block23",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block23.layer3.layer",
+      "block": 23,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block23",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block24.layer0.layer",
+      "block": 24,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block24",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block24.layer1.layer",
+      "block": 24,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block24",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block24.layer2.layer",
+      "block": 24,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block24",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block24.layer3.layer",
+      "block": 24,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block24",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block25.layer0.layer",
+      "block": 25,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block25",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block25.layer1.layer",
+      "block": 25,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block25",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block25.layer2.layer",
+      "block": 25,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block25",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block25.layer3.layer",
+      "block": 25,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block25",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block26.layer0.layer",
+      "block": 26,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block26",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block26.layer1.layer",
+      "block": 26,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block26",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block26.layer2.layer",
+      "block": 26,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block26",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block26.layer3.layer",
+      "block": 26,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block26",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block27.layer0.layer",
+      "block": 27,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block27",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block27.layer1.layer",
+      "block": 27,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block27",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block27.layer2.layer",
+      "block": 27,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block27",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block27.layer3.layer",
+      "block": 27,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block27",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block28.layer0.layer",
+      "block": 28,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block28",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block28.layer1.layer",
+      "block": 28,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block28",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block28.layer2.layer",
+      "block": 28,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block28",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block28.layer3.layer",
+      "block": 28,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block28",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block29.layer0.layer",
+      "block": 29,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block29",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block29.layer1.layer",
+      "block": 29,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block29",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block29.layer2.layer",
+      "block": 29,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block29",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block29.layer3.layer",
+      "block": 29,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block29",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block3.layer0.layer",
+      "block": 3,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block03",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block30.layer0.layer",
+      "block": 30,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block30",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block30.layer1.layer",
+      "block": 30,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block30",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block30.layer2.layer",
+      "block": 30,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block30",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block30.layer3.layer",
+      "block": 30,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block30",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block30.layer4.layer",
+      "block": 30,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block30",
+      "stageOffset": 1968192,
+      "byteLength": 524304
+    },
+    {
+      "name": "block31.layer0.layer",
+      "block": 31,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block31",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block31.layer1.layer",
+      "block": 31,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block31",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block31.layer2.layer",
+      "block": 31,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block31",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block31.layer3.layer",
+      "block": 31,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block31",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block31.layer4.layer",
+      "block": 31,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block31",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block32.layer0.layer",
+      "block": 32,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block32",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block32.layer1.layer",
+      "block": 32,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block32",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block32.layer2.layer",
+      "block": 32,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block32",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block32.layer3.layer",
+      "block": 32,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block32",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block32.layer4.layer",
+      "block": 32,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block32",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block33.layer0.layer",
+      "block": 33,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block33",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block33.layer1.layer",
+      "block": 33,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block33",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block33.layer2.layer",
+      "block": 33,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block33",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block33.layer3.layer",
+      "block": 33,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block33",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block33.layer4.layer",
+      "block": 33,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block33",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block34.layer0.layer",
+      "block": 34,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block34",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block34.layer1.layer",
+      "block": 34,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block34",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block34.layer2.layer",
+      "block": 34,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block34",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block34.layer3.layer",
+      "block": 34,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block34",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block34.layer4.layer",
+      "block": 34,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block34",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block35.layer0.layer",
+      "block": 35,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block35",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block35.layer1.layer",
+      "block": 35,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block35",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block35.layer2.layer",
+      "block": 35,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block35",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block35.layer3.layer",
+      "block": 35,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block35",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block35.layer4.layer",
+      "block": 35,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block35",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block36.layer0.layer",
+      "block": 36,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block36",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block36.layer1.layer",
+      "block": 36,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block36",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block36.layer2.layer",
+      "block": 36,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block36",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block36.layer3.layer",
+      "block": 36,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block36",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block36.layer4.layer",
+      "block": 36,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block36",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block37.layer0.layer",
+      "block": 37,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block37",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block37.layer1.layer",
+      "block": 37,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block37",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block37.layer2.layer",
+      "block": 37,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block37",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block37.layer3.layer",
+      "block": 37,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block37",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block37.layer4.layer",
+      "block": 37,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block37",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block38.layer0.layer",
+      "block": 38,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block38",
+      "stageOffset": 0,
+      "byteLength": 4194320
+    },
+    {
+      "name": "block38.layer1.layer",
+      "block": 38,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block38",
+      "stageOffset": 4194320,
+      "byteLength": 4196352
+    },
+    {
+      "name": "block38.layer2.layer",
+      "block": 38,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block38",
+      "stageOffset": 8390672,
+      "byteLength": 3145856
+    },
+    {
+      "name": "block38.layer3.layer",
+      "block": 38,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block38",
+      "stageOffset": 11536528,
+      "byteLength": 2
+    },
+    {
+      "name": "block38.layer4.layer",
+      "block": 38,
+      "layer": 4,
+      "parameter": "layer",
+      "stage": "block38",
+      "stageOffset": 11536544,
+      "byteLength": 1050624
+    },
+    {
+      "name": "block39.layer0.layer",
+      "block": 39,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block39",
+      "stageOffset": 0,
+      "byteLength": 525312
+    },
+    {
+      "name": "block4.layer0.layer",
+      "block": 4,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block04",
+      "stageOffset": 0,
+      "byteLength": 22720
+    },
+    {
+      "name": "block40.layer0.layer",
+      "block": 40,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block40",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block40.layer1.layer",
+      "block": 40,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block40",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block40.layer2.layer",
+      "block": 40,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block40",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block40.layer3.layer",
+      "block": 40,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block40",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block41.layer0.layer",
+      "block": 41,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block41",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block41.layer1.layer",
+      "block": 41,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block41",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block41.layer2.layer",
+      "block": 41,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block41",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block41.layer3.layer",
+      "block": 41,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block41",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block42.layer0.layer",
+      "block": 42,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block42",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block42.layer1.layer",
+      "block": 42,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block42",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block42.layer2.layer",
+      "block": 42,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block42",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block42.layer3.layer",
+      "block": 42,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block42",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block43.layer0.layer",
+      "block": 43,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block43",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block43.layer1.layer",
+      "block": 43,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block43",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block43.layer2.layer",
+      "block": 43,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block43",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block43.layer3.layer",
+      "block": 43,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block43",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block44.layer0.layer",
+      "block": 44,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block44",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block44.layer1.layer",
+      "block": 44,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block44",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block44.layer2.layer",
+      "block": 44,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block44",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block44.layer3.layer",
+      "block": 44,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block44",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block45.layer0.layer",
+      "block": 45,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block45",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block45.layer1.layer",
+      "block": 45,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block45",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block45.layer2.layer",
+      "block": 45,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block45",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block45.layer3.layer",
+      "block": 45,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block45",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block46.layer0.layer",
+      "block": 46,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block46",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block46.layer1.layer",
+      "block": 46,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block46",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block46.layer2.layer",
+      "block": 46,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block46",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block46.layer3.layer",
+      "block": 46,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block46",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block47.layer0.layer",
+      "block": 47,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block47",
+      "stageOffset": 0,
+      "byteLength": 524288
+    },
+    {
+      "name": "block47.layer1.layer",
+      "block": 47,
+      "layer": 1,
+      "parameter": "layer",
+      "stage": "block47",
+      "stageOffset": 524288,
+      "byteLength": 263168
+    },
+    {
+      "name": "block47.layer2.layer",
+      "block": 47,
+      "layer": 2,
+      "parameter": "layer",
+      "stage": "block47",
+      "stageOffset": 787456,
+      "byteLength": 917568
+    },
+    {
+      "name": "block47.layer3.layer",
+      "block": 47,
+      "layer": 3,
+      "parameter": "layer",
+      "stage": "block47",
+      "stageOffset": 1705024,
+      "byteLength": 263168
+    },
+    {
+      "name": "block48.layer0.layer",
+      "block": 48,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block48",
+      "stageOffset": 0,
+      "byteLength": 820784
+    },
+    {
+      "name": "block49.layer0.layer",
+      "block": 49,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block49",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block5.layer0.layer",
+      "block": 5,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block05",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block50.layer0.layer",
+      "block": 50,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block50",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block51.layer0.layer",
+      "block": 51,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block51",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block52.layer0.layer",
+      "block": 52,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block52",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block53.layer0.layer",
+      "block": 53,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block53",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block54.layer0.layer",
+      "block": 54,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block54",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block55.layer0.layer",
+      "block": 55,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block55",
+      "stageOffset": 0,
+      "byteLength": 689232
+    },
+    {
+      "name": "block56.layer0.layer",
+      "block": 56,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block56",
+      "stageOffset": 0,
+      "byteLength": 230176
+    },
+    {
+      "name": "block57.layer0.layer",
+      "block": 57,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block57",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block58.layer0.layer",
+      "block": 58,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block58",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block59.layer0.layer",
+      "block": 59,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block59",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block6.layer0.layer",
+      "block": 6,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block06",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block60.layer0.layer",
+      "block": 60,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block60",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block61.layer0.layer",
+      "block": 61,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block61",
+      "stageOffset": 0,
+      "byteLength": 197184
+    },
+    {
+      "name": "block62.layer0.layer",
+      "block": 62,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block62",
+      "stageOffset": 0,
+      "byteLength": 70048
+    },
+    {
+      "name": "block63.layer0.layer",
+      "block": 63,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block63",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block64.layer0.layer",
+      "block": 64,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block64",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block65.layer0.layer",
+      "block": 65,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block65",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block66.layer0.layer",
+      "block": 66,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block66",
+      "stageOffset": 0,
+      "byteLength": 22784
+    },
+    {
+      "name": "block67.layer0.layer",
+      "block": 67,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block67",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block68.layer0.layer",
+      "block": 68,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block68",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block69.layer0.layer",
+      "block": 69,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block69",
+      "stageOffset": 0,
+      "byteLength": 20672
+    },
+    {
+      "name": "block7.layer0.layer",
+      "block": 7,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block07",
+      "stageOffset": 0,
+      "byteLength": 61760
+    },
+    {
+      "name": "block70.layer0.blend_scale",
+      "block": 70,
+      "layer": 0,
+      "parameter": "blend_scale",
+      "stage": "block70",
+      "stageOffset": 0,
+      "byteLength": 2
+    },
+    {
+      "name": "block70.layer0.layer",
+      "block": 70,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block70",
+      "stageOffset": 16,
+      "byteLength": 21808
+    },
+    {
+      "name": "block8.layer0.layer",
+      "block": 8,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block08",
+      "stageOffset": 0,
+      "byteLength": 69936
+    },
+    {
+      "name": "block9.layer0.layer",
+      "block": 9,
+      "layer": 0,
+      "parameter": "layer",
+      "stage": "block09",
+      "stageOffset": 0,
+      "byteLength": 197184
+    }
+  ],
+  "provenance": {
+    "source_dll": "runtime\\nvngx_dlssnr.dll",
+    "source_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+    "weight_resource": "WEIGHTS_HT",
+    "operation": "copy raw packed records; 16-byte padding between records"
+  }
+}

@@ -1,0 +1,656 @@
+{
+  "generated_at_utc": "2026-10-30T09:06:54.556198+00:00",
+  "primary_metric": "synchronized_wall",
+  "dimensions_wh": [
+    896,
+    512
+  ],
+  "device": "NVIDIA GeForce RTX 5060",
+  "warmups": 5,
+  "iterations": 20,
+  "cases": [
+    {
+      "name": "OpenDLSS WebGPU",
+      "backend": "Edge WebGPU · 原 71 块网络",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\output.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 158.85000000298024,
+        "median_ms": 158.64999997615814,
+        "p95_ms": 161.85000001192094,
+        "std_ms": 1.801527135076748,
+        "min_ms": 155.80000001192093,
+        "max_ms": 162.80000001192093,
+        "fps_from_mean": 6.295247088330115,
+        "samples_ms": [
+          160.5,
+          162.80000001192093,
+          157.80000001192093,
+          156.39999997615814,
+          159.5999999642372,
+          158.69999998807907,
+          161.80000001192093,
+          159,
+          160,
+          155.80000001192093,
+          157.69999998807907,
+          158.5999999642372,
+          160.80000001192093,
+          158.9000000357628,
+          160.9000000357628,
+          156.5999999642372,
+          158.10000002384186,
+          157.60000002384186,
+          158.10000002384186,
+          157.30000001192093
+        ]
+      },
+      "cuda_event": null,
+      "gpu_timestamp": {
+        "status": "completed",
+        "count": 20,
+        "mean_ms": 155.01361920000005,
+        "median_ms": 154.526384,
+        "p95_ms": 157.0637792,
+        "std_ms": 1.4360028087379768,
+        "min_ms": 152.969024,
+        "max_ms": 157.314944,
+        "fps_from_mean": 6.451046076859805,
+        "samples_ms": [
+          153.602912,
+          154.356864,
+          152.969024,
+          154.6416,
+          156.832768,
+          156.697632,
+          153.87024,
+          154.411168,
+          153.74592,
+          153.564864,
+          156.988896,
+          157.05056,
+          155.227072,
+          153.751808,
+          155.279648,
+          153.730976,
+          155.719296,
+          156.940704,
+          157.314944,
+          153.575488
+        ],
+        "compute_pass_count": 1,
+        "scope": "Separate samples using existing first/last compute-pass timestamps; includes intervening graph copies, excludes feature preparation/readback/composition. Not the primary synchronized-wall result."
+      }
+    },
+    {
+      "name": "OpenDLSS PyTorch CUDA",
+      "backend": "PyTorch CUDA · FP32 参考算术，模拟 E4M3 / FP16 舍入",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_pytorch_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_pytorch_896x512\\output.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 203.08120179688558,
+        "median_ms": 201.89524450688623,
+        "p95_ms": 211.37686561560258,
+        "min_ms": 193.34839098155499,
+        "max_ms": 217.02848497079685,
+        "std_ms": 5.794673644823788,
+        "fps_from_mean": 4.924138675327338,
+        "samples_ms": [
+          205.2162770414725,
+          199.63010103674605,
+          196.82295399252325,
+          211.00811596261337,
+          206.22361003188416,
+          217.02848497079685,
+          201.19111699750647,
+          199.79836902348325,
+          202.7722229831852,
+          202.599372016266,
+          198.23175604688004,
+          197.42321397643536,
+          205.0433709518984,
+          211.0794119653292,
+          200.91400697128847,
+          198.24183697346598,
+          197.87442701635882,
+          193.34839098155499,
+          208.43078603502363,
+          208.7462109629996
+        ]
+      },
+      "cuda_event": {
+        "count": 20,
+        "mean_ms": 201.19971618652343,
+        "median_ms": 200.18485260009766,
+        "p95_ms": 209.53158645629884,
+        "min_ms": 191.72714233398438,
+        "max_ms": 215.1478729248047,
+        "std_ms": 5.755859670961021,
+        "fps_from_mean": 4.970185937404325,
+        "samples_ms": [
+          201.8871612548828,
+          196.7118377685547,
+          195.15997314453125,
+          209.20498657226562,
+          204.3605194091797,
+          215.1478729248047,
+          199.49293518066406,
+          198.08457946777344,
+          201.05567932128906,
+          200.87677001953125,
+          196.53366088867188,
+          195.71682739257812,
+          203.21212768554688,
+          209.23599243164062,
+          199.19168090820312,
+          196.57650756835938,
+          196.17430114746094,
+          191.72714233398438,
+          206.64297485351562,
+          207.00079345703125
+        ]
+      },
+      "gpu_timestamp": {}
+    },
+    {
+      "name": "OpenDLSS native hybrid",
+      "backend": "Vulkan 调度 + CUDA/PTX · 混合后端",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 5.995735000000001,
+        "median_ms": 5.79245,
+        "p95_ms": 7.1549000000000005,
+        "std_ms": 0.4460413246269902,
+        "min_ms": 5.5825,
+        "max_ms": 7.21,
+        "fps_from_mean": 166.7852231627982,
+        "samples_ms": [
+          5.5825,
+          5.7189,
+          5.7029,
+          5.7425,
+          6.0797,
+          5.6666,
+          6.1195,
+          5.6595,
+          5.7317,
+          7.152,
+          5.9092,
+          7.21,
+          6.1946,
+          6.3863,
+          5.9818,
+          5.676,
+          5.7822,
+          5.7397,
+          5.8027,
+          6.0764
+        ]
+      },
+      "cuda_event": null,
+      "gpu_timestamp": {
+        "count": 20,
+        "mean_ms": 4.0870849609,
+        "median_ms": 4.046264648499999,
+        "p95_ms": 4.31295166015,
+        "std_ms": 0.10061393566277756,
+        "min_ms": 4.030517578,
+        "max_ms": 4.358642578,
+        "fps_from_mean": 244.67316181746173,
+        "samples_ms": [
+          4.040771484,
+          4.04296875,
+          4.055908203,
+          4.062255859,
+          4.033447266,
+          4.041503906,
+          4.045654297,
+          4.059814453,
+          4.036621094,
+          4.039306641,
+          4.047119141,
+          4.310546875,
+          4.0546875,
+          4.358642578,
+          4.043457031,
+          4.049560547,
+          4.030517578,
+          4.036865234,
+          4.046875,
+          4.305175781
+        ]
+      }
+    },
+    {
+      "name": "Harmonizer + TAEW2.1",
+      "backend": "PyTorch CUDA BF16 · 不同模型，仅供运行时间参考",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\harmonizer_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\harmonizer_896x512\\generated\\0000_street_896x512.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 167.78175015351735,
+        "median_ms": 167.77809051563963,
+        "p95_ms": 171.70865269144997,
+        "std_ms": 2.5048280430425054,
+        "min_ms": 163.2643280318007,
+        "max_ms": 172.40372399101034,
+        "fps_from_mean": 5.960123786317746,
+        "samples_ms": [
+          168.72266901191324,
+          169.26171001978219,
+          172.40372399101034,
+          171.6720699914731,
+          168.5066350037232,
+          167.58853697683662,
+          165.69412202807143,
+          167.85472602350637,
+          169.28437200840563,
+          170.33157200785354,
+          168.96606900263578,
+          163.2643280318007,
+          163.7332930113189,
+          166.63666698150337,
+          167.7014550077729,
+          171.23272799653932,
+          166.49817599682137,
+          166.5233009844087,
+          165.47933500260115,
+          164.27951399236917
+        ]
+      },
+      "cuda_event": {
+        "count": 20,
+        "mean_ms": 163.9628707885742,
+        "median_ms": 163.87464141845703,
+        "p95_ms": 167.85143585205077,
+        "std_ms": 2.3722808061293117,
+        "min_ms": 159.54441833496094,
+        "max_ms": 168.51119995117188,
+        "fps_from_mean": 6.098941761574019,
+        "samples_ms": [
+          164.89759826660156,
+          165.4272003173828,
+          168.51119995117188,
+          167.81671142578125,
+          164.7283477783203,
+          163.83091735839844,
+          161.88572692871094,
+          163.91836547851562,
+          165.05596923828125,
+          166.41513061523438,
+          165.02146911621094,
+          159.54441833496094,
+          159.97882080078125,
+          162.82794189453125,
+          163.39878845214844,
+          167.15557861328125,
+          162.76112365722656,
+          162.78807067871094,
+          161.61305236816406,
+          161.6809844970703
+        ]
+      },
+      "gpu_timestamp": {}
+    }
+  ],
+  "input_source": {
+    "source": "D:\\newDLSS\\harmonizer\\examples\\0.png",
+    "source_sha256": "22bfa279e063a89c186261eff6418e406af367248917705eb2393f6ba11bb358",
+    "path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+    "sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "dimensions": [
+      896,
+      512
+    ],
+    "transformation": "PIL RGB, bilinear resize to exact shared dimensions; no model padding required by either runtime.",
+    "purpose": "Same input bytes, same local GPU, separate sequential runtime benchmarks; no concurrent GPU tests."
+  },
+  "scope": "Resident prepared GPU input through learned graph to raw head; loading, preparation, readback, composition and PNG save excluded. Backends and reference arithmetic differ.",
+  "pytorch_cold_start_excluded": {
+    "first_feature_preparation_including_helper_compile_wall_ms": 66299.35083905002,
+    "first_graph_forward_including_compile_wall_ms": 35841.53072698973,
+    "excluded_from_steady_state_benchmark": true
+  },
+  "pytorch_output_difference_vs_webgpu": {
+    "psnr_db": 50.71430251367634,
+    "mae_uint8": 0.44603910900297616,
+    "max_abs_uint8": 9.0,
+    "exact_channel_fraction": 0.5975508916945684,
+    "perfect_match": false
+  },
+  "native_validation": {
+    "head_all_finite": true,
+    "head_shape_hwc": [
+      512,
+      896,
+      4
+    ],
+    "head_min": -7.76953125,
+    "head_max": 1.0107421875,
+    "three_identical_production_heads": true,
+    "chaining_equals_barriers": true,
+    "webgpu_output_tolerance_passed": false,
+    "parity_cli_exit_code": 1,
+    "parity_reference_is_nvidia_capture": false,
+    "parity_log": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_inspect\\native_parity_features.log",
+    "identical_features_webgpu_cross_check": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\results.json",
+    "preprocessing_bitwise_equal": true,
+    "same_features_head_bitwise_equal": false,
+    "same_features_head_comparison": {
+      "elements": 1835008,
+      "bitwise_mismatches": 1828799,
+      "mae": 0.0568633077560727,
+      "max_abs": 1.908203125,
+      "all_finite": true
+    },
+    "same_features_png_comparison": {
+      "reference_native_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+      "webgpu_same_features_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png",
+      "mae_uint8": 0.48143078031994047,
+      "rmse_uint8": 0.773258983126041,
+      "max_abs_uint8": 8.0,
+      "psnr_db": 50.36430412862686,
+      "channels_exceeding_one_code": 58168,
+      "fraction_exceeding_one_code": 0.04226539248511905,
+      "bitwise_equal": false
+    }
+  },
+  "native_image_difference_vs_webgpu": {
+    "reference": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\output.png",
+    "channels": 1376256,
+    "mean_abs_uint8": 0.48243931361607145,
+    "max_abs_uint8": 8.0,
+    "rmse_uint8": 0.7743923353948589,
+    "psnr_db": 50.35158269147896,
+    "changed_channel_count": 595627,
+    "channels_exceeding_one_code": 58532,
+    "fraction_exceeding_one_code": 0.042529878162202384,
+    "within_one_code": false,
+    "scope": "Same prepared RGB PNG and seed; original independent preprocess paths. This is a comparison to our WebGPU output, not an NVIDIA native capture."
+  },
+  "shared_features_crosscheck": {
+    "status": "completed",
+    "started_at_utc": "2026-10-30T09:03:13.926Z",
+    "method": {
+      "purpose": "Isolate preprocessing differences from graph arithmetic using identical saved sixteen-lane native features. No full speed benchmark; one cold and two further calls.",
+      "backend": "Original unmodified WebGPU graph; original composeImage with feature-fixture centering."
+    },
+    "configuration": {
+      "width": 896,
+      "height": 512,
+      "batch_size": 1,
+      "cold_calls": 1,
+      "additional_calls": 2
+    },
+    "input": {
+      "rgb_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+      "native_features_sha256": "318e19dd7a57c5a707f61576ea60a33fe49f5cee33d79cac337dd0b30c49e1eb",
+      "native_head_sha256": "cbca9f4d0bcb21cdee6f6bac7e7fc6b563b2b9c3f9dffe596cbc679c2a2a9a02"
+    },
+    "stage": "complete",
+    "environment": {
+      "adapter_info": {
+        "vendor": "nvidia",
+        "architecture": "blackwell",
+        "isFallbackAdapter": false
+      },
+      "features": [
+        "core-features-and-limits",
+        "timestamp-query",
+        "shader-f16"
+      ],
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+      "host": {
+        "node": "v24.12.0",
+        "platform": "win32",
+        "gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 3313 MiB, 4583 MiB",
+        "opendlss_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+        "input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+        "manifest_sha256": "f44ea18e406bbed7a9a4ce37880c6b503a21bee2353e0594e33b1dd04e2522be"
+      },
+      "host_gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 3313 MiB, 4583 MiB",
+      "gpu_name": "NVIDIA GeForce RTX 5060"
+    },
+    "model": {
+      "learned_blocks": 71,
+      "graph_dispatches": 451
+    },
+    "preprocessing_comparison": {
+      "whole_tensor": {
+        "elements": 7340032,
+        "bitwise_mismatches": 0,
+        "bitwise_equal": true,
+        "mae": 0,
+        "rmse": 0,
+        "max_abs": 0,
+        "nonfinite": 0
+      },
+      "webgpu_features_sha256": "318e19dd7a57c5a707f61576ea60a33fe49f5cee33d79cac337dd0b30c49e1eb",
+      "per_lane": [
+        {
+          "lane": 0,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 1,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 2,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 3,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 4,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 5,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 6,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 7,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 8,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 9,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 10,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 11,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 12,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 13,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 14,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        },
+        {
+          "lane": 15,
+          "pixels": 458752,
+          "bitwise_mismatches": 0,
+          "mae": 0,
+          "max_abs": 0
+        }
+      ]
+    },
+    "graph_calls_synchronized_wall_ms": [
+      249.5999999642372,
+      156.19999998807907,
+      153.39999997615814
+    ],
+    "head_validation": {
+      "all_finite": true,
+      "shape": [
+        512,
+        896,
+        4
+      ]
+    },
+    "same_feature_native_head_comparison": {
+      "elements": 1835008,
+      "bitwise_mismatches": 1828799,
+      "bitwise_equal": false,
+      "mae": 0.0568633077560727,
+      "rmse": 0.13244166045625566,
+      "max_abs": 1.908203125,
+      "nonfinite": 0
+    },
+    "same_feature_repeated_webgpu_comparison": {
+      "elements": 1835008,
+      "bitwise_mismatches": 0,
+      "bitwise_equal": true,
+      "mae": 0,
+      "rmse": 0,
+      "max_abs": 0,
+      "nonfinite": 0
+    },
+    "finished_at_utc": "2026-10-30T09:03:35.811Z",
+    "input_file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "harness": {
+      "source_root": "D:\\newDLSS\\open-dlss",
+      "weights_directory": "D:\\newDLSS\\open-dlss\\models\\nr",
+      "input_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+      "output_directory": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features",
+      "server_host": "127.0.0.1"
+    },
+    "same_feature_png_comparison_to_native": {
+      "reference_native_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+      "webgpu_same_features_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png",
+      "mae_uint8": 0.48143078031994047,
+      "rmse_uint8": 0.773258983126041,
+      "max_abs_uint8": 8.0,
+      "psnr_db": 50.36430412862686,
+      "channels_exceeding_one_code": 58168,
+      "fraction_exceeding_one_code": 0.04226539248511905,
+      "bitwise_equal": false
+    },
+    "offline_head_comparison": {
+      "elements": 1835008,
+      "bitwise_mismatches": 1828799,
+      "mae": 0.0568633077560727,
+      "max_abs": 1.908203125,
+      "all_finite": true
+    },
+    "conclusion": "Independent native and WebGPU preprocess tensors are bit-identical on this GPU. With identical 16-lane inputs, the unmodified graphs still produce different raw heads and RGB PNGs. The discrepancy lies downstream of preprocessing; the exact operator cause is not localized by this single check."
+  },
+  "native_speedup_vs_webgpu_wall": 26.493832699907554,
+  "original_source_integrity": {
+    "files_checked": 54,
+    "mismatches": []
+  },
+  "native_metadata_compatibility": {
+    "original_manifest": "D:\\newDLSS\\open-dlss\\models\\nr\\manifest.json",
+    "compat_manifest": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\native_model_compat\\manifest.json",
+    "change": "SHA256 hex letter case only; independently verified content; original weights and original manifest unchanged",
+    "verified_stages": 71
+  },
+  "native_harness_provenance": {
+    "original": "D:\\newDLSS\\open-dlss\\src\\main.cpp",
+    "original_sha256": "7b920c2773bf1eb3e3a17ecbcbc253a97b77dd2d26e14fd4180b2d0caf648142",
+    "generated": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\native_timed\\main_timed.cpp",
+    "generated_sha256": "6ab0a1003f72d41c0d611b2c4950d7abdf32665ed0e405fd9a2de7d6971de94e",
+    "changes": [
+      "Optional resident input-features file",
+      "Explicit warmup count",
+      "Per-frame synchronized wall time and GPU timestamps"
+    ],
+    "network_math_changed": false
+  },
+  "native_cpu_output_comparison_workaround": "Input fixture supplies resident 16-lane features to avoid the original CPU comparison branch reading a four-lane RGBA proxy as 16-lane features. Original source files and network mathematics remain unchanged; refer to the diagnosis and harness provenance."
+}

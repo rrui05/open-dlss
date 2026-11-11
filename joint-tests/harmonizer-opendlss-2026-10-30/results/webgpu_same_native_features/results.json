@@ -1,0 +1,233 @@
+{
+  "status": "completed",
+  "started_at_utc": "2026-10-30T09:03:13.926Z",
+  "method": {
+    "purpose": "Isolate preprocessing differences from graph arithmetic using identical saved sixteen-lane native features. No full speed benchmark; one cold and two further calls.",
+    "backend": "Original unmodified WebGPU graph; original composeImage with feature-fixture centering."
+  },
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "batch_size": 1,
+    "cold_calls": 1,
+    "additional_calls": 2
+  },
+  "input": {
+    "rgb_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "native_features_sha256": "318e19dd7a57c5a707f61576ea60a33fe49f5cee33d79cac337dd0b30c49e1eb",
+    "native_head_sha256": "cbca9f4d0bcb21cdee6f6bac7e7fc6b563b2b9c3f9dffe596cbc679c2a2a9a02"
+  },
+  "stage": "complete",
+  "environment": {
+    "adapter_info": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "isFallbackAdapter": false
+    },
+    "features": [
+      "core-features-and-limits",
+      "timestamp-query",
+      "shader-f16"
+    ],
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+    "host": {
+      "node": "v24.12.0",
+      "platform": "win32",
+      "gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 3313 MiB, 4583 MiB",
+      "opendlss_commit": "6ee53f88d801baf9ba6accbe210d3e99eedfb4e9",
+      "input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+      "manifest_sha256": "f44ea18e406bbed7a9a4ce37880c6b503a21bee2353e0594e33b1dd04e2522be"
+    },
+    "host_gpu_query": "name, driver_version, memory.total [MiB], memory.used [MiB], memory.free [MiB]\r\nNVIDIA GeForce RTX 5060, 610.88, 8151 MiB, 3313 MiB, 4583 MiB",
+    "gpu_name": "NVIDIA GeForce RTX 5060"
+  },
+  "model": {
+    "learned_blocks": 71,
+    "graph_dispatches": 451
+  },
+  "preprocessing_comparison": {
+    "whole_tensor": {
+      "elements": 7340032,
+      "bitwise_mismatches": 0,
+      "bitwise_equal": true,
+      "mae": 0,
+      "rmse": 0,
+      "max_abs": 0,
+      "nonfinite": 0
+    },
+    "webgpu_features_sha256": "318e19dd7a57c5a707f61576ea60a33fe49f5cee33d79cac337dd0b30c49e1eb",
+    "per_lane": [
+      {
+        "lane": 0,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 1,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 2,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 3,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 4,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 5,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 6,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 7,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 8,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 9,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 10,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 11,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 12,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 13,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 14,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      },
+      {
+        "lane": 15,
+        "pixels": 458752,
+        "bitwise_mismatches": 0,
+        "mae": 0,
+        "max_abs": 0
+      }
+    ]
+  },
+  "graph_calls_synchronized_wall_ms": [
+    249.5999999642372,
+    156.19999998807907,
+    153.39999997615814
+  ],
+  "head_validation": {
+    "all_finite": true,
+    "shape": [
+      512,
+      896,
+      4
+    ]
+  },
+  "same_feature_native_head_comparison": {
+    "elements": 1835008,
+    "bitwise_mismatches": 1828799,
+    "bitwise_equal": false,
+    "mae": 0.0568633077560727,
+    "rmse": 0.13244166045625566,
+    "max_abs": 1.908203125,
+    "nonfinite": 0
+  },
+  "same_feature_repeated_webgpu_comparison": {
+    "elements": 1835008,
+    "bitwise_mismatches": 0,
+    "bitwise_equal": true,
+    "mae": 0,
+    "rmse": 0,
+    "max_abs": 0,
+    "nonfinite": 0
+  },
+  "finished_at_utc": "2026-10-30T09:03:35.811Z",
+  "input_file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+  "harness": {
+    "source_root": "D:\\newDLSS\\open-dlss",
+    "weights_directory": "D:\\newDLSS\\open-dlss\\models\\nr",
+    "input_file": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+    "output_directory": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features",
+    "server_host": "127.0.0.1"
+  },
+  "same_feature_png_comparison_to_native": {
+    "reference_native_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png",
+    "webgpu_same_features_png": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png",
+    "mae_uint8": 0.48143078031994047,
+    "rmse_uint8": 0.773258983126041,
+    "max_abs_uint8": 8.0,
+    "psnr_db": 50.36430412862686,
+    "channels_exceeding_one_code": 58168,
+    "fraction_exceeding_one_code": 0.04226539248511905,
+    "bitwise_equal": false
+  },
+  "offline_head_comparison": {
+    "elements": 1835008,
+    "bitwise_mismatches": 1828799,
+    "mae": 0.0568633077560727,
+    "max_abs": 1.908203125,
+    "all_finite": true
+  },
+  "conclusion": "Independent native and WebGPU preprocess tensors are bit-identical on this GPU. With identical 16-lane inputs, the unmodified graphs still produce different raw heads and RGB PNGs. The discrepancy lies downstream of preprocessing; the exact operator cause is not localized by this single check."
+}

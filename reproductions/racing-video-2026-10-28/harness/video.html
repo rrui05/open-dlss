@@ -1,0 +1,253 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>OpenDLSS-NR video frame runner</title>
+<style>
+  body{margin:24px;background:#151719;color:#e3e6e8;font:15px monospace}
+  pre{white-space:pre-wrap}canvas{max-width:48vw;height:auto}
+  figure{display:inline-block;margin:0 12px 10px 0}figcaption{margin:8px 0}
+</style>
+<h1>OpenDLSS-NR: independent video frames</h1>
+<p>Original resolution and frame order. No history feedback or enhancement after model composition.</p>
+<pre id="status">Loading the original repository modules...</pre>
+<figure><figcaption>Decoded input</figcaption><canvas id="input"></canvas></figure>
+<figure><figcaption>Model output</figcaption><canvas id="output"></canvas></figure>
+<script type="module">
+import { Network } from '/open-dlss/ports/browser-webgpu/src/network.js';
+import { composeImage } from '/open-dlss/ports/browser-webgpu/src/parity.js';
+import { requestDevice } from '/open-dlss/ports/browser-webgpu/src/gpu.js';
+
+const statusElement = document.querySelector('#status');
+const started = performance.now();
+const gpuErrors = [];
+let network;
+let acquired;
+let config;
+let stage = 'initialization';
+let processedFrames = 0;
+let terminal = false;
+let fatalError;
+let progressQueue = Promise.resolve();
+const determinism = { frameIndex: null, repeatedSameFeatures: 2, float32Elements: 0,
+  bitwiseMismatches: null, verified: false };
+
+async function post(path, value, binary = false) {
+  const response = await fetch(path, { method: 'POST',
+    headers: { 'content-type': binary ? 'application/octet-stream' : 'application/json' },
+    body: binary ? value : JSON.stringify(value) });
+  if (!response.ok) throw new Error(`${path}: ${response.status} ${await response.text()}`);
+}
+
+function progress(message, extra = {}) {
+  stage = message;
+  statusElement.textContent = message;
+  console.log(message);
+  progressQueue = progressQueue.then(() => post('/progress', {
+    status: 'running', message, processedFrames,
+    frameCount: config?.frameCount, elapsedMilliseconds: performance.now() - started, ...extra,
+  })).catch(error => { fatalError ??= error; });
+}
+
+function adapterInfo(info, adapter) {
+  return {
+    ...Object.fromEntries(['vendor', 'architecture', 'device', 'description',
+      'subgroupMinSize', 'subgroupMaxSize'].map(key => [key, info?.[key] ?? null])),
+    isFallbackAdapter: info?.isFallbackAdapter ?? adapter?.isFallbackAdapter ?? null,
+  };
+}
+
+async function sha256(bytes) {
+  const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  return Array.from(hash, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function checkErrors() {
+  if (fatalError) throw fatalError;
+  if (gpuErrors.length) throw new Error(`WebGPU errors: ${gpuErrors.join('\n')}`);
+}
+
+async function complete(result) {
+  if (terminal) return;
+  await progressQueue;
+  window.reproductionResult = result;
+  statusElement.textContent = JSON.stringify(result, null, 2);
+  document.title = `${result.status.toUpperCase()} OpenDLSS-NR video`;
+  await post('/complete', result);
+  terminal = true;
+}
+
+function errorText(error) { return String(error?.stack ?? error); }
+window.addEventListener('unhandledrejection', event => {
+  event.preventDefault();
+  fatalError ??= event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+});
+window.addEventListener('error', event => {
+  if (event.error) fatalError ??= event.error;
+});
+
+try {
+  const response = await fetch('/config', { cache: 'no-store' });
+  if (!response.ok) throw new Error(`/config: ${response.status}`);
+  config = await response.json();
+  const { width, height, frameCount } = config;
+  const startFrame = config.startFrame ?? 0;
+  if (![width, height, frameCount, startFrame].every(Number.isInteger) ||
+      width < 33 || height < 33 || frameCount < 1 || startFrame < 0) {
+    throw new Error('invalid dimensions, frame count, or starting frame');
+  }
+  if ((config.seed ?? 0) !== 0) throw new Error('this runner requires the fixed seed 0');
+  config = { ...config, startFrame, seed: 0,
+    conditioning: config.conditioning ?? { localTone: 1, localStructure: 1, skinStructure: -1, style: 0 },
+    autoMask: config.autoMask ?? true,
+    resized: false,
+    history: 'independent frames: history feature lanes equal the current frame; no temporal feedback or blending',
+    outputComposition: 'original src/parity.js composeImage; no sharpening, display transform, or post-enhancement',
+  };
+
+  const input = document.querySelector('#input');
+  const output = document.querySelector('#output');
+  input.width = output.width = width;
+  input.height = output.height = height;
+  const inputContext = input.getContext('2d');
+  const outputContext = output.getContext('2d');
+  progress('requesting a hardware WebGPU device');
+  acquired = await requestDevice();
+  const adapter = adapterInfo(acquired.info, acquired.adapter);
+  if (adapter.isFallbackAdapter !== false) {
+    throw new Error('hardware WebGPU adapter was not confirmed');
+  }
+  acquired.device.addEventListener('uncapturederror', event => {
+    gpuErrors.push(`${event.error.constructor.name}: ${event.error.message}`);
+  });
+  acquired.device.lost.then(info => {
+    if (info.reason !== 'destroyed') {
+      gpuErrors.push(`device lost: ${info.reason} ${info.message}`);
+      fatalError ??= new Error(gpuErrors.at(-1));
+    }
+  });
+  const creating = performance.now();
+  network = await Network.create({ weights: '/weights', width, height,
+    device: acquired.device, onProgress: progress });
+  const createMilliseconds = performance.now() - creating;
+  if (network.model.blockCount !== 71) throw new Error(`unexpected learned block count ${network.model.blockCount}`);
+  await network.device.queue.onSubmittedWorkDone();
+  checkErrors();
+
+  const proxy = new Float32Array(width * height * 4);
+  const manifest = { proxy: { width, height }, seed: 0,
+    autoMask: config.autoMask, conditioning: config.conditioning };
+  let totalInferenceMilliseconds = 0;
+  let totalAbsoluteDifference = 0;
+  let totalChangedChannels = 0;
+  let totalNonfinite = 0;
+  let firstFrameIndex;
+  let lastFrameIndex;
+  for (let offset = 0; offset < frameCount; offset++) {
+    const index = startFrame + offset;
+    stage = `frame ${index}`;
+    checkErrors();
+    const frameStarted = performance.now();
+    const decoded = await fetch(`/frame/${index}`, { cache: 'no-store' });
+    if (!decoded.ok) throw new Error(`/frame/${index}: ${decoded.status} ${await decoded.text()}`);
+    const rgba = new Uint8Array(await decoded.arrayBuffer());
+    if (rgba.byteLength !== proxy.length) {
+      throw new Error(`frame ${index}: expected ${proxy.length} RGBA bytes, received ${rgba.byteLength}`);
+    }
+    for (let channel = 0; channel < rgba.length; channel++) proxy[channel] = rgba[channel] / 255;
+    const preprocessing = performance.now();
+    await network.featuresFromProxy(proxy, manifest);
+    const preprocessMilliseconds = performance.now() - preprocessing;
+    const inferring = performance.now();
+    await network.run();
+    const inferenceMilliseconds = performance.now() - inferring;
+    totalInferenceMilliseconds += inferenceMilliseconds;
+    const reading = performance.now();
+    let head = await network.readHead();
+    const readbackMilliseconds = performance.now() - reading;
+    let repeatInferenceMilliseconds;
+    if (offset === 0) {
+      const before = new Uint32Array(head.buffer, head.byteOffset, head.length);
+      const repeating = performance.now();
+      await network.run();
+      repeatInferenceMilliseconds = performance.now() - repeating;
+      const repeated = await network.readHead();
+      const after = new Uint32Array(repeated.buffer, repeated.byteOffset, repeated.length);
+      let bitwiseMismatches = 0;
+      for (let channel = 0; channel < before.length; channel++) {
+        if (before[channel] !== after[channel]) bitwiseMismatches++;
+      }
+      Object.assign(determinism, { frameIndex: index, float32Elements: before.length,
+        bitwiseMismatches, verified: bitwiseMismatches === 0 });
+      if (bitwiseMismatches) throw new Error(`same-input repeated head differs at ${bitwiseMismatches} float32 elements`);
+      head = repeated;
+    }
+    let nonfinite = 0;
+    let headMin = Infinity;
+    let headMax = -Infinity;
+    for (let element = 0; element < head.length; element++) {
+      const value = head[element];
+      if (!Number.isFinite(value)) nonfinite++;
+      else { headMin = Math.min(headMin, value); headMax = Math.max(headMax, value); }
+    }
+    totalNonfinite += nonfinite;
+    if (nonfinite) throw new Error(`frame ${index}: ${nonfinite} nonfinite head values`);
+    const composing = performance.now();
+    const composed = composeImage(head, { proxy }, network.geometry);
+    const composeMilliseconds = performance.now() - composing;
+    let changed = 0;
+    let absolute = 0;
+    let maxDelta = 0;
+    for (let channel = 0; channel < rgba.length; channel++) {
+      if ((channel & 3) === 3) continue;
+      const delta = Math.abs(composed.data[channel] - rgba[channel]);
+      changed += Number(delta !== 0);
+      absolute += delta;
+      maxDelta = Math.max(maxDelta, delta);
+    }
+    const [inputSha256, outputSha256] = await Promise.all([sha256(rgba), sha256(composed.data)]);
+    await network.device.queue.onSubmittedWorkDone();
+    checkErrors();
+    await post(`/output/${index}`, composed.data, true);
+    totalAbsoluteDifference += absolute;
+    totalChangedChannels += changed;
+    processedFrames++;
+    firstFrameIndex ??= index;
+    lastFrameIndex = index;
+    const channels = width * height * 3;
+    const statistics = { index, frameIndex: index, processedFrames,
+      head: { min: headMin, max: headMax, nonfinite, float32Elements: head.length },
+      changedFraction: changed / channels, meanAbsoluteByteDifference: absolute / channels,
+      maximumByteDifference: maxDelta,
+      preprocessMilliseconds, inferenceMilliseconds, readbackMilliseconds, composeMilliseconds,
+      ...(repeatInferenceMilliseconds === undefined ? {} : { repeatInferenceMilliseconds }),
+      frameMilliseconds: performance.now() - frameStarted, inputSha256, outputSha256 };
+    await post('/frame-stats', statistics);
+    if (offset === 0 || processedFrames % 16 === 0 || processedFrames === frameCount) {
+      inputContext.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer), width, height), 0, 0);
+      outputContext.putImageData(composed, 0, 0);
+      progress(`processed ${processedFrames}/${frameCount} frames`, { frameIndex: index });
+    }
+  }
+  await progressQueue;
+  checkErrors();
+  await complete({ status: 'completed', ...config, config,
+    processedFrames, firstFrameIndex, lastFrameIndex, adapter,
+    adapterFeatures: [...network.device.features], geometry: network.geometry,
+    learnedBlockCount: network.model.blockCount, weightsUploadedBytes: network.model.bytesUploaded,
+    activationBytes: network.tensors.total, graphDispatches: network.recorder.dispatchCount,
+    determinism, gpuErrors, createMilliseconds, totalInferenceMilliseconds, totalNonfinite,
+    inputOutputDifference: {
+      changedChannelFraction: totalChangedChannels / (processedFrames * width * height * 3),
+      meanAbsoluteByteDifference: totalAbsoluteDifference / (processedFrames * width * height * 3),
+      note: 'difference from decoded input; not a quality metric against ground truth',
+    },
+    elapsedMilliseconds: performance.now() - started, userAgent: navigator.userAgent });
+} catch (error) {
+  console.error(error);
+  await complete({ status: 'failed', stage, config, processedFrames,
+    errors: [errorText(error)], gpuErrors, determinism,
+    elapsedMilliseconds: performance.now() - started, userAgent: navigator.userAgent });
+} finally {
+  if (network) network.destroy();
+  else acquired?.device.destroy();
+}
+</script>

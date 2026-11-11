@@ -1,0 +1,54 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenDLSS CUDA 后端测速</title><style>body{max-width:1500px;margin:32px auto;padding:0 20px;font:15px/1.7 system-ui,"Microsoft YaHei",sans-serif;color:#192b3a;background:#f8fafc}h1{font-size:28px}h2{font-size:20px;margin-top:28px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;white-space:nowrap}th,td{padding:10px;border-bottom:1px solid #dbe3eb;text-align:left}th{background:#eaf0f5}a{color:#1168af}.gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}figure{margin:0}figcaption{font-weight:600}small{display:block;color:#5b6d7d}img{width:100%;height:auto}.pending{min-height:160px;display:grid;place-items:center;background:#e8edf2}.note{background:#eaf3fc;padding:12px 16px;border-left:4px solid #397fb5}code,pre{overflow-wrap:anywhere;white-space:pre-wrap;font-size:12px}@media(max-width:800px){.gallery{grid-template-columns:1fr 1fr}}</style>
+<h1>OpenDLSS：WebGPU、CUDA 与 native 混合后端</h1><p>同一张 896 × 512 输入。RTX 5060。预热 5 次，正式计时 20 次。主指标为同步 wall 时间。</p>
+<p>优化混合后端的同步 wall 均值：5.996 ms。原 WebGPU 耗时 ÷ 混合后端耗时：26.494。该比值只表示本次运行时间。数值容差检查单独报告。</p>
+<p class="note">PyTorch CUDA 使用 FP32 参考算术模拟 E4M3 与指定的 FP16 舍入。它不是原生 FP8 TensorCore 实现。native 路径使用 Vulkan 调度和 CUDA/PTX，不能称作纯 CUDA。Harmonizer 是不同模型，其时间只作参考。</p>
+<div class="scroll"><table><thead><tr><th>实现</th><th>后端说明</th><th>wall 均值 ms</th><th>中位数 ms</th><th>p95 ms</th><th>wall FPS</th><th>CUDA Event 均值 ms</th><th>GPU timestamp 均值 ms</th><th>运行状态</th></tr></thead><tbody><tr><td>OpenDLSS WebGPU</td><td>Edge WebGPU · 原 71 块网络</td><td>158.850</td><td>158.650</td><td>161.850</td><td>6.295</td><td>—</td><td>155.014</td><td>已完成</td></tr><tr><td>OpenDLSS PyTorch CUDA</td><td>PyTorch CUDA · FP32 参考算术，模拟 E4M3 / FP16 舍入</td><td>203.081</td><td>201.895</td><td>211.377</td><td>4.924</td><td>201.200</td><td>—</td><td>已完成</td></tr><tr><td>OpenDLSS native hybrid</td><td>Vulkan 调度 + CUDA/PTX · 混合后端</td><td>5.996</td><td>5.792</td><td>7.155</td><td>166.785</td><td>—</td><td>4.087</td><td>已完成</td></tr><tr><td>Harmonizer + TAEW2.1</td><td>PyTorch CUDA BF16 · 不同模型，仅供运行时间参考</td><td>167.782</td><td>167.778</td><td>171.709</td><td>5.960</td><td>163.963</td><td>—</td><td>已完成</td></tr></tbody></table></div>
+<p>计时范围为常驻 GPU 特征到网络 raw head。图像解码、预处理、模型加载、结果读回、合成和 PNG 保存均在主计时外。不同 GPU 计时方法单独列出。</p>
+<h2>编译与数值检查</h2><p>PyTorch 首次特征准备含 helper 编译：66,299.351 ms。首次 graph 调用含编译：35,841.531 ms。两项均排除于稳态平均。</p>
+<p>PyTorch 输出与 WebGPU 输出：PSNR 50.714 dB，8 位 MAE 0.446，最大通道差 9。结果不是 bit-exact。该差异不构成画质排名。</p>
+<p>native：运行计时已完成。数值校验结果单独列示。 失败：与原 WebGPU 输出的 ±1 通道容差检查未通过。</p>
+<p>native 对原 WebGPU：PSNR 50.352 dB；最大通道差 8；超出 ±1 的通道比例 4.253%。主基准采用同一 RGB 文件与 seed 0，各实现各自预处理。</p><pre>{
+  &quot;head_all_finite&quot;: true,
+  &quot;head_shape_hwc&quot;: [
+    512,
+    896,
+    4
+  ],
+  &quot;head_min&quot;: -7.76953125,
+  &quot;head_max&quot;: 1.0107421875,
+  &quot;three_identical_production_heads&quot;: true,
+  &quot;chaining_equals_barriers&quot;: true,
+  &quot;webgpu_output_tolerance_passed&quot;: false,
+  &quot;parity_cli_exit_code&quot;: 1,
+  &quot;parity_reference_is_nvidia_capture&quot;: false,
+  &quot;parity_log&quot;: &quot;D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\cuda_inspect\\native_parity_features.log&quot;,
+  &quot;identical_features_webgpu_cross_check&quot;: &quot;D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\results.json&quot;,
+  &quot;preprocessing_bitwise_equal&quot;: true,
+  &quot;same_features_head_bitwise_equal&quot;: false,
+  &quot;same_features_head_comparison&quot;: {
+    &quot;elements&quot;: 1835008,
+    &quot;bitwise_mismatches&quot;: 1828799,
+    &quot;mae&quot;: 0.0568633077560727,
+    &quot;max_abs&quot;: 1.908203125,
+    &quot;all_finite&quot;: true
+  },
+  &quot;same_features_png_comparison&quot;: {
+    &quot;reference_native_png&quot;: &quot;D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\native_ptx_896x512\\output.png&quot;,
+    &quot;webgpu_same_features_png&quot;: &quot;D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\webgpu_same_native_features\\output.png&quot;,
+    &quot;mae_uint8&quot;: 0.48143078031994047,
+    &quot;rmse_uint8&quot;: 0.773258983126041,
+    &quot;max_abs_uint8&quot;: 8.0,
+    &quot;psnr_db&quot;: 50.36430412862686,
+    &quot;channels_exceeding_one_code&quot;: 58168,
+    &quot;fraction_exceeding_one_code&quot;: 0.04226539248511905,
+    &quot;bitwise_equal&quot;: false
+  }
+}</pre>
+<p>相同 16 通道特征的交叉检查：输入特征逐位一致。图内 raw head 输出仍不一致。差异位于预处理之后，具体算子未定位。</p>
+<p>输入特征位差：0。4 通道 raw head 位差：1828799 / 1835008。合成 PNG 的 PSNR：50.364 dB，最大通道差：8。</p>
+<h2>同一输入的实际输出</h2><p><a href="cuda_comparison.png">打开四宫格原图拼图</a></p><div class="gallery"><figure><figcaption>共同输入：896 × 512<small>896 × 512</small></figcaption><a href="inputs/street_896x512.png"><img src="inputs/street_896x512.png" alt="共同输入：896 × 512"></a></figure><figure><figcaption>OpenDLSS WebGPU<small>896 × 512</small></figcaption><a href="results/opendlss_896x512/output.png"><img src="results/opendlss_896x512/output.png" alt="OpenDLSS WebGPU"></a></figure><figure><figcaption>PyTorch CUDA 参考实现<small>896 × 512</small></figcaption><a href="cuda_pytorch_896x512/output.png"><img src="cuda_pytorch_896x512/output.png" alt="PyTorch CUDA 参考实现"></a></figure><figure><figcaption>Vulkan + CUDA/PTX 混合后端<small>896 × 512</small></figcaption><a href="results/native_ptx_896x512/output.png"><img src="results/native_ptx_896x512/output.png" alt="Vulkan + CUDA/PTX 混合后端"></a></figure></div>
+<h2>复现记录</h2><p>原源码 SHA-256 检查：54 个文件，0 项差异。临时 metadata 仅调整 SHA-256 十六进制字母大小写。网络权重内容不变。</p>
+<p>native 的 CPU 输出校验曾把 4 通道 proxy 当作 16 通道特征读取。独立 fixture 改为提供相同的 16 通道输入特征。原源码不作修改。诊断、计时 harness 与数值校验均链接在下方。</p>
+<p>共同输入 SHA-256：<code>7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7</code></p><ul><li>OpenDLSS WebGPU：<a href="results/opendlss_896x512/results.json">原始 JSON</a></li><li>OpenDLSS PyTorch CUDA：<a href="cuda_pytorch_896x512/results.json">原始 JSON</a></li><li>OpenDLSS native hybrid：<a href="results/native_ptx_896x512/results.json">原始 JSON</a></li><li>Harmonizer + TAEW2.1：<a href="harmonizer_896x512/results.json">原始 JSON</a></li><li><a href="inputs/source.json">共同输入与 SHA-256</a></li><li><a href="native_model_compat/compatibility.json">临时 metadata 大小写适配记录</a></li><li><a href="native_timed/source_provenance.json">独立计时 harness 的来源与改动</a></li><li><a href="cuda_inspect/native_crash_diagnosis.json">CPU 输出校验越界诊断与 fixture 适配</a></li><li><a href="cuda_inspect/native_timed.log">native 运行日志</a></li><li><a href="cuda_inspect/native_parity_features.log">native 数值校验日志</a></li><li><a href="results/webgpu_same_native_features/results.json">相同 16 通道输入特征的交叉验证</a></li><li><a href="report.html">上一版 WebGPU 与 Harmonizer 报告</a></li></ul>
+<p>结构化数据：<a href="cuda_summary.json">cuda_summary.json</a>。生成时间 UTC：2026-10-30T09:06:54.556198+00:00。</p></html>

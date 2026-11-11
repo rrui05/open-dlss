@@ -1,0 +1,49 @@
+﻿Microsoft (R) COFF/PE Dumper Version 14.44.35224.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file D:\newDLSS\open-dlss\build\dlss5vk.exe
+
+File Type: EXECUTABLE IMAGE
+
+  0000000140021AC0: 41 8B 4C 24 08     mov         ecx,dword ptr [r12+8]
+  0000000140021AC5: 48 0F AF CA        imul        rcx,rdx
+  0000000140021AC9: 49 03 CD           add         rcx,r13
+  0000000140021ACC: 49 8D 04 8F        lea         rax,[r15+rcx*4]
+  0000000140021AD0: F3 0F 10 34 83     movss       xmm6,dword ptr [rbx+rax*4]
+  0000000140021AD5: 41 8B 34 24        mov         esi,dword ptr [r12]
+  0000000140021AD9: 48 0F AF F2        imul        rsi,rdx
+  0000000140021ADD: 49 03 F5           add         rsi,r13
+  0000000140021AE0: 48 8B 44 24 28     mov         rax,qword ptr [rsp+28h]
+  0000000140021AE5: 41 80 BC 24 D0 00  cmp         byte ptr [r12+00000000000000D0h],0
+                    00 00 00
+  0000000140021AEE: 0F 84 B8 00 00 00  je          0000000140021BAC
+  0000000140021AF4: 48 C1 E1 04        shl         rcx,4
+  0000000140021AF8: 49 03 CF           add         rcx,r15
+  0000000140021AFB: F3 0F 10 4C 88 10  movss       xmm1,dword ptr [rax+rcx*4+10h]
+  0000000140021B01: 0F 28 C6           movaps      xmm0,xmm6
+  0000000140021B04: E8 D7 02 00 00     call        0000000140021DE0
+  0000000140021B09: F3 41 0F 59 C2     mulss       xmm0,xmm10
+  0000000140021B0E: F3 41 0F 58 C5     addss       xmm0,xmm13
+  0000000140021B13: E8 D8 15 04 00     call        00000001400630F0
+  0000000140021B18: 0F 28 C8           movaps      xmm1,xmm0
+  0000000140021B1B: 0F 57 C0           xorps       xmm0,xmm0
+  0000000140021B1E: E8 0D AA 03 00     call        000000014005C530
+  0000000140021B23: 0F 28 C8           movaps      xmm1,xmm0
+  0000000140021B26: 41 0F 28 C2        movaps      xmm0,xmm10
+  0000000140021B2A: E8 71 AA 03 00     call        000000014005C5A0
+  0000000140021B2F: F3 0F 2C D0        cvttss2si   edx,xmm0
+  0000000140021B33: 45 8B CE           mov         r9d,r14d
+  0000000140021B36: 49 8D 0C B1        lea         rcx,[r9+rsi*4]
+  0000000140021B3A: 48 8B 85 90 00 00  mov         rax,qword ptr [rbp+0000000000000090h]
+                    00
+  0000000140021B41: 48 8B 00           mov         rax,qword ptr [rax]
+  0000000140021B44: 44 0F B6 04 01     movzx       r8d,byte ptr [rcx+rax]
+  0000000140021B49: 41 3B D0           cmp         edx,r8d
+  0000000140021B4C: 0F
+  0000000140021B4D: 84 00              test        byte ptr [rax],al
+  0000000140021B4F: 02 00              add         al,byte ptr [rax]
+
+  Summary
+
+       7F000 .text

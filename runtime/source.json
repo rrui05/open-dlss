@@ -1,0 +1,5 @@
+{
+  "url": "https://github.com/RankFTW/rhi-repo/releases/download/dlssnr-310.8.0/nvngx_dlssnr_310.8.0.zip",
+  "sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+  "operation": "Downloaded archive and read DLL strictly as data; not loaded or executed."
+}

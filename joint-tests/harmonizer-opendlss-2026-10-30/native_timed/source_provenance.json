@@ -1,0 +1,12 @@
+{
+  "original": "D:\\newDLSS\\open-dlss\\src\\main.cpp",
+  "original_sha256": "7b920c2773bf1eb3e3a17ecbcbc253a97b77dd2d26e14fd4180b2d0caf648142",
+  "generated": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\native_timed\\main_timed.cpp",
+  "generated_sha256": "6ab0a1003f72d41c0d611b2c4950d7abdf32665ed0e405fd9a2de7d6971de94e",
+  "changes": [
+    "Optional resident input-features file",
+    "Explicit warmup count",
+    "Per-frame synchronized wall time and GPU timestamps"
+  ],
+  "network_math_changed": false
+}

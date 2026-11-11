@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="1100" viewBox="0 0 1520 1100" role="img" aria-labelledby="title desc">
+<title id="title">DLSS 5 神经渲染：一帧数据如何穿过网络</title><desc id="desc">全部尺寸按高×宽×通道书写。依据版本310.8.0源码绘制。先构造16通道输入，再逐级下采样并执行局部Transformer。第六次下采样到8×12×1024后，执行8个全局ViT单元。B39先投影为512通道，再按16×20目标网格上采样。解码器融合编码侧细节，最后输出与输入同分辨率的图像。</desc>
+<defs>
+<marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L9 4.5 L0 9 Z" fill="#2d6eac"/></marker>
+<marker id="skip-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L9 4.5 L0 9 Z" fill="#18847c"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<style>text{font-family:'Microsoft YaHei','微软雅黑',Arial,sans-serif}.mono{font-family:Consolas,'Microsoft YaHei','微软雅黑',monospace}</style>
+<text x="76" y="49" font-size="32" font-weight="bold" fill="#17324d" text-anchor="start">DLSS 5 神经渲染：一帧数据如何穿过网络</text>
+<text x="76" y="79" font-size="19" font-weight="normal" fill="#52677b" text-anchor="start">① 构造输入 → ② 局部编码 → ③ 全局交互 → ④ 解码融合 → ⑤ 同分辨率输出</text>
+<text x="76" y="108" font-size="16" font-weight="normal" fill="#52677b" text-anchor="start">尺寸顺序：高×宽×通道。示例输入：512×512×3。局部窗口：8×8；每头 32 通道。尺寸包含源码对齐。版本：310.8.0。</text>
+<rect x="80" y="132" width="480" height="74" rx="12" fill="#f5f1fc" stroke="#c8b5e0" stroke-width="1.5"/>
+<text x="320.0" y="155" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">① 构造 16 通道输入，再投影 16 → 32</text>
+<text x="320.0" y="178" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">原图 512×512×3 → 填充特征 512×576×16</text>
+<text x="320.0" y="197" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">拼接当前图、噪声、历史图和控制条件；FP16 投影</text>
+<rect x="960" y="132" width="480" height="74" rx="12" fill="#f5f1fc" stroke="#c8b5e0" stroke-width="1.5"/>
+<text x="1200.0" y="155" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">⑤ 输出映射：32 → 4 通道（FP16）</text>
+<text x="1200.0" y="178" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">3 个 RGB 残差 + 1 个时间混合对数几率（FP32）</text>
+<text x="1200.0" y="197" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">与当前图和历史图合成，输出仍为 512×512</text>
+<text x="760" y="157" font-size="16" font-weight="bold" fill="#17324d" text-anchor="middle">沿左侧向下读，</text>
+<text x="760" y="181" font-size="15" font-weight="normal" fill="#52677b" text-anchor="middle">底部全局交互后，转右侧向上读。</text>
+<path d="M320.0 206 V242" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M1200.0 242 V206" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="80" y="242" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="265" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B0｜原分辨率局部 Transformer</text>
+<text x="320.0" y="288" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">512×576×32｜1 个注意力头</text>
+<text x="320.0" y="307" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">保留浅层细节，供最后一次融合</text>
+<rect x="960" y="242" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="265" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B70｜原分辨率局部 Transformer</text>
+<text x="1200.0" y="288" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">512×576×32｜1 个注意力头</text>
+<text x="1200.0" y="307" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">融合最浅层细节，预测逐像素输出</text>
+<rect x="80" y="334" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="357" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B1–4｜局部 Transformer ×4</text>
+<text x="320.0" y="380" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L0：256×288×32｜1 个注意力头</text>
+<text x="320.0" y="399" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第一次下采样后，继续提取局部特征</text>
+<rect x="960" y="334" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="357" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B66–69｜局部 Transformer ×4</text>
+<text x="1200.0" y="380" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L0：256×288×32｜1 个注意力头</text>
+<text x="1200.0" y="399" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">上采样并融合编码侧细节后，继续计算</text>
+<rect x="80" y="426" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="449" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B5–8｜局部 Transformer ×4</text>
+<text x="320.0" y="472" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L1：128×144×64｜2 个注意力头</text>
+<text x="320.0" y="491" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第二次下采样后，继续提取局部特征</text>
+<rect x="960" y="426" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="449" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B62–65｜局部 Transformer ×4</text>
+<text x="1200.0" y="472" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L1：128×144×64｜2 个注意力头</text>
+<text x="1200.0" y="491" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">上采样并融合编码侧细节后，继续计算</text>
+<rect x="80" y="518" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="541" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B9–14｜局部 Transformer ×6</text>
+<text x="320.0" y="564" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L2：64×72×128｜4 个注意力头</text>
+<text x="320.0" y="583" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第三次下采样后，继续提取局部特征</text>
+<rect x="960" y="518" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="541" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B56–61｜局部 Transformer ×6</text>
+<text x="1200.0" y="564" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L2：64×72×128｜4 个注意力头</text>
+<text x="1200.0" y="583" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">上采样并融合编码侧细节后，继续计算</text>
+<rect x="80" y="610" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="633" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B15–22｜局部 Transformer ×8</text>
+<text x="320.0" y="656" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L3：32×36×256｜8 个注意力头</text>
+<text x="320.0" y="675" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第四次下采样后，继续提取局部特征</text>
+<rect x="960" y="610" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="633" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B48–55｜局部 Transformer ×8</text>
+<text x="1200.0" y="656" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L3：32×36×256｜8 个注意力头</text>
+<text x="1200.0" y="675" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">上采样并融合编码侧细节后，继续计算</text>
+<rect x="80" y="702" width="480" height="74" rx="12" fill="#f1f6fb" stroke="#adc8e1" stroke-width="1.5"/>
+<text x="320.0" y="725" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B23–30｜局部 Transformer ×8</text>
+<text x="320.0" y="748" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L4：16×20×512｜16 个注意力头</text>
+<text x="320.0" y="767" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第五次下采样后，继续提取局部特征</text>
+<rect x="960" y="702" width="480" height="74" rx="12" fill="#eff8f5" stroke="#acd1c6" stroke-width="1.5"/>
+<text x="1200.0" y="725" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B40–47｜局部 Transformer ×8</text>
+<text x="1200.0" y="748" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L4：16×20×512｜16 个注意力头</text>
+<text x="1200.0" y="767" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">B39 完成投影、上采样与融合后，才进入此层</text>
+<rect x="80" y="794" width="480" height="90" rx="12" fill="#edf1fd" stroke="#a9b7dd" stroke-width="1.5"/>
+<text x="320.0" y="817" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B31–38｜③ 全局 ViT ×8</text>
+<text x="320.0" y="840" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">L5：8×12×1024｜32 个注意力头</text>
+<text x="320.0" y="859" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">第六次下采样后，96 个空间位置全局交互</text>
+<text x="320.0" y="876" font-size="13" font-weight="normal" fill="#52677b" text-anchor="middle">96 个有效空间标记；存储补齐至 128 个</text>
+<rect x="960" y="794" width="480" height="90" rx="12" fill="#fff6e8" stroke="#e3bd80" stroke-width="1.5"/>
+<text x="1200.0" y="817" font-size="18" font-weight="bold" fill="#17324d" text-anchor="middle">B39｜全局结果转回解码器</text>
+<text x="1200.0" y="840" font-size="16" font-weight="normal" fill="#17324d" text-anchor="middle">先投影：8×12×1024 → 8×12×512</text>
+<text x="1200.0" y="859" font-size="14" font-weight="normal" fill="#17324d" text-anchor="middle">再按目标网格上采样：16×20×512</text>
+<text x="1200.0" y="876" font-size="13" font-weight="normal" fill="#52677b" text-anchor="middle">与编码器同尺度特征相加，再送入 B40–47</text>
+<path d="M320.0 316 V334" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="329" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">2×2 池化；通道不变</text>
+<path d="M320.0 408 V426" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="421" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">池化；通道 32→64</text>
+<path d="M320.0 500 V518" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="513" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">池化；通道 64→128</text>
+<path d="M320.0 592 V610" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="605" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">池化；通道 128→256</text>
+<path d="M320.0 684 V702" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="697" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">池化；通道 256→512</text>
+<path d="M320.0 776 V794" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="336.0" y="789" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">池化；通道 512→1024</text>
+<path d="M1200.0 334 V316" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="329" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">上采样；两路缩放后融合</text>
+<path d="M1200.0 426 V408" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="421" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">投影 64→32；上采样</text>
+<path d="M1200.0 518 V500" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="513" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">投影 128→64；上采样</text>
+<path d="M1200.0 610 V592" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="605" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">投影 256→128；上采样</text>
+<path d="M1200.0 702 V684" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="697" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">投影 512→256；上采样</text>
+<path d="M1200.0 794 V776" fill="none" stroke="#2d6eac" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1216.0" y="789" font-size="11" font-weight="normal" fill="#52677b" text-anchor="start">B39 融合结果向上送入</text>
+<path d="M560 279.0 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="270.0" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节：缩放后相加</text>
+<path d="M560 371.0 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="362.0" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节：缩放后相加</text>
+<path d="M560 463.0 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="454.0" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节：缩放后相加</text>
+<path d="M560 555.0 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="546.0" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节：缩放后相加</text>
+<path d="M560 647.0 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="638.0" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节：缩放后相加</text>
+<path d="M560 739 H725 V813 H960" fill="none" stroke="#18847c" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#skip-arrow)"/>
+<text x="760" y="729" font-size="15" font-weight="normal" fill="#18847c" text-anchor="middle">编码侧细节进入 B39 融合</text>
+<path d="M560 852 H960" fill="none" stroke="#2d6eac" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="760" y="876" font-size="15" font-weight="normal" fill="#2d6eac" text-anchor="middle">先全局交互，再投影和上采样</text>
+<text x="320" y="917" font-size="17" font-weight="bold" fill="#2d6eac" text-anchor="middle">② 编码：长宽变小，通道增多</text>
+<text x="1200" y="917" font-size="17" font-weight="bold" fill="#18847c" text-anchor="middle">④ 解码：长宽变大，融合编码侧细节</text>
+<rect x="80" y="943" width="1360" height="110" rx="12" fill="#f7f9fc" stroke="#d2dce6" stroke-width="1.5"/>
+<text x="102" y="973" font-size="20" font-weight="bold" fill="#17324d" text-anchor="start">71 个编号单元 = 70 个 Transformer 单元 + B39 过渡单元</text>
+<text x="102" y="1002" font-size="17" font-weight="normal" fill="#52677b" text-anchor="start">主要矩阵与中间发布值使用 E4M3；累加使用 FP16。输入适配和输出映射使用 FP16。</text>
+<text x="102" y="1029" font-size="16" font-weight="normal" fill="#52677b" text-anchor="start">六次池化后，每层长宽向上对齐至 4 的倍数。解码器按明确的目标网格采样。网络内部恢复尺寸，输出不放大。</text>
+<text x="80" y="1080" font-size="13" font-weight="normal" fill="#52677b" text-anchor="start">源码证据：src/nr_graph.cpp:670–1000；docs/network.md；ports/browser-webgpu/src/graph.js。本图仅说明本仓库的神经渲染模型。</text>
+</svg>

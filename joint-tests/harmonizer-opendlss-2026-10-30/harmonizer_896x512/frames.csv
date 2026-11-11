@@ -1,0 +1,2 @@
+frame_index,name,frame_mode,input_views,model_cuda_ms,model_wall_ms,end_to_end_wall_ms,output
+0,street_896x512,non-temporal,1,167.62355041503906,169.08405197318643,400.3440960077569,/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/harmonizer_896x512/generated/0000_street_896x512.png

@@ -1,0 +1,201 @@
+{
+  "status": "completed",
+  "stage": "smoke_complete",
+  "started_at_utc": "2026-10-30T08:47:14.728043+00:00",
+  "command": [
+    "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/bench_cuda_pytorch.py",
+    "--smoke-only",
+    "--output",
+    "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/cuda_pytorch_smoke_896x512"
+  ],
+  "configuration": {
+    "width": 896,
+    "height": 512,
+    "warmups": 5,
+    "iterations": 20,
+    "batch_size": 1,
+    "precision": "FP32 reference arithmetic with FP8 E4M3 publication and prescribed FP16 roundings",
+    "seed": 0
+  },
+  "method": {
+    "backend": "PyTorch CUDA reference arithmetic",
+    "temporal": false,
+    "training": false,
+    "scope": "Resident precomputed 16-channel GPU features through original ht71/152 learned layers to raw 4-channel head. Excludes input preparation, host readback, CPU composition and PNG save.",
+    "implementation_boundary_adaptation": "Cache PreBlock.features without changing its values; PostBlock returns four projected raw channels and leaves RGB composition outside timing.",
+    "limitations": "Independent reference implementation. No bit-exact claim. E4M3 is emulated with FP32 tensors; no native FP8 TensorCore GEMM or BF16 substitution. TF32 and reduced-precision reductions disabled."
+  },
+  "environment": {
+    "gpu_name": "NVIDIA GeForce RTX 5060",
+    "torch": "2.11.0+cu128",
+    "torch_cuda": "12.8",
+    "python": "3.11.16 (main, Sep  2 2026, 23:39:52) [GCC 15.3.0]",
+    "executable": "/home/bauhinia/.local/share/harmonizer-env/bin/python",
+    "triton_amd_kernels_enabled": false,
+    "elementwise_compile_enabled": "0",
+    "tf32": false,
+    "gpu_total_mib": 8150.5625
+  },
+  "weight_validation": {
+    "dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e",
+    "source_matches_webgpu_manifest": true,
+    "packed_stage_hashes_verified": 71,
+    "packed_records_byte_equal": 153,
+    "network": "ht",
+    "blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70
+    ],
+    "unpacked_tensors": 658,
+    "weights_metadata": {
+      "source": "nvngx_dlssnr.dll",
+      "network": "ht",
+      "dll_size": "165840496",
+      "records": "153",
+      "format": "dlssnr-weights-1",
+      "dll_sha256": "e16bcf15e16e13f527491cdf7845b2fe6521a738d8f7c9c721866a8496e1fc8e"
+    }
+  },
+  "input": {
+    "path": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs/street_896x512.png",
+    "file_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "dimensions_wh": [
+      896,
+      512
+    ]
+  },
+  "model": {
+    "name": "DLSS-NR 310.8.0 ht71 CUDA reference",
+    "blocks": 71,
+    "layers": 152,
+    "weights_path": "/mnt/d/newDLSS/OpenDLSS-CUDA/weights.safetensors",
+    "weights_sha256": "f0aef8db9979d8039c3ad3cc159b0e2312c167b7c5df5fb0617a65a803b76a08",
+    "source": "/mnt/d/newDLSS/OpenDLSS-CUDA",
+    "source_commit": "3beef7935a8ef976b47ab78b906e75600c52d2de",
+    "padding": {
+      "width": 896,
+      "height": 512,
+      "pad_x": 0,
+      "pad_y": 0
+    },
+    "controls": {
+      "intensity": 1.0,
+      "style": 0,
+      "local_tone": 1.0,
+      "local_structure": 1.0,
+      "skin_structure": -1.0,
+      "auto_mask": true,
+      "seed": 0,
+      "depth": null,
+      "motion": null,
+      "history": null,
+      "reset": false
+    },
+    "load_and_device_wall_ms": 2312.607399013359
+  },
+  "feature_preparation_wall_ms": 51.709275983739644,
+  "first_forward": {
+    "cuda_event_ms": 829.5056762695312,
+    "synchronized_wall_ms": 844.2155889933929,
+    "output_shape": [
+      1,
+      4,
+      512,
+      896
+    ],
+    "all_finite": true,
+    "peak_allocated_mib": 1220.3291015625,
+    "peak_reserved_mib": 1560.0
+  },
+  "composition_including_readback_wall_ms": 63.33492900012061,
+  "output_validation": {
+    "dimensions_wh": [
+      896,
+      512
+    ],
+    "all_finite": true,
+    "webgpu_reference": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/results/opendlss_896x512/output.png",
+    "difference_vs_webgpu": {
+      "psnr_db": 49.85776849961327,
+      "mae_uint8": 0.5129583449590773,
+      "max_abs_uint8": 8.0,
+      "exact_channel_fraction": 0.5542377290271577,
+      "perfect_match": false
+    }
+  },
+  "images": [
+    {
+      "input": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/inputs/street_896x512.png",
+      "output": "/mnt/d/newDLSS/joint-tests/harmonizer-opendlss-2026-10-30/cuda_pytorch_smoke_896x512/output.png"
+    }
+  ]
+}

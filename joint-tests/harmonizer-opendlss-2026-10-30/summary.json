@@ -1,0 +1,361 @@
+{
+  "generated_at_utc": "2026-10-30T08:11:34.363106+00:00",
+  "status": "completed",
+  "scope": "Different models and functions; runtime comparison only. CUDA BF16 versus original Edge WebGPU 71-block implementation; not native Vulkan. No training.",
+  "primary_metric": "synchronized wall; resident prepared input; excludes loading, preprocessing, readback, image composition and PNG encoding",
+  "protocol_checks": {
+    "input_dimensions_wh": [
+      896,
+      512
+    ],
+    "expected_dimensions_wh": [
+      896,
+      512
+    ],
+    "same_input_file_sha256": true,
+    "actual_input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "source_record_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "harmonizer_input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "opendlss_input_sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+    "same_gpu_reported": true,
+    "protocol_5_warmups_20_iterations": true,
+    "output_dimensions_wh": {
+      "Harmonizer + TAEW2.1": [
+        896,
+        512
+      ],
+      "OpenDLSS-NR": [
+        896,
+        512
+      ]
+    },
+    "opendlss_blocks": 71,
+    "opendlss_all_finite": true,
+    "opendlss_bitwise_repeat_mismatches": 0,
+    "opendlss_gpu_errors": []
+  },
+  "comparison": {
+    "metric": "synchronized_wall.mean_ms",
+    "harmonizer_ms": 167.78175015351735,
+    "opendlss_ms": 158.85000000298024,
+    "harmonizer_over_opendlss_duration_ratio": 1.056227574128861,
+    "opendlss_duration_reduction_percent": 5.323433652566334
+  },
+  "cases": [
+    {
+      "name": "Harmonizer + TAEW2.1",
+      "backend": "CUDA BF16 · PyTorch / WSL2",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\harmonizer_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\harmonizer_896x512\\generated\\0000_street_896x512.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 167.78175015351735,
+        "median_ms": 167.77809051563963,
+        "p95_ms": 171.70865269144997,
+        "std_ms": 2.5048280430425054,
+        "min_ms": 163.2643280318007,
+        "max_ms": 172.40372399101034,
+        "fps_from_mean": 5.960123786317746,
+        "samples_ms": [
+          168.72266901191324,
+          169.26171001978219,
+          172.40372399101034,
+          171.6720699914731,
+          168.5066350037232,
+          167.58853697683662,
+          165.69412202807143,
+          167.85472602350637,
+          169.28437200840563,
+          170.33157200785354,
+          168.96606900263578,
+          163.2643280318007,
+          163.7332930113189,
+          166.63666698150337,
+          167.7014550077729,
+          171.23272799653932,
+          166.49817599682137,
+          166.5233009844087,
+          165.47933500260115,
+          164.27951399236917
+        ]
+      },
+      "cuda_event": {
+        "count": 20,
+        "mean_ms": 163.9628707885742,
+        "median_ms": 163.87464141845703,
+        "p95_ms": 167.85143585205077,
+        "std_ms": 2.3722808061293117,
+        "min_ms": 159.54441833496094,
+        "max_ms": 168.51119995117188,
+        "fps_from_mean": 6.098941761574019,
+        "samples_ms": [
+          164.89759826660156,
+          165.4272003173828,
+          168.51119995117188,
+          167.81671142578125,
+          164.7283477783203,
+          163.83091735839844,
+          161.88572692871094,
+          163.91836547851562,
+          165.05596923828125,
+          166.41513061523438,
+          165.02146911621094,
+          159.54441833496094,
+          159.97882080078125,
+          162.82794189453125,
+          163.39878845214844,
+          167.15557861328125,
+          162.76112365722656,
+          162.78807067871094,
+          161.61305236816406,
+          161.6809844970703
+        ]
+      },
+      "gpu_timestamp": {}
+    },
+    {
+      "name": "OpenDLSS-NR",
+      "backend": "Edge WebGPU · 原 71 个学习块",
+      "status": "已完成",
+      "raw_status": "completed",
+      "record_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\results.json",
+      "output_path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\results\\opendlss_896x512\\output.png",
+      "output_dimensions_wh": [
+        896,
+        512
+      ],
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 158.85000000298024,
+        "median_ms": 158.64999997615814,
+        "p95_ms": 161.85000001192094,
+        "std_ms": 1.801527135076748,
+        "min_ms": 155.80000001192093,
+        "max_ms": 162.80000001192093,
+        "fps_from_mean": 6.295247088330115,
+        "samples_ms": [
+          160.5,
+          162.80000001192093,
+          157.80000001192093,
+          156.39999997615814,
+          159.5999999642372,
+          158.69999998807907,
+          161.80000001192093,
+          159,
+          160,
+          155.80000001192093,
+          157.69999998807907,
+          158.5999999642372,
+          160.80000001192093,
+          158.9000000357628,
+          160.9000000357628,
+          156.5999999642372,
+          158.10000002384186,
+          157.60000002384186,
+          158.10000002384186,
+          157.30000001192093
+        ]
+      },
+      "cuda_event": null,
+      "gpu_timestamp": {
+        "status": "completed",
+        "count": 20,
+        "mean_ms": 155.01361920000005,
+        "median_ms": 154.526384,
+        "p95_ms": 157.0637792,
+        "std_ms": 1.4360028087379768,
+        "min_ms": 152.969024,
+        "max_ms": 157.314944,
+        "fps_from_mean": 6.451046076859805,
+        "samples_ms": [
+          153.602912,
+          154.356864,
+          152.969024,
+          154.6416,
+          156.832768,
+          156.697632,
+          153.87024,
+          154.411168,
+          153.74592,
+          153.564864,
+          156.988896,
+          157.05056,
+          155.227072,
+          153.751808,
+          155.279648,
+          153.730976,
+          155.719296,
+          156.940704,
+          157.314944,
+          153.575488
+        ],
+        "compute_pass_count": 1,
+        "scope": "Separate samples using existing first/last compute-pass timestamps; includes intervening graph copies, excludes feature preparation/readback/composition. Not the primary synchronized-wall result."
+      }
+    }
+  ],
+  "887_results": [
+    {
+      "name": "单帧",
+      "path": "D:\\newDLSS\\harmonizer\\local_tests\\results\\tae_887x498\\results.json",
+      "status": "completed",
+      "requested_wh": [
+        887,
+        498
+      ],
+      "internal_wh": [
+        896,
+        512
+      ],
+      "cuda_event": {
+        "count": 20,
+        "mean_ms": 161.25221328735353,
+        "median_ms": 160.72840118408203,
+        "p95_ms": 164.68327789306642,
+        "std_ms": 1.8446277252002627,
+        "min_ms": 158.98806762695312,
+        "max_ms": 165.72213745117188,
+        "fps_from_mean": 6.201465267444032,
+        "samples_ms": [
+          158.98806762695312,
+          160.30758666992188,
+          160.32406616210938,
+          159.316162109375,
+          164.62860107421875,
+          161.4956817626953,
+          159.2447967529297,
+          160.0642547607422,
+          161.1327362060547,
+          159.93548583984375,
+          163.75823974609375,
+          162.97152709960938,
+          161.2574005126953,
+          159.67234802246094,
+          161.1844482421875,
+          160.15597534179688,
+          162.1300811767578,
+          165.72213745117188,
+          162.9672393798828,
+          159.7874298095703
+        ]
+      },
+      "synchronized_wall": {
+        "count": 20,
+        "mean_ms": 165.1498906488996,
+        "median_ms": 164.61055097170174,
+        "p95_ms": 168.63947523524985,
+        "std_ms": 1.9089645215731674,
+        "min_ms": 162.78248000890017,
+        "max_ms": 169.78774400195107,
+        "fps_from_mean": 6.0551054322279265,
+        "samples_ms": [
+          162.78248000890017,
+          164.14414200698957,
+          164.18472595978528,
+          163.12712896615267,
+          168.57904003700241,
+          165.33664800226688,
+          163.04386500269175,
+          163.91448199283332,
+          165.0363759836182,
+          163.7623009737581,
+          167.6841220469214,
+          166.91645001992583,
+          165.1279039797373,
+          163.49771997192875,
+          165.14737298712134,
+          164.13528501288965,
+          166.26232501585037,
+          169.78774400195107,
+          166.91824101144448,
+          163.60945999622345
+        ]
+      }
+    },
+    {
+      "name": "时序，4 个参考帧",
+      "path": "D:\\newDLSS\\harmonizer\\local_tests\\results\\tae_temporal887x498\\results.json",
+      "status": "completed",
+      "requested_wh": [
+        887,
+        498
+      ],
+      "internal_wh": [
+        896,
+        512
+      ],
+      "cuda_event": {
+        "count": 10,
+        "mean_ms": 343.9634521484375,
+        "median_ms": 342.9570007324219,
+        "p95_ms": 351.1943298339844,
+        "std_ms": 4.127871304512709,
+        "min_ms": 338.6202697753906,
+        "max_ms": 351.8493347167969,
+        "fps_from_mean": 2.907285625126386,
+        "samples_ms": [
+          341.484130859375,
+          345.5091552734375,
+          341.1145935058594,
+          344.9783020019531,
+          351.8493347167969,
+          343.6720275878906,
+          342.2419738769531,
+          338.6202697753906,
+          339.7709655761719,
+          350.3937683105469
+        ]
+      },
+      "synchronized_wall": {
+        "count": 10,
+        "mean_ms": 352.8712839994114,
+        "median_ms": 351.8902150099166,
+        "p95_ms": 360.343758657109,
+        "std_ms": 4.26207134326754,
+        "min_ms": 347.3484959686175,
+        "max_ms": 361.0057639889419,
+        "fps_from_mean": 2.833894525692456,
+        "samples_ms": [
+          350.3332950058393,
+          354.39392999978736,
+          349.8810069868341,
+          353.87719003483653,
+          361.0057639889419,
+          352.7084870147519,
+          351.07194300508127,
+          347.3484959686175,
+          348.5580869601108,
+          359.5346410293132
+        ]
+      }
+    }
+  ],
+  "sources": {
+    "input": {
+      "source": "D:\\newDLSS\\harmonizer\\examples\\0.png",
+      "source_sha256": "22bfa279e063a89c186261eff6418e406af367248917705eb2393f6ba11bb358",
+      "path": "D:\\newDLSS\\joint-tests\\harmonizer-opendlss-2026-10-30\\inputs\\street_896x512.png",
+      "sha256": "7085d2d40f174c4295cc2ab9b032502379c07b1e5b433d5694f75c2f94b503b7",
+      "dimensions": [
+        896,
+        512
+      ],
+      "transformation": "PIL RGB, bilinear resize to exact shared dimensions; no model padding required by either runtime.",
+      "purpose": "Same input bytes, same local GPU, separate sequential runtime benchmarks; no concurrent GPU tests."
+    },
+    "harmonizer_checkpoint_sha256": "6e65e9ec33019a49f7f0d15f81f5e089c2527e131bd5339d6a14f9b3531db524",
+    "tae_checkpoint_sha256": "d26151e76cdc2c9424bef988de874b33d9a53f30ef3060cd556c429c469c797e",
+    "tae_source_sha256": "99545f093b36c16297ad182ce18a5dce2ebc98bb611f5e8dfa2dce431ba39ce2",
+    "opendlss_source_modules_unmodified": true
+  },
+  "local_link_validation": {
+    "links_checked": 12,
+    "missing": []
+  }
+}

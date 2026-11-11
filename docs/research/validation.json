@@ -1,0 +1,394 @@
+{
+  "checked_on": "2026-10-28",
+  "repository_commit": "5cef97658735ef49daf048949e203d3f547699b8",
+  "report_local_links_checked": 57,
+  "missing_local_links": [],
+  "svg_xml_files": 3,
+  "pdf_pages": 28,
+  "offline_browser_math_ready": true,
+  "rendered_formulas": 53,
+  "math_errors": 0,
+  "external_html_script_tags": 0,
+  "pdf_preview_pages_checked": [
+    3,
+    4,
+    5,
+    6,
+    9
+  ],
+  "validation_scope": [
+    "documentation references",
+    "SVG syntax and visual layout",
+    "offline HTML formulas",
+    "PDF generation and selected-page visual inspection",
+    "saved GTA artifacts and records"
+  ],
+  "not_executed": [
+    "full GPU neural network inference",
+    "native NVIDIA parity",
+    "temporal video quality",
+    "official game or SDK integration"
+  ],
+  "saved_artifact_check": {
+    "status": "verified",
+    "scope": "Saved artifact integrity and saved-record consistency only; no inference was executed.",
+    "manifest_files": 90,
+    "files_read": 90,
+    "failures": [],
+    "saved_record_totals": {
+      "case_count": 7,
+      "repeated_head_float32_elements": 16908288,
+      "bitwise_mismatches": 0,
+      "native_nvidia_output_parity_verified": false
+    },
+    "default_local_inputs": {
+      "models_nr_manifest_exists": true,
+      "native_binary_exists": false,
+      "demo_binary_exists": false
+    },
+    "not_performed": [
+      "GPU inference",
+      "native NVIDIA output parity",
+      "temporal/video evaluation"
+    ],
+    "saved_case_records": [
+      {
+        "id": "tommy_vice_city",
+        "dimensions": [
+          1024,
+          832
+        ],
+        "recorded_repeat_head_elements": 3407872,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          239.39999999850988,
+          176.39999999850988
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/tommy_vice_city/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1024,
+            832
+          ],
+          "inferenceDimensions": [
+            1024,
+            832
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "niko_iv",
+        "dimensions": [
+          502,
+          644
+        ],
+        "recorded_repeat_head_elements": 1572864,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          198.10000000149012,
+          79.10000000149012
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/niko_iv/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            502,
+            644
+          ],
+          "inferenceDimensions": [
+            502,
+            644
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "roman_iv",
+        "dimensions": [
+          1024,
+          675
+        ],
+        "recorded_repeat_head_elements": 3145728,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          274.6000000014901,
+          151
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/roman_iv/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1024,
+            675
+          ],
+          "inferenceDimensions": [
+            1024,
+            675
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "trevor_outdoor",
+        "dimensions": [
+          780,
+          438
+        ],
+        "recorded_repeat_head_elements": 1703936,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          216.09999999776483,
+          89
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/trevor_outdoor/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            780,
+            438
+          ],
+          "inferenceDimensions": [
+            780,
+            438
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "michael_daylight",
+        "dimensions": [
+          1024,
+          900
+        ],
+        "recorded_repeat_head_elements": 4456448,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          330.6000000014901,
+          225.69999999925494
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/michael_daylight/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            1024,
+            900
+          ],
+          "inferenceDimensions": [
+            1024,
+            900
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "franklin_daylight",
+        "dimensions": [
+          500,
+          500
+        ],
+        "recorded_repeat_head_elements": 1310720,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          229.89999999850988,
+          87.89999999850988
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/franklin_daylight/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            500,
+            500
+          ],
+          "inferenceDimensions": [
+            500,
+            500
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      },
+      {
+        "id": "amanda_sunset",
+        "dimensions": [
+          500,
+          500
+        ],
+        "recorded_repeat_head_elements": 1310720,
+        "recorded_repeat_bit_mismatches": 0,
+        "recorded_network_milliseconds": [
+          147.09999999776483,
+          69.19999999925494
+        ],
+        "recorded_config": {
+          "image": "/artifacts/more/amanda_sunset/input.png",
+          "seed": 0,
+          "autoMask": true,
+          "conditioning": {
+            "localTone": 1,
+            "localStructure": 1,
+            "skinStructure": -1,
+            "style": 0
+          },
+          "intensity": 1,
+          "history": "single frame: history feature lanes equal current frame; no temporal blend",
+          "outputComposition": "original src/parity.js composeImage; no display transform, sharpening, or post-enhancement",
+          "sourceDimensions": [
+            500,
+            500
+          ],
+          "inferenceDimensions": [
+            500,
+            500
+          ],
+          "resized": false
+        },
+        "recorded_adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32,
+          "isFallbackAdapter": false
+        },
+        "native_nvidia_output_parity_verified": false
+      }
+    ]
+  },
+  "artifacts": {
+    "dlss-survey-2026-10-28.md": {
+      "bytes": 65017,
+      "sha256": "6a9b3fdae62493ac4162d5d64620f53f47bc2a96168b8c1161e5ea8f217dbad3"
+    },
+    "dlss-survey-2026-10-28.html": {
+      "bytes": 3942244,
+      "sha256": "24f76c366bc92563304dd84b297de4f39114396f2e7c719f82794f52f6a1e158"
+    },
+    "dlss-survey-2026-10-28.pdf": {
+      "bytes": 3218669,
+      "sha256": "86b645cd77cd9f15e4868dff32fa95916aa466e69b4483bc35a3650c2c832076"
+    }
+  },
+  "documentation_revision": "Chinese diagrams and classroom data-flow explanation"
+}

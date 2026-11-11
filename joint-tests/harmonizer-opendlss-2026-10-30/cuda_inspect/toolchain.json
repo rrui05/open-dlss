@@ -1,0 +1,106 @@
+{
+  "checked_at_utc": "2026-10-30 08:45:45 UTC",
+  "status": "completed",
+  "scope": "Read-only compiler/library discovery; CPU dynamic-library loading and nvrtcVersion only. No cuInit, CUDA compilation, CUDA kernel, Vulkan application, or environment installation was performed during this inspection.",
+  "windows": {
+    "commands_on_path": [
+      "C:/Users/Win11/anaconda3/python.exe"
+    ],
+    "commands_not_found_on_path": [
+      "nvcc",
+      "nvrtc",
+      "clang",
+      "clang++",
+      "gcc",
+      "g++",
+      "cl",
+      "cmake",
+      "ninja",
+      "vswhere"
+    ],
+    "msvc": {
+      "vswhere": "C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe",
+      "installation": "C:/Program Files/Microsoft Visual Studio/2022/Community",
+      "cpp_component_detected": true,
+      "vcvars64": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat",
+      "compiler": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
+      "compiler_file_product_version": "14.44.35224.0",
+      "windows_sdk_headers": [
+        "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/um/Windows.h",
+        "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um/Windows.h"
+      ]
+    },
+    "nvrtc": {
+      "library": "C:/Users/Win11/anaconda3/envs/bipadelRL/Lib/site-packages/torch/lib/nvrtc64_120_0.dll",
+      "builtins": "C:/Users/Win11/anaconda3/envs/bipadelRL/Lib/site-packages/torch/lib/nvrtc-builtins64_128.dll",
+      "loaded_with": "Python ctypes.WinDLL after os.add_dll_directory",
+      "load_verified": true,
+      "nvrtcVersion_return_code": 0,
+      "version": [
+        12,
+        8
+      ]
+    },
+    "cuda_driver": {
+      "library": "C:/Windows/System32/nvcuda.dll",
+      "load_verified": true,
+      "export_symbols_verified": [
+        "cuInit",
+        "cuModuleLoadDataEx",
+        "cuLaunchKernel",
+        "cuMemAlloc_v2",
+        "cuMemcpyHtoD_v2"
+      ],
+      "gpu_initialized": false
+    },
+    "standard_cuda_toolkit_directory_found": false
+  },
+  "wsl": {
+    "distribution": "Ubuntu-22.04",
+    "host_compilers": {
+      "gplusplus": "/usr/bin/g++",
+      "gcc": "/usr/bin/gcc",
+      "gcc_version": "11.4.0",
+      "cmake": "/usr/bin/cmake"
+    },
+    "commands_not_found_on_path": [
+      "nvcc",
+      "clang++",
+      "ninja"
+    ],
+    "nvrtc": {
+      "library": "/mnt/d/WorldModel_experiment/envs/wsl/wm/lib/python3.11/site-packages/nvidia/cuda_nvrtc/lib/libnvrtc.so.12",
+      "builtins": "/mnt/d/WorldModel_experiment/envs/wsl/wm/lib/python3.11/site-packages/nvidia/cuda_nvrtc/lib/libnvrtc-builtins.so.12.8",
+      "header": "/mnt/d/WorldModel_experiment/envs/wsl/wm/lib/python3.11/site-packages/nvidia/cuda_nvrtc/include/nvrtc.h",
+      "load_verified": true,
+      "nvrtcVersion_return_code": 0,
+      "version": [
+        12,
+        8
+      ]
+    },
+    "cuda_driver": {
+      "library": "/usr/lib/wsl/lib/libcuda.so.1",
+      "header": "/mnt/d/WorldModel_experiment/envs/wsl/wm/lib/python3.11/site-packages/nvidia/cuda_runtime/include/cuda.h",
+      "load_verified": true,
+      "export_symbols_verified": [
+        "cuInit",
+        "cuModuleLoadDataEx",
+        "cuLaunchKernel",
+        "cuMemAlloc_v2",
+        "cuMemcpyHtoD_v2"
+      ],
+      "gpu_initialized": false
+    },
+    "vulkan": {
+      "standard_header_paths_found": false,
+      "standard_loader_paths_found": false,
+      "ldconfig_query_found": false
+    }
+  },
+  "shortest_available_paths": [
+    "Python ctypes + existing NVRTC 12.8 + existing CUDA Driver API; no nvcc or host compiler required for runtime compilation.",
+    "Windows MSVC host executable + dynamic LoadLibrary/GetProcAddress for CUDA Driver API/NVRTC; complete C++ toolchain is present.",
+    "WSL g++ 11.4 host executable + libcuda.so.1 and existing CUDA/NVRTC headers."
+  ]
+}
