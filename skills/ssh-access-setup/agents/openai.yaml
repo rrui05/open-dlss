@@ -1,0 +1,4 @@
+interface:
+  display_name: "SSH 连接配置"
+  short_description: "复用本机 Windows 与 WSL 的 SSH 方法，配置新电脑并验证连接"
+  default_prompt: "使用 $ssh-access-setup 在新电脑开放 SSH，让本机通过密钥直接连接。"
